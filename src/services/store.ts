@@ -9,8 +9,8 @@ import {
 import { INITIAL_SERVICES, INITIAL_PROMOS } from '../data/initialData';
 
 const STORAGE_KEYS = {
-  SERVICES: 'andrea_labrador_services_v2',
-  PROMOS: 'andrea_labrador_promos_v2',
+  SERVICES: 'andrea_labrador_services_v3',
+  PROMOS: 'andrea_labrador_promos_v3',
   BOOKINGS: 'andrea_labrador_bookings_v1',
   BLOCKED_SLOTS: 'andrea_labrador_blocked_slots_v1',
   LOYALTY: 'andrea_labrador_loyalty_v1',
@@ -234,7 +234,7 @@ export class AppStore {
     const paymentLabel = {
       pago_movil: 'Pago Móvil (Bolívares)',
       efectivo: 'Efectivo en Dólares ($)',
-      binance: 'Binance Pay (USDT)'
+      binance: 'Binance (USDT)'
     }[booking.paymentMethod];
 
     const addonsText = booking.addons && booking.addons.length > 0
@@ -243,20 +243,22 @@ export class AppStore {
 
     const igText = booking.clientInstagram ? `\n📸 *Instagram:* @${booking.clientInstagram.replace('@', '')}` : '';
     const notesText = booking.notes ? `\n📝 *Nota:* ${booking.notes}` : '';
+    
+    const rate = this.getExchangeRate();
+    const approxVES = (booking.totalPriceUSD * rate).toFixed(0);
 
-    const message = `💅 *NUEVA RESERVA — ANDREA LABRADOR ESTUDIO* 💅
-Hola Andrea, deseo confirmar mi cita reservada desde tu catálogo web oficial:
+    const message = `¡Hola Andrea! 💅✨ Deseo agendar una cita contigo desde tu catálogo:
 
 👤 *Cliente:* ${booking.clientName}
 📱 *Teléfono:* ${booking.clientPhone}${igText}
-💎 *Servicio:* ${booking.serviceName}${addonsText}
+💅 *Servicio:* ${booking.serviceName}${addonsText}
 📅 *Fecha:* ${booking.date}
 ⏰ *Hora:* ${booking.timeSlot}
-💳 *Método de Pago:* ${paymentLabel}${notesText}
+💳 *Forma de Pago:* ${paymentLabel}${notesText}
 
-💰 *Total Estimado:* $${booking.totalPriceUSD.toFixed(2)} USD
+💰 *Total a Cancelar:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)
 
-Quedo atenta a tu confirmación para asistir a la cita pautada. ¡Muchas gracias! ✨`;
+¿Tienes este cupo disponible para confirmarme? ¡Muchas gracias! 💕`;
 
     const encoded = encodeURIComponent(message);
     return `https://wa.me/584241360937?text=${encoded}`;

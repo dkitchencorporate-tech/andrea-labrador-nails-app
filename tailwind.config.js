@@ -25,7 +25,7 @@ export default {
           200: '#f5f0ea',
           300: '#eae3d8',
           800: '#232a26',
-          900: '#181f1c', // Texto casi negro carbón de alta costura
+          900: '#181f1c', // Texto carbón oscuro de alta legibilidad
         },
         gold: {
           400: '#e0c598',

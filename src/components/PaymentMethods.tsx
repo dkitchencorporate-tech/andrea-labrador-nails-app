@@ -19,20 +19,20 @@ export const PaymentMethods: React.FC = () => {
           
           {/* Left: Explanation */}
           <div className="lg:col-span-6 space-y-4">
-            <span className="text-xs font-semibold tracking-[0.2em] text-sage-600 uppercase font-sans">
-              Transacciones Fáciles & Cómodas
+            <span className="text-xs font-bold tracking-[0.2em] text-sage-700 uppercase font-sans">
+              Comodidad para ti
             </span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-warm-900 font-semibold">
-              Métodos de Pago Aceptados
+            <h2 className="font-serif text-3xl sm:text-4xl text-warm-900 font-bold">
+              Métodos de Pago
             </h2>
-            <p className="text-xs sm:text-sm text-warm-800/80 leading-relaxed">
-              Para tu mayor comodidad y tranquilidad, puedes cancelar al finalizar tu cita mediante las modalidades más utilizadas en Venezuela y criptoactivos.
+            <p className="text-sm text-warm-900 leading-relaxed font-normal">
+              Para tu mayor comodidad, acepto las siguientes formas de pago al finalizar tu cita: <strong>Pago móvil</strong>, <strong>Efectivo</strong> y <strong>Binance</strong>.
             </p>
 
             {/* Direct Contact Links from PDF Page 9 */}
-            <div className="p-5 bg-white rounded-3xl border border-sage-200/80 shadow-soft space-y-3">
+            <div className="p-5 bg-white rounded-3xl border border-sage-200 shadow-soft space-y-3">
               <span className="text-xs font-bold text-sage-900 uppercase tracking-wider block">
-                Canales de Atención Directa
+                Reservas y Consultas Directas
               </span>
               <div className="flex flex-col sm:flex-row gap-3">
                 <a

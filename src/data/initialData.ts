@@ -7,27 +7,27 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     category: 'natural',
     priceUSD: 10.00,
     durationMinutes: 60,
-    shortDescription: 'Color vibrante con brillo espejo intacto de hasta 3 semanas.',
-    fullDescription: 'Ideal para quienes tienen uñas fuertes y buscan un color vibrante con brillo intacto que dure hasta tres semanas, sin añadir volumen ni longitud. Incluye preparación rusa de cutícula y esmaltado de alta gama curado en lámpara LED UV.',
-    idealFor: 'Uñas sanas y fuertes que buscan color perfecto sin mantenimiento semanal.',
+    shortDescription: 'Color vibrante con brillo intacto de hasta 3 semanas.',
+    fullDescription: 'Ideal para quienes tienen uñas fuertes y buscan un color vibrante con brillo intacto que dure hasta tres semanas, sin añadir volumen ni longitud.',
+    idealFor: 'Uñas sanas y fuertes que buscan color perfecto y duradero.',
     imageUrl: '/images/esmaltado-semipermanente.png',
     isPopular: true,
     isAvailable: true,
-    tags: ['Larga duración', 'Cuidado uña natural', 'Brillo espejo', 'Secado rápido']
+    tags: ['Larga duración', 'Uña natural', 'Brillo intacto', 'Secado rápido']
   },
   {
     id: 'pedicure',
-    name: 'Pedicure Spa Integral',
+    name: 'Pedicure Spa',
     category: 'pedicure',
     priceUSD: 11.50,
     durationMinutes: 75,
-    shortDescription: 'Cuidado integral: limpieza profunda, estética y relajación total.',
-    fullDescription: 'Un servicio de cuidado integral enfocado en la limpieza profunda, estética y relajación, para que tus pies luzcan y se sientan impecables. Incluye exfoliación mineral, hidratación con masajes relajantes y esmaltado impecable.',
-    idealFor: 'Descanso, higiene profunda y pies suaves y saludables todo el año.',
+    shortDescription: 'Limpieza profunda, estética y relajación para tus pies.',
+    fullDescription: 'Un servicio de cuidado integral enfocado en la limpieza profunda, estética y relajación, para que tus pies luzcan y se sientan impecables.',
+    idealFor: 'Descanso, higiene profunda y pies suaves y saludables.',
     imageUrl: '/images/pedicure-spa.jpg',
     isPopular: true,
     isAvailable: true,
-    tags: ['Exfoliación profunda', 'Masaje relajante', 'Higiene clínica', 'Pies perfectos']
+    tags: ['Limpieza profunda', 'Estética', 'Relajación', 'Pies impecables']
   },
   {
     id: 'base-rubber',
@@ -35,13 +35,13 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     category: 'natural',
     priceUSD: 15.00,
     durationMinutes: 90,
-    shortDescription: 'Flexibilidad, resistencia y curvatura perfecta para uña frágil.',
-    fullDescription: 'Perfecto si tus uñas son frágiles, delgadas o irregulares. Aporta flexibilidad, resistencia y una estructura perfecta para ayudar a su crecimiento natural. Crea un ápice armónico que absorbe los impactos diarios sin quebrar.',
-    idealFor: 'Uñas quebradizas, estriadas o en proceso de recuperación post-sistemas agresivos.',
+    shortDescription: 'Flexibilidad, resistencia y estructura para uña frágil.',
+    fullDescription: 'Perfecto si tus uñas son frágiles, delgadas o irregulares. Aporta flexibilidad, resistencia y una estructura perfecta para ayudar a su crecimiento natural.',
+    idealFor: 'Uñas frágiles, delgadas o irregulares que necesitan fuerza.',
     imageUrl: '/images/base-rubber.png',
     isPopular: true,
     isAvailable: true,
-    tags: ['Estructura flexible', 'Anti-quiebre', 'Crecimiento natural', 'Nivelación anatómica']
+    tags: ['Flexibilidad', 'Resistencia', 'Crecimiento natural', 'Nivelación']
   },
   {
     id: 'jelly-tips',
@@ -50,12 +50,12 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     priceUSD: 15.00,
     durationMinutes: 90,
     shortDescription: 'Longitud inmediata, simetría perfecta y máxima ligereza.',
-    fullDescription: 'La opción más rápida si deseas lucir uñas largas de inmediato. Son puntas pre-diseñadas de gel de última generación que ofrecen simetría perfecta y ligereza en tiempo récord, sin peso excesivo ni daño al lecho ungueal.',
-    idealFor: 'Eventos especiales, sesiones de fotos o quienes desean largo instantáneo sin horas de espera.',
+    fullDescription: 'La opción más rápida si deseas lucir uñas largas de inmediato. Son puntas pre-diseñadas que ofrecen simetría perfecta y ligereza en tiempo récord.',
+    idealFor: 'Quienes desean lucir uñas largas de inmediato en tiempo récord.',
     imageUrl: '/images/jelly-tips.jpg',
     isPopular: false,
     isAvailable: true,
-    tags: ['Longitud express', 'Ultra ligeras', 'Simetría exacta', 'Gel flexible']
+    tags: ['Largo inmediato', 'Puntas pre-diseñadas', 'Simetría perfecta', 'Ligereza']
   },
   {
     id: 'polygel-extensions',
@@ -63,13 +63,13 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     category: 'extensions',
     priceUSD: 18.00,
     durationMinutes: 120,
-    shortDescription: 'Esculpido artesanal a medida: la combinación de acrílico y gel.',
-    fullDescription: 'Ideal para quienes buscan un largo a medida y máxima resistencia. Se esculpen desde cero con técnica artesanal, logrando una estructura duradera con un aspecto muy natural, sin los olores fuertes del monómero tradicional.',
-    idealFor: 'Largo personalizado, máxima durabilidad y uñas de pasarela con resistencia blindada.',
+    shortDescription: 'Largo a medida y máxima resistencia con aspecto natural.',
+    fullDescription: 'Ideal para quienes buscan un largo a medida y máxima resistencia. Se esculpen desde cero, logrando una estructura duradera con un aspecto muy natural.',
+    idealFor: 'Quienes buscan un largo a medida y máxima resistencia.',
     imageUrl: '/images/polygel-extensions.png',
     isPopular: true,
     isAvailable: true,
-    tags: ['Esculpido a mano', 'Máxima durabilidad', 'Cero olores', 'Acabado ultra-fino']
+    tags: ['Esculpido desde cero', 'Largo a medida', 'Máxima resistencia', 'Aspecto natural']
   },
   {
     id: 'polygel-capping',
@@ -77,46 +77,45 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     category: 'natural',
     priceUSD: 16.00,
     durationMinutes: 90,
-    shortDescription: 'La armadura definitiva para tu uña natural sin añadir extensiones.',
-    fullDescription: 'La armadura definitiva para tu uña natural. Altamente recomendado para quienes sufren de desprendimientos o quiebres constantes y desean máxima dureza sin extensiones. Protege tu uña mientras crece fuerte y protegida.',
-    idealFor: 'Quienes quieren dejar crecer sus uñas naturales sin que se rompan en los bordes.',
+    shortDescription: 'Máxima protección para uña natural sin extensiones.',
+    fullDescription: 'Altamente recomendado para quienes sufren de desprendimientos o quiebres constantes y desean máxima dureza sin extensiones.',
+    idealFor: 'Quienes sufren de desprendimientos o quiebres constantes.',
     imageUrl: '/images/polygel-capping.png',
     isPopular: false,
     isAvailable: true,
-    tags: ['Blindaje total', 'Cero desprendimientos', 'Dureza diamantina', 'Cero extensión']
+    tags: ['Máxima dureza', 'Sin extensiones', 'Anti-quiebres', 'Uña natural']
   }
 ];
 
 export const INITIAL_ADDONS: ServiceAddon[] = [
-  { id: 'nailart-express', name: 'Nail Art Express (Líneas / Glitter / 2 Uñas)', priceUSD: 2.00, durationMinutes: 15 },
-  { id: 'nailart-deluxe', name: 'Nail Art Deluxe (Mármol / 3D / Pedrería)', priceUSD: 5.00, durationMinutes: 30 },
-  { id: 'francesa', name: 'Diseño Francés Clásico / Baby Boomer', priceUSD: 3.00, durationMinutes: 15 },
-  { id: 'retirada', name: 'Retirada de Sistema Anterior', priceUSD: 3.00, durationMinutes: 20 },
-  { id: 'spa-parafina', name: 'Tratamiento Hidronutritivo con Aceites Botánicos', priceUSD: 4.00, durationMinutes: 15 },
+  { id: 'nailart-express', name: 'Nail Art Express (Líneas / Glitter)', priceUSD: 2.00, durationMinutes: 15 },
+  { id: 'nailart-deluxe', name: 'Nail Art Diseños Especiales', priceUSD: 5.00, durationMinutes: 30 },
+  { id: 'francesa', name: 'Diseño Francés / Baby Boomer', priceUSD: 3.00, durationMinutes: 15 },
+  { id: 'retirada', name: 'Retiro de Sistema Anterior', priceUSD: 3.00, durationMinutes: 20 },
 ];
 
 export const INITIAL_PROMOS: PromoOffer[] = [
   {
     id: 'duo-estelar',
-    title: 'Pack Dúo Estelar',
-    subtitle: 'Manos y pies impecables en una sola sesión de spa.',
-    servicesIncluded: ['Esmaltado Semipermanente', 'Pedicure Spa Integral'],
+    title: 'Pack Manos & Pies',
+    subtitle: 'Esmaltado Semipermanente + Pedicure Spa en una sola cita.',
+    servicesIncluded: ['Esmaltado Semipermanente', 'Pedicure Spa'],
     regularPriceUSD: 21.50,
     promoPriceUSD: 19.00,
-    badge: 'MÁS POPULAR',
-    validUntil: 'Hasta agotar turnos del mes',
+    badge: 'MÁS PEDIDO',
+    validUntil: 'Cupos limitados por semana',
     isActive: true,
     imageUrl: '/images/pedicure-spa.jpg'
   },
   {
     id: 'reina-polygel',
-    title: 'Combo Reina Polygel',
-    subtitle: 'Extensiones esculpidas a medida con diseño Nail Art incluido.',
+    title: 'Combo Polygel + Diseño',
+    subtitle: 'Extensiones en Polygel con diseño Nail Art incluido.',
     servicesIncluded: ['Extensiones Polygel', 'Nail Art Express'],
     regularPriceUSD: 20.00,
     promoPriceUSD: 18.00,
-    badge: 'EDICIÓN ESPECIAL',
-    validUntil: 'Válido martes a jueves',
+    badge: 'ESPECIAL',
+    validUntil: 'Válido de martes a jueves',
     isActive: true,
     imageUrl: '/images/polygel-extensions.png'
   }
@@ -125,20 +124,14 @@ export const INITIAL_PROMOS: PromoOffer[] = [
 export const STUDIO_POLICIES: StudioPolicy[] = [
   {
     id: 'puntualidad',
-    title: 'Puntualidad Estricta',
-    description: 'Por respeto al tiempo de todas las clientas, es indispensable llegar a la hora pautada. Contamos con un margen de tolerancia máximo de 10 minutos para no alterar las citas sucesivas.',
+    title: 'Puntualidad',
+    description: 'Por respeto al tiempo de todas, es indispensable llegar a la hora pautada (contamos con 10 minutos de tolerancia).',
     iconName: 'Clock'
   },
   {
-    id: 'asistencia',
-    title: 'Asistencia Individual',
-    description: 'Para garantizar un ambiente relajante, seguro y sin interrupciones, te solicitamos asistir a tu cita sin acompañantes ni niños.',
-    iconName: 'UserCheck'
-  },
-  {
     id: 'bioseguridad',
-    title: 'Bioseguridad & Salud Ungueal',
-    description: 'Por estrictas normas sanitarias y de higiene preventiva, no se atienden personas que presenten patologías, micosis o sospecha de hongos en las uñas.',
+    title: 'Bioseguridad & Salud',
+    description: 'Por estrictas normas de higiene y prevención, no atiendo a personas que presenten patologías o sospecha de hongos en las uñas.',
     iconName: 'ShieldCheck'
   }
 ];

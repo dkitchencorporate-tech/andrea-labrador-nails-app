@@ -39,30 +39,30 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
         
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-          <span className="text-xs font-semibold tracking-[0.2em] text-sage-600 uppercase font-sans">
+          <span className="text-xs font-bold tracking-[0.2em] text-sage-700 uppercase font-sans">
             Catálogo Oficial de Servicios
           </span>
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-warm-900 font-semibold">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-warm-900 font-bold">
             Encuentra tu estilo ideal
           </h2>
-          <div className="w-16 h-0.5 bg-gold-400 mx-auto"></div>
-          <p className="text-sm sm:text-base text-warm-800/80">
-            Cada clienta tiene necesidades distintas. Te ofrezco opciones avanzadas para que elijamos juntas la técnica perfecta para la salud y belleza de tus uñas.
+          <div className="w-16 h-0.5 bg-sage-400 mx-auto"></div>
+          <p className="text-sm sm:text-base text-warm-900 font-normal">
+            Cada cliente tiene necesidades distintas, así que te ofrezco distintas opciones para que elijamos juntas la técnica perfecta para ti:
           </p>
         </div>
 
         {/* Category Filters & Search */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
           {/* Tabs */}
-          <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-white rounded-2xl border border-sage-200/80 shadow-sm">
+          <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-white rounded-2xl border border-sage-200 shadow-sm">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id as ServiceCategory)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                   selectedCategory === cat.id
-                    ? 'bg-sage-700 text-white shadow-sm'
-                    : 'text-warm-800 hover:text-sage-700 hover:bg-sage-50'
+                    ? 'bg-sage-800 text-white shadow-sm'
+                    : 'text-warm-900 hover:text-sage-800 hover:bg-sage-50'
                 }`}
               >
                 {cat.label}
@@ -77,7 +77,7 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
               placeholder="Buscar servicio o técnica..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 text-xs sm:text-sm rounded-xl border border-sage-200 bg-white focus:outline-none focus:ring-2 focus:ring-sage-400/40 focus:border-sage-500 transition-all placeholder:text-sage-400"
+              className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-sage-200 bg-white focus:outline-none focus:ring-2 focus:ring-sage-400/40 focus:border-sage-500 transition-all placeholder:text-sage-500 text-warm-900 font-medium"
             />
           </div>
         </div>
@@ -106,9 +106,9 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
                     {/* Floating Badges */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start z-10">
                       {service.isPopular && (
-                        <span className="px-3 py-1 bg-amber-600 text-white text-[11px] font-bold tracking-wider uppercase rounded-full shadow-md flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-amber-200" />
-                          <span>Más Solicitado</span>
+                        <span className="px-3 py-1 bg-sage-800 text-white text-[11px] font-bold tracking-wider uppercase rounded-full shadow-md flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-300" />
+                          <span>Más Pedido</span>
                         </span>
                       )}
                       <span className="px-3 py-1 bg-black/65 backdrop-blur-md text-white text-[11px] font-bold rounded-full shadow-sm flex items-center gap-1 border border-white/20">
@@ -120,7 +120,7 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
                     {/* Pricing Pill */}
                     <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-2xl shadow-soft border border-sage-200 text-right z-10">
                       <span className="text-[10px] text-sage-700 font-bold block uppercase tracking-wider">
-                        Inversión
+                        Precio
                       </span>
                       <span className="font-serif text-xl font-bold text-sage-900">
                         ${service.priceUSD.toFixed(2)}

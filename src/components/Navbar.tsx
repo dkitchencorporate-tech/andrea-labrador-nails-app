@@ -28,30 +28,26 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-7 text-sm font-medium text-warm-800">
-          <a href="#catalogo" className="hover:text-sage-600 transition-colors flex items-center gap-1">
+        <nav className="hidden md:flex items-center space-x-7 text-sm font-bold text-warm-900">
+          <a href="#catalogo" className="hover:text-sage-700 transition-colors">
             <span>Catálogo</span>
           </a>
-          <a href="#promociones" className="hover:text-sage-600 transition-colors flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-gold-500" />
-            <span>Promos</span>
+          <a href="#promociones" className="hover:text-sage-700 transition-colors flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>Combos & Promos</span>
           </a>
-          <a href="#politicas" className="hover:text-sage-600 transition-colors flex items-center gap-1">
-            <Shield className="w-3.5 h-3.5 text-sage-500" />
+          <a href="#politicas" className="hover:text-sage-700 transition-colors flex items-center gap-1">
+            <Shield className="w-3.5 h-3.5 text-sage-600" />
             <span>Políticas</span>
-          </a>
-          <a href="#club-vip" className="hover:text-sage-600 transition-colors flex items-center gap-1">
-            <Heart className="w-3.5 h-3.5 text-rose-400" />
-            <span>Club VIP</span>
           </a>
         </nav>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Exchange rate indicator pill */}
-          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-sage-100/80 rounded-full border border-sage-200 text-xs text-sage-800 font-sans">
+          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-sage-100 rounded-full border border-sage-200 text-xs text-sage-900 font-sans font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>$1 = {exchangeRate.toFixed(2)} Bs / USDT</span>
+            <span>$1 = {exchangeRate.toFixed(2)} Bs</span>
           </div>
 
           {/* Direct WhatsApp chat */}
@@ -59,12 +55,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             href="https://wa.me/584241360937?text=Hola%20Andrea!%20Deseo%20hacerte%20una%20consulta%20sobre%20tus%20servicios"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-sage-800 bg-white hover:bg-sage-50 border border-sage-200 rounded-full transition-all shadow-sm"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full transition-all shadow-sm"
             title="Chat directo con Andrea Labrador"
           >
             <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-            <span>WhatsApp</span>
-            <ArrowUpRight className="w-3 h-3 opacity-60" />
+            <span>0424-1360937</span>
           </a>
 
           {/* Book Appointment CTA Button */}

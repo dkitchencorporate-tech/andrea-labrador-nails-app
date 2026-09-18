@@ -188,10 +188,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       notes: booking.notes,
     });
 
-    // Open WhatsApp in new tab after tiny delay for visual confirmation
+    // Open WhatsApp directly
     setTimeout(() => {
-      window.open(waUrl, '_blank');
-    }, 800);
+      window.location.href = waUrl;
+    }, 500);
   };
 
   const handleResetAndClose = () => {
@@ -207,11 +207,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         {/* Modal Header */}
         <div className="px-6 py-5 bg-warm-100 border-b border-sage-200/80 flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-600 block">
-              Agenda tu Experiencia
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-700 block">
+              Agenda tu Cita
             </span>
             <h3 className="font-serif text-2xl font-bold text-sage-900">
-              {isSuccess ? '¡Cita Reservada con Éxito!' : 'Reservar Cita Privada'}
+              {isSuccess ? '¡Cita Lista para Confirmar!' : 'Agendar Cita con Andrea'}
             </h3>
           </div>
           <button
@@ -233,34 +233,34 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
               <div className="space-y-2">
                 <h4 className="font-serif text-2xl font-bold text-warm-900">
-                  ¡Gracias, {lastCreatedBooking.clientName}!
+                  ¡Casi listo, {lastCreatedBooking.clientName}!
                 </h4>
-                <p className="text-sm text-warm-800/80 max-w-md mx-auto">
-                  Tu solicitud ha sido guardada en nuestra agenda interna y se ha generado tu comprobante oficial para WhatsApp.
+                <p className="text-sm text-warm-900 max-w-md mx-auto font-medium">
+                  Tu cita está lista en el sistema. Toca el botón verde para enviar los datos a Andrea por WhatsApp (0424-1360937) para que te confirme en un momento.
                 </p>
               </div>
 
               {/* Booking Summary Box */}
               <div className="p-5 bg-sage-50 rounded-2xl border border-sage-200/80 text-left max-w-md mx-auto space-y-3 text-xs sm:text-sm">
                 <div className="flex justify-between border-b border-sage-200/60 pb-2">
-                  <span className="text-sage-700 font-medium">Servicio:</span>
+                  <span className="text-sage-800 font-bold">Servicio:</span>
                   <span className="font-bold text-warm-900">{lastCreatedBooking.serviceName}</span>
                 </div>
                 <div className="flex justify-between border-b border-sage-200/60 pb-2">
-                  <span className="text-sage-700 font-medium">Fecha y Hora:</span>
+                  <span className="text-sage-800 font-bold">Fecha y Hora:</span>
                   <span className="font-bold text-warm-900">{lastCreatedBooking.date} a las {lastCreatedBooking.timeSlot}</span>
                 </div>
                 <div className="flex justify-between border-b border-sage-200/60 pb-2">
-                  <span className="text-sage-700 font-medium">Total Estimado:</span>
+                  <span className="text-sage-800 font-bold">Total a Pagar:</span>
                   <span className="font-bold text-sage-900 font-serif text-base">${lastCreatedBooking.totalPriceUSD.toFixed(2)} USD</span>
                 </div>
-                <div className="flex justify-between text-[11px] text-sage-600">
+                <div className="flex justify-between text-xs text-sage-700 font-semibold">
                   <span>En Bolívares:</span>
                   <span>≈ {(lastCreatedBooking.totalPriceUSD * exchangeRate).toFixed(0)} Bs</span>
                 </div>
               </div>
 
-              {/* Action button to re-trigger WhatsApp if popup blocker caught it */}
+              {/* Action button to re-trigger WhatsApp */}
               <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
                 <a
                   href={AppStore.generateWhatsAppBookingUrl({
@@ -277,10 +277,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   })}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl text-xs sm:text-sm font-semibold shadow-soft transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-soft transition-all"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Enviar Confirmación a WhatsApp</span>
+                  <span>Enviar a WhatsApp (0424-1360937)</span>
                 </a>
                 <button
                   onClick={handleResetAndClose}

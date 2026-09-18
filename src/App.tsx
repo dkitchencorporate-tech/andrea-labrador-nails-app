@@ -5,7 +5,6 @@ import { ServiceCatalog } from './components/ServiceCatalog';
 import { Promotions } from './components/Promotions';
 import { StudioPolicies } from './components/StudioPolicies';
 import { PaymentMethods } from './components/PaymentMethods';
-import { LoyaltyClub } from './components/LoyaltyClub';
 import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
 import { AdminPanel } from './components/AdminPanel';
@@ -145,8 +144,6 @@ export const App: React.FC = () => {
         />
 
         <StudioPolicies />
-
-        <LoyaltyClub />
 
         <PaymentMethods />
       </main>
