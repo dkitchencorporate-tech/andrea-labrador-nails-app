@@ -16,28 +16,34 @@
 
     <!-- Favicon & Touch Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
 
-    <!-- Open Graph / Facebook / WhatsApp Preview Meta Tags -->
+    <!-- Open Graph / WhatsApp Preview Meta Tags (Strictly <300KB for WhatsApp scrapers) -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://andrea-labrador-nails-app.vercel.app" />
     <meta property="og:site_name" content="Andrea Labrador — Manicurista Profesional" />
-    <meta property="og:title" content="Andrea Labrador — Manicurista Profesional | Catálogo Exclusivo & Citas" />
+    <meta property="og:title" content="Andrea Labrador — Manicurista Profesional | Catálogo Oficial & Citas" />
     <meta property="og:description" content="Belleza, estilo y manos que hablan. Catálogo de técnicas exclusivas: Rubber Base, Polygel, Jelly Tips y Pedicure Spa. Agenda tu cita privada directamente por WhatsApp." />
-    <meta property="og:image" content="https://andrea-labrador-nails-app.vercel.app/images/andrea-labrador-hero.png" />
-    <meta property="og:image:secure_url" content="https://andrea-labrador-nails-app.vercel.app/images/andrea-labrador-hero.png" />
-    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image" content="https://andrea-labrador-nails-app.vercel.app/images/og-share-andrea-labrador.jpg" />
+    <meta property="og:image:secure_url" content="https://andrea-labrador-nails-app.vercel.app/images/og-share-andrea-labrador.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Andrea Labrador Manicurista Profesional en Venezuela" />
+    <meta property="og:image:alt" content="Andrea Labrador Manicurista Profesional — Catálogo Oficial de Uñas" />
     <meta property="og:locale" content="es_VE" />
+
+    <!-- Fallback Link Image for WhatsApp & Legacy Crawlers -->
+    <link rel="image_src" href="https://andrea-labrador-nails-app.vercel.app/images/og-share-andrea-labrador.jpg" />
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://andrea-labrador-nails-app.vercel.app" />
     <meta name="twitter:title" content="Andrea Labrador — Manicurista Profesional | Catálogo & Citas" />
     <meta name="twitter:description" content="Catálogo oficial de servicios: Rubber Base, Polygel, Jelly Tips y Pedicure Spa con Andrea Labrador. 7 años de experiencia." />
-    <meta name="twitter:image" content="https://andrea-labrador-nails-app.vercel.app/images/andrea-labrador-hero.png" />
+    <meta name="twitter:image" content="https://andrea-labrador-nails-app.vercel.app/images/og-share-andrea-labrador.jpg" />
 
     <!-- Google Fonts: Cormorant Garamond & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,7 +56,7 @@
       "@context": "https://schema.org",
       "@type": "BeautySalon",
       "name": "Andrea Labrador — Manicurista Profesional",
-      "image": "https://andrea-labrador-nails-app.vercel.app/images/andrea-labrador-hero.png",
+      "image": "https://andrea-labrador-nails-app.vercel.app/images/og-share-andrea-labrador.jpg",
       "url": "https://andrea-labrador-nails-app.vercel.app",
       "telephone": "+584241360937",
       "priceRange": "$10 - $25 USD",

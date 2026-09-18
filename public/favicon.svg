@@ -1,5 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="28" fill="#7d988d" />
-  <circle cx="50" cy="50" r="42" stroke="#fbf9f6" stroke-width="1.5" fill="none" opacity="0.4" />
-  <text x="50" y="62" font-family="'Cormorant Garamond', Georgia, serif" font-size="44" font-weight="600" fill="#fbf9f6" text-anchor="middle">AL</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D4036"/>
+      <stop offset="50%" stop-color="#3A5346"/>
+      <stop offset="100%" stop-color="#1A2720"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDF2D6"/>
+      <stop offset="25%" stop-color="#E2C582"/>
+      <stop offset="60%" stop-color="#BF984A"/>
+      <stop offset="100%" stop-color="#EAD198"/>
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F1813" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Base Squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  
+  <!-- Outer Border -->
+  <rect x="18" y="18" width="476" height="476" rx="114" fill="none" stroke="url(#goldGrad)" stroke-width="4" opacity="0.45"/>
+  
+  <!-- Inner Delicate Concentric Circles -->
+  <circle cx="256" cy="256" r="212" fill="none" stroke="url(#goldGrad)" stroke-width="2" opacity="0.6"/>
+  <circle cx="256" cy="256" r="202" fill="none" stroke="url(#goldGrad)" stroke-width="1.2" stroke-dasharray="6 8" opacity="0.4"/>
+
+  <!-- Top Star Accent -->
+  <path d="M 256 66 L 261 80 L 275 84 L 261 88 L 256 102 L 251 88 L 237 84 L 251 80 Z" fill="url(#goldGrad)"/>
+
+  <!-- Bottom Accent Dots -->
+  <circle cx="256" cy="438" r="4.5" fill="url(#goldGrad)"/>
+  <circle cx="238" cy="438" r="2.5" fill="url(#goldGrad)" opacity="0.7"/>
+  <circle cx="274" cy="438" r="2.5" fill="url(#goldGrad)" opacity="0.7"/>
+
+  <!-- Monogram AL -->
+  <g filter="url(#softGlow)">
+    <text x="256" y="324" font-family="'Cormorant Garamond', 'Georgia', 'Times New Roman', serif" font-size="216" font-weight="700" letter-spacing="4" fill="url(#goldGrad)" text-anchor="middle">AL</text>
+  </g>
+  
+  <!-- Subtitle NAILS -->
+  <text x="256" y="382" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="14" fill="#FDF2D6" text-anchor="middle" opacity="0.92">NAILS</text>
 </svg>
