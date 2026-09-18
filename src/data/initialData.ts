@@ -11,6 +11,8 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     fullDescription: 'Ideal para quienes tienen uñas fuertes y buscan un color vibrante con brillo intacto que dure hasta tres semanas, sin añadir volumen ni longitud.',
     idealFor: 'Uñas sanas y fuertes que buscan color perfecto y duradero.',
     imageUrl: '/images/esmaltado-semipermanente.png',
+    badgeText: 'Clásico Infalible',
+    badgeColor: 'bg-rose-700',
     isPopular: true,
     isAvailable: true,
     tags: ['Larga duración', 'Uña natural', 'Brillo intacto', 'Secado rápido']
@@ -25,6 +27,8 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     fullDescription: 'Un servicio de cuidado integral enfocado en la limpieza profunda, estética y relajación, para que tus pies luzcan y se sientan impecables.',
     idealFor: 'Descanso, higiene profunda y pies suaves y saludables.',
     imageUrl: '/images/pedicure-spa.jpg',
+    badgeText: 'Bienestar & Spa',
+    badgeColor: 'bg-teal-700',
     isPopular: true,
     isAvailable: true,
     tags: ['Limpieza profunda', 'Estética', 'Relajación', 'Pies impecables']
@@ -39,6 +43,8 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     fullDescription: 'Perfecto si tus uñas son frágiles, delgadas o irregulares. Aporta flexibilidad, resistencia y una estructura perfecta para ayudar a su crecimiento natural.',
     idealFor: 'Uñas frágiles, delgadas o irregulares que necesitan fuerza.',
     imageUrl: '/images/base-rubber.png',
+    badgeText: 'Más Solicitado',
+    badgeColor: 'bg-emerald-800',
     isPopular: true,
     isAvailable: true,
     tags: ['Flexibilidad', 'Resistencia', 'Crecimiento natural', 'Nivelación']
@@ -53,6 +59,8 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     fullDescription: 'La opción más rápida si deseas lucir uñas largas de inmediato. Son puntas pre-diseñadas que ofrecen simetría perfecta y ligereza en tiempo récord.',
     idealFor: 'Quienes desean lucir uñas largas de inmediato en tiempo récord.',
     imageUrl: '/images/jelly-tips.jpg',
+    badgeText: 'Largo Express',
+    badgeColor: 'bg-purple-700',
     isPopular: false,
     isAvailable: true,
     tags: ['Largo inmediato', 'Puntas pre-diseñadas', 'Simetría perfecta', 'Ligereza']
@@ -67,6 +75,8 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     fullDescription: 'Ideal para quienes buscan un largo a medida y máxima resistencia. Se esculpen desde cero, logrando una estructura duradera con un aspecto muy natural.',
     idealFor: 'Quienes buscan un largo a medida y máxima resistencia.',
     imageUrl: '/images/polygel-extensions.png',
+    badgeText: 'Máxima Durabilidad',
+    badgeColor: 'bg-amber-700',
     isPopular: true,
     isAvailable: true,
     tags: ['Esculpido desde cero', 'Largo a medida', 'Máxima resistencia', 'Aspecto natural']
@@ -81,6 +91,8 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     fullDescription: 'Altamente recomendado para quienes sufren de desprendimientos o quiebres constantes y desean máxima dureza sin extensiones.',
     idealFor: 'Quienes sufren de desprendimientos o quiebres constantes.',
     imageUrl: '/images/polygel-capping.png',
+    badgeText: 'Blindaje Natural',
+    badgeColor: 'bg-sage-800',
     isPopular: false,
     isAvailable: true,
     tags: ['Máxima dureza', 'Sin extensiones', 'Anti-quiebres', 'Uña natural']

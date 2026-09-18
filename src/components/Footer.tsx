@@ -1,13 +1,12 @@
 import React from 'react';
-import { MessageCircle, Heart, Lock, Calendar, Sparkles } from 'lucide-react';
+import { MessageCircle, Calendar } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
 interface FooterProps {
-  onToggleAdmin: () => void;
   onOpenBooking: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onToggleAdmin, onOpenBooking }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenBooking }) => {
   return (
     <footer className="bg-sage-900 text-warm-100 py-14 border-t border-sage-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
@@ -98,16 +97,9 @@ export const Footer: React.FC<FooterProps> = ({ onToggleAdmin, onOpenBooking }) 
           <p>
             &copy; {new Date().getFullYear()} Andrea Labrador &bull; Todos los derechos reservados.
           </p>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onToggleAdmin}
-              className="text-sage-400 hover:text-amber-300 transition-colors flex items-center gap-1 font-semibold"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>Acceso Administradora</span>
-            </button>
-          </div>
+          <p className="text-sage-400 text-xs">
+            Venezuela &bull; Cuidado Integral de Uñas
+          </p>
         </div>
 
       </div>

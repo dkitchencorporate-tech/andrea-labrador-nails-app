@@ -11,6 +11,8 @@ export interface ServiceItem {
   idealFor: string;
   imageUrl: string;
   isPopular?: boolean;
+  badgeText?: string;
+  badgeColor?: string;
   isAvailable: boolean;
   tags: string[];
 }

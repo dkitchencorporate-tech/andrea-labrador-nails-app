@@ -1,17 +1,13 @@
 import React from 'react';
-import { Calendar, Sparkles, Shield, Heart, Lock, MessageCircle, ArrowUpRight } from 'lucide-react';
+import { Calendar, Sparkles, Shield, MessageCircle } from 'lucide-react';
 
 interface NavbarProps {
   onOpenBooking: () => void;
-  onToggleAdmin: () => void;
-  isAdminOpen: boolean;
   exchangeRate: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenBooking,
-  onToggleAdmin,
-  isAdminOpen,
   exchangeRate,
 }) => {
   return (
@@ -19,10 +15,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
         {/* Brand / Logo */}
         <a href="#" className="flex flex-col group">
-          <span className="font-serif text-2xl sm:text-3xl font-semibold tracking-wide text-sage-900 group-hover:text-sage-700 transition-colors">
+          <span className="font-serif text-2xl sm:text-3xl font-bold tracking-wide text-sage-900 group-hover:text-sage-700 transition-colors">
             ANDREA LABRADOR
           </span>
-          <span className="text-[10px] sm:text-xs tracking-[0.25em] uppercase text-sage-600 font-sans font-medium">
+          <span className="text-[10px] sm:text-xs tracking-[0.25em] uppercase text-sage-600 font-sans font-bold">
             Manicurista Profesional
           </span>
         </a>
@@ -65,23 +61,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Book Appointment CTA Button */}
           <button
             onClick={onOpenBooking}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-sage-700 hover:bg-sage-800 text-warm-50 text-xs sm:text-sm font-medium rounded-full shadow-soft hover:shadow-luxury transition-all transform active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-sage-800 hover:bg-sage-900 text-white text-xs sm:text-sm font-bold rounded-full shadow-soft hover:shadow-luxury transition-all transform active:scale-95"
           >
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4 text-amber-300" />
             <span>Agendar Cita</span>
-          </button>
-
-          {/* Internal Admin Toggle */}
-          <button
-            onClick={onToggleAdmin}
-            className={`p-2 rounded-full border transition-all ${
-              isAdminOpen
-                ? 'bg-sage-900 text-white border-sage-900'
-                : 'bg-white hover:bg-sage-50 text-sage-700 border-sage-200 shadow-sm'
-            }`}
-            title="Panel Administrativo Interno"
-          >
-            <Lock className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -9,7 +9,7 @@ import {
 import { INITIAL_SERVICES, INITIAL_PROMOS } from '../data/initialData';
 
 const STORAGE_KEYS = {
-  SERVICES: 'andrea_labrador_services_v3',
+  SERVICES: 'andrea_labrador_services_v4',
   PROMOS: 'andrea_labrador_promos_v3',
   BOOKINGS: 'andrea_labrador_bookings_v1',
   BLOCKED_SLOTS: 'andrea_labrador_blocked_slots_v1',
@@ -48,8 +48,8 @@ export class AppStore {
   // --- SERVICIOS ---
   static getServices(): ServiceItem[] {
     const list = this.getStored<ServiceItem[]>(STORAGE_KEYS.SERVICES, INITIAL_SERVICES);
-    // Sanitize any legacy unsplash URLs
-    if (list.some(s => s.imageUrl.includes('unsplash.com'))) {
+    // Sanitize any legacy unsplash URLs or missing badges
+    if (!list[0]?.badgeText || list.some(s => s.imageUrl.includes('unsplash.com'))) {
       this.saveServices(INITIAL_SERVICES);
       return INITIAL_SERVICES;
     }
@@ -129,6 +129,11 @@ export class AppStore {
       booking.status = status;
       this.saveBookings(bookings);
     }
+  }
+
+  static deleteBooking(id: string): void {
+    const bookings = this.getBookings().filter(b => b.id !== id);
+    this.saveBookings(bookings);
   }
 
   // --- BLOQUEOS DE CALENDARIO ---

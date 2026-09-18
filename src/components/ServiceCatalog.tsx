@@ -105,12 +105,17 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
                     
                     {/* Floating Badges */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start z-10">
-                      {service.isPopular && (
+                      {service.badgeText ? (
+                        <span className={`px-3 py-1 text-white text-[11px] font-bold tracking-wider uppercase rounded-full shadow-md flex items-center gap-1.5 ${service.badgeColor || 'bg-sage-800'}`}>
+                          <Sparkles className="w-3 h-3 text-amber-300" />
+                          <span>{service.badgeText}</span>
+                        </span>
+                      ) : service.isPopular ? (
                         <span className="px-3 py-1 bg-sage-800 text-white text-[11px] font-bold tracking-wider uppercase rounded-full shadow-md flex items-center gap-1">
                           <Sparkles className="w-3 h-3 text-amber-300" />
-                          <span>Más Pedido</span>
+                          <span>Recomendado</span>
                         </span>
-                      )}
+                      ) : null}
                       <span className="px-3 py-1 bg-black/65 backdrop-blur-md text-white text-[11px] font-bold rounded-full shadow-sm flex items-center gap-1 border border-white/20">
                         <Clock className="w-3 h-3 text-amber-300" />
                         <span>{service.durationMinutes} min</span>
