@@ -27,8 +27,13 @@ export const ReferralClub: React.FC<ReferralClubProps> = ({
   const [activeTab, setActiveTab] = useState<'invite' | 'rules'>('invite');
 
   // Sanitize name for clean slug
-  const cleanName = referrerName.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '') || 'Amiga';
-  const referralCode = `AL-${cleanName.toUpperCase().slice(0, 10).replace(/\s+/g, '')}`;
+  const hasName = referrerName.trim().length > 0;
+  const cleanName = hasName
+    ? referrerName.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '')
+    : 'Tu Nombre Aquí';
+  const referralCode = hasName
+    ? `AL-${referrerName.trim().toUpperCase().slice(0, 10).replace(/\s+/g, '')}`
+    : 'AL-??????';
   
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://andrea-labrador-nails-app.vercel.app';
   const referralLink = `${baseUrl}/?ref=${encodeURIComponent(cleanName)}`;

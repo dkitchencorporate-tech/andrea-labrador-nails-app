@@ -197,39 +197,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col selection:bg-emerald-600 selection:text-white">
+    <div className="min-h-screen bg-[#FBF9F6] text-warm-900 font-sans flex flex-col selection:bg-sage-200 selection:text-sage-900">
       
-      {/* SaaS Top Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3 flex items-center justify-between">
+      {/* SaaS Top Navigation Bar — matches main site Navbar style */}
+      <header className="sticky top-0 z-40 bg-[#FBF9F6] border-b border-sage-200/80 shadow-xs px-4 sm:px-8 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold font-serif text-lg">
+          <div className="w-10 h-10 rounded-xl bg-sage-800 text-amber-200 flex items-center justify-center font-bold font-serif text-sm">
             AL
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-white tracking-wide text-lg">
+              <span className="font-serif font-bold text-sage-900 tracking-wide text-base sm:text-lg">
                 ANDREA LABRADOR
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-800 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full bg-sage-100 border border-sage-300 text-[10px] font-bold text-sage-700 uppercase tracking-wider">
                 Panel SaaS
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">
-              Sistema de Gestión &bull; Catálogo & Citas en Venezuela
+            <p className="text-[11px] text-warm-600">
+              Sistema de Gestión &bull; Catálogo &amp; Citas en Venezuela
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-slate-300">Tasa:</span>
-            <span className="font-bold text-white">${exchangeRate.toFixed(2)} Bs / USD</span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sage-50 border border-sage-200 text-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-warm-600">Tasa:</span>
+            <span className="font-bold text-warm-900">${exchangeRate.toFixed(2)} Bs / USD</span>
           </div>
 
           <button
             onClick={onRefreshData}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700"
+            className="p-2 rounded-xl bg-sage-100 hover:bg-sage-200 text-sage-700 hover:text-sage-900 transition-colors border border-sage-200"
             title="Sincronizar Datos"
           >
             <RefreshCw className="w-4 h-4" />
@@ -237,7 +237,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           <button
             onClick={onExitToCatalog}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-sage-800 hover:bg-sage-900 text-white rounded-xl text-xs font-bold transition-all shadow-soft active:scale-95"
           >
             <span>Ver Catálogo Clientes</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -253,45 +253,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           
           {/* Quick Metrics Cards */}
           <div className="grid grid-cols-2 md:grid-cols-1 gap-3">
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <div className="p-4 rounded-2xl bg-white border border-sage-200 shadow-soft">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-warm-600 block">
                 Citas Totales
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="font-serif text-3xl font-black text-white">{totalBookingsCount}</span>
+                <span className="font-serif text-3xl font-black text-warm-900">{totalBookingsCount}</span>
                 {pendingCount > 0 && (
-                  <span className="text-xs text-amber-400 font-bold">({pendingCount} por confirmar)</span>
+                  <span className="text-xs text-amber-700 font-bold">({pendingCount} por confirmar)</span>
                 )}
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <div className="p-4 rounded-2xl bg-white border border-sage-200 shadow-soft">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-warm-600 block">
                 Ingresos Confirmados
               </span>
               <div className="mt-1">
-                <span className="font-serif text-2xl font-black text-emerald-400">${totalRevenueUSD.toFixed(2)} USD</span>
-                <span className="block text-[11px] text-slate-400">≈ {(totalRevenueUSD * exchangeRate).toFixed(0)} Bs</span>
+                <span className="font-serif text-2xl font-black text-emerald-700">${totalRevenueUSD.toFixed(2)} USD</span>
+                <span className="block text-[11px] text-warm-600">≈ {(totalRevenueUSD * exchangeRate).toFixed(0)} Bs</span>
               </div>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-2 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+          <nav className="p-2 rounded-2xl bg-white border border-sage-200 shadow-soft space-y-1">
             <button
               onClick={() => setActiveTab('bookings')}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'bookings'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-sage-800 text-white shadow-md'
+                  : 'text-warm-700 hover:bg-sage-50 hover:text-warm-900'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <LayoutDashboard className="w-4 h-4" />
-                <span>Citas & Reservas</span>
+                <span>Citas &amp; Reservas</span>
               </div>
               {pendingCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">
+                <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black">
                   {pendingCount}
                 </span>
               )}
@@ -301,8 +301,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={() => setActiveTab('calendar')}
               className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'calendar'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-sage-800 text-white shadow-md'
+                  : 'text-warm-700 hover:bg-sage-50 hover:text-warm-900'
               }`}
             >
               <Calendar className="w-4 h-4" />
@@ -313,53 +313,53 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={() => setActiveTab('services')}
               className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'services'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-sage-800 text-white shadow-md'
+                  : 'text-warm-700 hover:bg-sage-50 hover:text-warm-900'
               }`}
             >
               <Sparkles className="w-4 h-4" />
-              <span>Catálogo & Precios</span>
+              <span>Catálogo &amp; Precios</span>
             </button>
 
             <button
               onClick={() => setActiveTab('promos')}
               className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'promos'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-sage-800 text-white shadow-md'
+                  : 'text-warm-700 hover:bg-sage-50 hover:text-warm-900'
               }`}
             >
               <Tag className="w-4 h-4" />
-              <span>Combos & Promos</span>
+              <span>Combos &amp; Promos</span>
             </button>
 
             <button
               onClick={() => setActiveTab('settings')}
               className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'settings'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-sage-800 text-white shadow-md'
+                  : 'text-warm-700 hover:bg-sage-50 hover:text-warm-900'
               }`}
             >
               <DollarSign className="w-4 h-4" />
-              <span>Tasa & Respaldos</span>
+              <span>Tasa &amp; Respaldos</span>
             </button>
           </nav>
 
         </aside>
 
         {/* Content Panel */}
-        <main className="flex-1 bg-slate-900 rounded-3xl border border-slate-800 p-5 sm:p-7 overflow-y-auto">
+        <main className="flex-1 bg-white rounded-3xl border border-sage-200 shadow-soft p-5 sm:p-7 overflow-y-auto">
           
           {/* TAB 1: BOOKINGS MANAGEMENT */}
           {activeTab === 'bookings' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-sage-200 pb-4">
                 <div>
-                  <h3 className="text-xl font-bold font-serif text-white">
+                  <h3 className="text-xl font-bold font-serif text-warm-900">
                     Historial de Citas Solicitadas
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-warm-600">
                     Las reservas enviadas por las clientas se almacenan aquí y se conectan directo a tu WhatsApp.
                   </p>
                 </div>
@@ -369,7 +369,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <select
                     value={bookingFilterStatus}
                     onChange={(e) => setBookingFilterStatus(e.target.value)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-200 focus:outline-none"
+                    className="px-3 py-1.5 rounded-xl bg-warm-50 border border-sage-200 text-xs text-warm-900 focus:outline-none focus:ring-2 focus:ring-sage-400"
                   >
                     <option value="all">Todas ({bookings.length})</option>
                     <option value="pendiente">Pendientes ({pendingCount})</option>
@@ -382,28 +382,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               {filteredBookings.length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-800 text-slate-500 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-2xl bg-sage-100 text-sage-500 flex items-center justify-center mx-auto">
                     <Calendar className="w-6 h-6" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-300">No hay citas registradas en este estado.</p>
-                  <p className="text-xs text-slate-500">Cuando una clienta agende desde el catálogo, aparecerá listada de inmediato.</p>
+                  <p className="text-sm font-semibold text-warm-700">No hay citas registradas en este estado.</p>
+                  <p className="text-xs text-warm-500">Cuando una clienta agende desde el catálogo, aparecerá listada de inmediato.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {filteredBookings.map((b) => (
                     <div
                       key={b.id}
-                      className="p-4 sm:p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 hover:border-slate-700 transition-colors"
+                      className="p-4 sm:p-5 rounded-2xl bg-warm-50 border border-sage-200 space-y-4 hover:border-sage-300 transition-colors"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sage-200 pb-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-white text-base">{b.clientName}</span>
+                            <span className="font-bold text-warm-900 text-base">{b.clientName}</span>
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                              b.status === 'pendiente' ? 'bg-amber-950 text-amber-400 border border-amber-800' :
-                              b.status === 'confirmada' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
-                              b.status === 'completada' ? 'bg-blue-950 text-blue-400 border border-blue-800' :
-                              'bg-rose-950 text-rose-400 border border-rose-800'
+                              b.status === 'pendiente' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                              b.status === 'confirmada' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                              b.status === 'completada' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                              'bg-rose-100 text-rose-800 border border-rose-300'
                             }`}>
                               {b.status}
                             </span>
