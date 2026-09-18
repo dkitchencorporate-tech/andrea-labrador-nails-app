@@ -235,6 +235,7 @@ export class AppStore {
     addons?: { name: string; priceUSD: number }[];
     paymentMethod: PaymentMethodType;
     notes?: string;
+    referralCode?: string;
   }): string {
     const paymentLabel = {
       pago_movil: 'Pago Móvil (Bolívares)',
@@ -248,6 +249,7 @@ export class AppStore {
 
     const igText = booking.clientInstagram ? `\n📸 *Instagram:* @${booking.clientInstagram.replace('@', '')}` : '';
     const notesText = booking.notes ? `\n📝 *Nota:* ${booking.notes}` : '';
+    const referralText = booking.referralCode ? `\n🎁 *Pase de Lanzamiento:* Referida por ${booking.referralCode} (Aplica $2 OFF o Nail Art cortesía)` : '';
     
     const rate = this.getExchangeRate();
     const approxVES = (booking.totalPriceUSD * rate).toFixed(0);
@@ -259,7 +261,7 @@ export class AppStore {
 💅 *Servicio:* ${booking.serviceName}${addonsText}
 📅 *Fecha:* ${booking.date}
 ⏰ *Hora:* ${booking.timeSlot}
-💳 *Forma de Pago:* ${paymentLabel}${notesText}
+💳 *Forma de Pago:* ${paymentLabel}${referralText}${notesText}
 
 💰 *Total a Cancelar:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)
 

@@ -1,17 +1,19 @@
 import React from 'react';
-import { Calendar, Sparkles, Shield, MessageCircle } from 'lucide-react';
+import { Calendar, Sparkles, Shield, MessageCircle, Gift } from 'lucide-react';
 
 interface NavbarProps {
   onOpenBooking: () => void;
+  onNavigateToShare?: () => void;
   exchangeRate: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenBooking,
+  onNavigateToShare,
   exchangeRate,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-warm-100/90 backdrop-blur-md border-b border-sage-200/60 transition-all">
+    <header className="sticky top-0 z-40 bg-warm-100/98 backdrop-blur-lg border-b border-sage-200/80 shadow-xs transition-all">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
         {/* Brand / Logo */}
         <a href="#" className="flex flex-col group">
@@ -24,13 +26,26 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-7 text-sm font-bold text-warm-900">
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-bold text-warm-900">
           <a href="#catalogo" className="hover:text-sage-700 transition-colors">
             <span>Catálogo</span>
           </a>
           <a href="#promociones" className="hover:text-sage-700 transition-colors flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
             <span>Combos & Promos</span>
+          </a>
+          <a 
+            href="/compartir" 
+            onClick={(e) => {
+              if (onNavigateToShare) {
+                e.preventDefault();
+                onNavigateToShare();
+              }
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition-all border border-amber-300 shadow-xs"
+          >
+            <Gift className="w-3.5 h-3.5 text-amber-600" />
+            <span>🎁 Regalo de Lanzamiento</span>
           </a>
           <a href="#politicas" className="hover:text-sage-700 transition-colors flex items-center gap-1">
             <Shield className="w-3.5 h-3.5 text-sage-600" />
@@ -40,6 +55,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Gift Shortcut */}
+          <a
+            href="/compartir"
+            onClick={(e) => {
+              if (onNavigateToShare) {
+                e.preventDefault();
+                onNavigateToShare();
+              }
+            }}
+            className="md:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold"
+            title="Club de Regalos"
+          >
+            <Gift className="w-3.5 h-3.5 text-amber-600" />
+            <span>Regalo</span>
+          </a>
+
           {/* Exchange rate indicator pill */}
           <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-sage-100 rounded-full border border-sage-200 text-xs text-sage-900 font-sans font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>

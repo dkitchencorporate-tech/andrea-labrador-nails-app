@@ -21,7 +21,8 @@ import {
   ChevronRight, 
   User, 
   Phone, 
-  CreditCard 
+  CreditCard,
+  Gift
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
@@ -32,6 +33,8 @@ interface BookingModalProps {
   preSelectedPromo?: PromoOffer | null;
   services: ServiceItem[];
   exchangeRate: number;
+  referralCode?: string;
+  onNavigateToShare?: () => void;
 }
 
 export const BookingModal: React.FC<BookingModalProps> = ({
@@ -41,6 +44,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   preSelectedPromo,
   services,
   exchangeRate,
+  referralCode,
+  onNavigateToShare,
 }) => {
   // Wizard steps: 1: Service & Addons, 2: Date & Time, 3: Client Info & Confirm
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -186,6 +191,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       addons: booking.selectedAddons,
       paymentMethod: booking.paymentMethod,
       notes: booking.notes,
+      referralCode: referralCode || undefined,
     });
 
     // Open WhatsApp directly
@@ -274,6 +280,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     addons: lastCreatedBooking.selectedAddons,
                     paymentMethod: lastCreatedBooking.paymentMethod,
                     notes: lastCreatedBooking.notes,
+                    referralCode: referralCode || undefined,
                   })}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -289,6 +296,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   Cerrar
                 </button>
               </div>
+
+              {/* Special Launch Gift Club Banner */}
+              {onNavigateToShare && (
+                <div className="p-4 bg-gradient-to-r from-amber-50 to-warm-100 border border-amber-300/80 rounded-2xl text-left flex items-center justify-between gap-3 max-w-md mx-auto shadow-xs">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] uppercase font-bold text-amber-900 tracking-wider flex items-center gap-1">
+                      <Gift className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Premio de Lanzamiento</span>
+                    </span>
+                    <p className="text-xs font-bold text-warm-900">
+                      ¿Quieres tu próxima manicura 100% Gratis?
+                    </p>
+                    <p className="text-[11px] text-warm-600">
+                      Invita a 2 amigas con tu pase y gana tu servicio completo.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleResetAndClose();
+                      onNavigateToShare();
+                    }}
+                    className="shrink-0 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                  >
+                    Obtener Pase
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             /* Wizard Steps */

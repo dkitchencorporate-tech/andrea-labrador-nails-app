@@ -1,34 +1,41 @@
 import React from 'react';
-import { MessageCircle, Calendar } from 'lucide-react';
+import { MessageCircle, Calendar, Gift, Sparkles } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
 interface FooterProps {
   onOpenBooking: () => void;
+  onNavigateToShare?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenBooking }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare }) => {
   return (
-    <footer className="bg-sage-900 text-warm-100 py-14 border-t border-sage-800">
+    <footer className="bg-sage-900 text-warm-100 pt-12 pb-32 sm:pb-16 border-t border-sage-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           
           {/* Brand Presentation */}
-          <div className="md:col-span-5 space-y-3.5">
-            <div className="space-y-1">
-              <span className="font-serif text-3xl font-bold tracking-wide text-white block">
-                ANDREA LABRADOR
-              </span>
-              <span className="text-xs uppercase tracking-[0.2em] text-amber-300 font-semibold block">
-                Manicurista Profesional
-              </span>
+          <div className="md:col-span-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sage-800 border border-amber-300/40 flex items-center justify-center font-serif text-amber-200 font-bold text-sm shadow-xs">
+                AL
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-serif text-2xl font-bold tracking-wide text-white block leading-tight">
+                  Andrea Labrador
+                </span>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300 font-semibold block">
+                  Estudio de Uñas &bull; Venezuela
+                </span>
+              </div>
             </div>
+
             <p className="text-xs sm:text-sm text-sage-200/90 leading-relaxed max-w-sm">
               7 años dedicados al cuidado y embellecimiento de tus uñas en Venezuela. Especialista en nivelación con Base Rubber, Polygel y Jelly Tips, priorizando siempre la salud de tu uña natural.
             </p>
             
             {/* Social Buttons */}
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 pt-1">
               <a
                 href="https://wa.me/584241360937"
                 target="_blank"
@@ -60,10 +67,25 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking }) => {
             <ul className="space-y-2 text-xs sm:text-sm text-sage-200 font-medium">
               <li><a href="#catalogo" className="hover:text-white transition-colors">Catálogo de Servicios</a></li>
               <li><a href="#promociones" className="hover:text-white transition-colors">Combos & Promociones</a></li>
+              <li>
+                <a 
+                  href="/compartir" 
+                  onClick={(e) => {
+                    if (onNavigateToShare) {
+                      e.preventDefault();
+                      onNavigateToShare();
+                    }
+                  }}
+                  className="text-amber-300 hover:text-white transition-colors flex items-center gap-1.5 font-bold"
+                >
+                  <Gift className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Club Amigas: Manicura Gratis</span>
+                </a>
+              </li>
               <li><a href="#politicas" className="hover:text-white transition-colors">Políticas del Estudio</a></li>
               <li>
-                <button onClick={onOpenBooking} className="text-amber-300 hover:text-white transition-colors flex items-center gap-1 font-bold">
-                  <Calendar className="w-3.5 h-3.5" />
+                <button onClick={onOpenBooking} className="text-sage-200 hover:text-white transition-colors flex items-center gap-1 font-semibold">
+                  <Calendar className="w-3.5 h-3.5 text-amber-300" />
                   <span>Agendar Cita en Línea</span>
                 </button>
               </li>
@@ -92,8 +114,8 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking }) => {
 
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-sage-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-sage-400">
+        {/* Bottom Bar with Plenty of Padding */}
+        <div className="pt-6 border-t border-sage-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-sage-400">
           <p>
             &copy; {new Date().getFullYear()} Andrea Labrador &bull; Todos los derechos reservados.
           </p>
