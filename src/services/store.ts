@@ -9,8 +9,8 @@ import {
 import { INITIAL_SERVICES, INITIAL_PROMOS } from '../data/initialData';
 
 const STORAGE_KEYS = {
-  SERVICES: 'andrea_labrador_services_v1',
-  PROMOS: 'andrea_labrador_promos_v1',
+  SERVICES: 'andrea_labrador_services_v2',
+  PROMOS: 'andrea_labrador_promos_v2',
   BOOKINGS: 'andrea_labrador_bookings_v1',
   BLOCKED_SLOTS: 'andrea_labrador_blocked_slots_v1',
   LOYALTY: 'andrea_labrador_loyalty_v1',
@@ -47,7 +47,13 @@ export class AppStore {
 
   // --- SERVICIOS ---
   static getServices(): ServiceItem[] {
-    return this.getStored<ServiceItem[]>(STORAGE_KEYS.SERVICES, INITIAL_SERVICES);
+    const list = this.getStored<ServiceItem[]>(STORAGE_KEYS.SERVICES, INITIAL_SERVICES);
+    // Sanitize any legacy unsplash URLs
+    if (list.some(s => s.imageUrl.includes('unsplash.com'))) {
+      this.saveServices(INITIAL_SERVICES);
+      return INITIAL_SERVICES;
+    }
+    return list;
   }
 
   static saveServices(services: ServiceItem[]): void {

@@ -10,7 +10,7 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     shortDescription: 'Color vibrante con brillo espejo intacto de hasta 3 semanas.',
     fullDescription: 'Ideal para quienes tienen uñas fuertes y buscan un color vibrante con brillo intacto que dure hasta tres semanas, sin añadir volumen ni longitud. Incluye preparación rusa de cutícula y esmaltado de alta gama curado en lámpara LED UV.',
     idealFor: 'Uñas sanas y fuertes que buscan color perfecto sin mantenimiento semanal.',
-    imageUrl: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?q=80&w=800&auto=format&fit=crop',
+    imageUrl: '/images/esmaltado-semipermanente.png',
     isPopular: true,
     isAvailable: true,
     tags: ['Larga duración', 'Cuidado uña natural', 'Brillo espejo', 'Secado rápido']
@@ -24,7 +24,7 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     shortDescription: 'Cuidado integral: limpieza profunda, estética y relajación total.',
     fullDescription: 'Un servicio de cuidado integral enfocado en la limpieza profunda, estética y relajación, para que tus pies luzcan y se sientan impecables. Incluye exfoliación mineral, hidratación con masajes relajantes y esmaltado impecable.',
     idealFor: 'Descanso, higiene profunda y pies suaves y saludables todo el año.',
-    imageUrl: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?q=80&w=800&auto=format&fit=crop',
+    imageUrl: '/images/pedicure-spa.jpg',
     isPopular: true,
     isAvailable: true,
     tags: ['Exfoliación profunda', 'Masaje relajante', 'Higiene clínica', 'Pies perfectos']
@@ -38,7 +38,7 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     shortDescription: 'Flexibilidad, resistencia y curvatura perfecta para uña frágil.',
     fullDescription: 'Perfecto si tus uñas son frágiles, delgadas o irregulares. Aporta flexibilidad, resistencia y una estructura perfecta para ayudar a su crecimiento natural. Crea un ápice armónico que absorbe los impactos diarios sin quebrar.',
     idealFor: 'Uñas quebradizas, estriadas o en proceso de recuperación post-sistemas agresivos.',
-    imageUrl: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=800&auto=format&fit=crop',
+    imageUrl: '/images/base-rubber.png',
     isPopular: true,
     isAvailable: true,
     tags: ['Estructura flexible', 'Anti-quiebre', 'Crecimiento natural', 'Nivelación anatómica']
@@ -52,7 +52,7 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     shortDescription: 'Longitud inmediata, simetría perfecta y máxima ligereza.',
     fullDescription: 'La opción más rápida si deseas lucir uñas largas de inmediato. Son puntas pre-diseñadas de gel de última generación que ofrecen simetría perfecta y ligereza en tiempo récord, sin peso excesivo ni daño al lecho ungueal.',
     idealFor: 'Eventos especiales, sesiones de fotos o quienes desean largo instantáneo sin horas de espera.',
-    imageUrl: 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?q=80&w=800&auto=format&fit=crop',
+    imageUrl: '/images/jelly-tips.jpg',
     isPopular: false,
     isAvailable: true,
     tags: ['Longitud express', 'Ultra ligeras', 'Simetría exacta', 'Gel flexible']
@@ -66,7 +66,7 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     shortDescription: 'Esculpido artesanal a medida: la combinación de acrílico y gel.',
     fullDescription: 'Ideal para quienes buscan un largo a medida y máxima resistencia. Se esculpen desde cero con técnica artesanal, logrando una estructura duradera con un aspecto muy natural, sin los olores fuertes del monómero tradicional.',
     idealFor: 'Largo personalizado, máxima durabilidad y uñas de pasarela con resistencia blindada.',
-    imageUrl: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?q=80&w=800&auto=format&fit=crop',
+    imageUrl: '/images/polygel-extensions.png',
     isPopular: true,
     isAvailable: true,
     tags: ['Esculpido a mano', 'Máxima durabilidad', 'Cero olores', 'Acabado ultra-fino']
@@ -80,7 +80,7 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     shortDescription: 'La armadura definitiva para tu uña natural sin añadir extensiones.',
     fullDescription: 'La armadura definitiva para tu uña natural. Altamente recomendado para quienes sufren de desprendimientos o quiebres constantes y desean máxima dureza sin extensiones. Protege tu uña mientras crece fuerte y protegida.',
     idealFor: 'Quienes quieren dejar crecer sus uñas naturales sin que se rompan en los bordes.',
-    imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop',
+    imageUrl: '/images/polygel-capping.png',
     isPopular: false,
     isAvailable: true,
     tags: ['Blindaje total', 'Cero desprendimientos', 'Dureza diamantina', 'Cero extensión']
@@ -106,7 +106,7 @@ export const INITIAL_PROMOS: PromoOffer[] = [
     badge: 'MÁS POPULAR',
     validUntil: 'Hasta agotar turnos del mes',
     isActive: true,
-    imageUrl: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?q=80&w=600&auto=format&fit=crop'
+    imageUrl: '/images/pedicure-spa.jpg'
   },
   {
     id: 'reina-polygel',
@@ -118,7 +118,7 @@ export const INITIAL_PROMOS: PromoOffer[] = [
     badge: 'EDICIÓN ESPECIAL',
     validUntil: 'Válido martes a jueves',
     isActive: true,
-    imageUrl: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?q=80&w=600&auto=format&fit=crop'
+    imageUrl: '/images/polygel-extensions.png'
   }
 ];
 

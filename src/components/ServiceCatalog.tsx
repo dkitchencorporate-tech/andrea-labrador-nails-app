@@ -90,7 +90,8 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
             return (
               <div
                 key={service.id}
-                className="group bg-white rounded-3xl border border-sage-200/70 overflow-hidden shadow-soft hover:shadow-luxury transition-all duration-300 flex flex-col justify-between"
+                id={`service-${service.id}`}
+                className="group bg-white rounded-3xl border border-sage-200/80 overflow-hidden shadow-soft hover:shadow-luxury transition-all duration-300 flex flex-col justify-between scroll-mt-24"
               >
                 <div>
                   {/* Service Image */}
@@ -103,28 +104,28 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
                     />
                     
                     {/* Floating Badges */}
-                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start z-10">
                       {service.isPopular && (
-                        <span className="px-3 py-1 bg-warm-900/80 backdrop-blur-md text-white text-[11px] font-semibold tracking-wider uppercase rounded-full shadow-sm flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-gold-400" />
-                          <span>Favorito</span>
+                        <span className="px-3 py-1 bg-amber-600 text-white text-[11px] font-bold tracking-wider uppercase rounded-full shadow-md flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-200" />
+                          <span>Más Solicitado</span>
                         </span>
                       )}
-                      <span className="px-3 py-1 bg-white/90 backdrop-blur-md text-sage-800 text-[11px] font-medium rounded-full shadow-sm flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-sage-500" />
+                      <span className="px-3 py-1 bg-black/65 backdrop-blur-md text-white text-[11px] font-bold rounded-full shadow-sm flex items-center gap-1 border border-white/20">
+                        <Clock className="w-3 h-3 text-amber-300" />
                         <span>{service.durationMinutes} min</span>
                       </span>
                     </div>
 
                     {/* Pricing Pill */}
-                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-2xl shadow-soft border border-sage-100 text-right">
-                      <span className="text-[10px] text-sage-600 font-medium block uppercase tracking-wider">
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-2xl shadow-soft border border-sage-200 text-right z-10">
+                      <span className="text-[10px] text-sage-700 font-bold block uppercase tracking-wider">
                         Inversión
                       </span>
                       <span className="font-serif text-xl font-bold text-sage-900">
                         ${service.priceUSD.toFixed(2)}
                       </span>
-                      <span className="text-[10px] text-sage-600 block">
+                      <span className="text-[10px] text-warm-700 font-semibold block">
                         ≈ {priceVES.toFixed(0)} Bs
                       </span>
                     </div>
@@ -133,25 +134,25 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
                   {/* Card Content */}
                   <div className="p-6 space-y-4">
                     <div className="space-y-1">
-                      <h3 className="font-serif text-xl font-bold text-warm-900 group-hover:text-sage-700 transition-colors">
+                      <h3 className="font-serif text-2xl font-bold text-warm-900 group-hover:text-sage-800 transition-colors">
                         {service.name}
                       </h3>
-                      <p className="text-xs sm:text-sm text-sage-700 font-medium italic">
+                      <p className="text-xs sm:text-sm text-sage-800 font-semibold italic">
                         {service.shortDescription}
                       </p>
                     </div>
 
-                    <p className="text-xs text-warm-800/80 leading-relaxed">
+                    <p className="text-sm text-warm-900 font-normal leading-relaxed">
                       {service.fullDescription}
                     </p>
 
                     {/* "Ideal para" feature callout */}
-                    <div className="p-3 bg-sage-50/80 rounded-xl border border-sage-100 text-xs text-sage-900">
-                      <span className="font-semibold text-sage-800 block mb-0.5 flex items-center gap-1">
-                        <Heart className="w-3 h-3 text-sage-600" />
-                        <span>Ideal para:</span>
+                    <div className="p-3.5 bg-amber-50/70 rounded-xl border border-amber-200/70 text-xs text-warm-900">
+                      <span className="font-bold text-amber-900 block mb-1 flex items-center gap-1.5">
+                        <Heart className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                        <span>Recomendado para:</span>
                       </span>
-                      <span className="text-warm-800/85">{service.idealFor}</span>
+                      <span className="text-warm-900 leading-relaxed font-medium">{service.idealFor}</span>
                     </div>
 
                     {/* Tags */}
@@ -159,7 +160,7 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
                       {service.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-2.5 py-0.5 bg-warm-100 text-warm-800 text-[10px] font-medium rounded-md border border-sage-100"
+                          className="px-2.5 py-1 bg-sage-100 text-sage-900 text-[11px] font-semibold rounded-lg border border-sage-200/80"
                         >
                           #{tag}
                         </span>
@@ -173,14 +174,14 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
                   <button
                     onClick={() => onSelectServiceForBooking(service)}
                     disabled={!service.isAvailable}
-                    className={`w-full py-3 px-4 rounded-2xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
+                    className={`w-full py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
                       service.isAvailable
-                        ? 'bg-sage-700 hover:bg-sage-800 text-white shadow-soft hover:shadow-luxury transform active:scale-98'
+                        ? 'bg-sage-800 hover:bg-sage-900 text-white shadow-soft hover:shadow-luxury transform active:scale-98'
                         : 'bg-warm-200 text-warm-400 cursor-not-allowed'
                     }`}
                   >
                     <span>{service.isAvailable ? 'Seleccionar y Agendar Cita' : 'No disponible temporalmente'}</span>
-                    {service.isAvailable && <ArrowRight className="w-4 h-4" />}
+                    {service.isAvailable && <ArrowRight className="w-4 h-4 text-amber-300" />}
                   </button>
                 </div>
               </div>

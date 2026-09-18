@@ -54,31 +54,31 @@ export const Promotions: React.FC<PromotionsProps> = ({
                 </div>
 
                 <div className="space-y-4">
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-gold-600 tracking-wider uppercase flex items-center gap-1">
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold text-amber-700 tracking-wider uppercase flex items-center gap-1.5">
                       <Tag className="w-3.5 h-3.5" />
                       <span>Ahorras ${savingsUSD.toFixed(2)} USD</span>
                     </span>
-                    <h3 className="font-serif text-2xl font-bold text-warm-900">
+                    <h3 className="font-serif text-2xl sm:text-3xl font-bold text-warm-900 leading-tight">
                       {promo.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-warm-800/80">
+                    <p className="text-xs sm:text-sm text-warm-900 font-medium">
                       {promo.subtitle}
                     </p>
                   </div>
 
                   {/* Included Services list */}
-                  <div className="p-4 bg-sage-50/70 rounded-2xl border border-sage-100 space-y-2">
+                  <div className="p-4 bg-sage-50/90 rounded-2xl border border-sage-200/80 space-y-2.5">
                     <span className="text-xs font-bold text-sage-900 uppercase tracking-wider block">
                       Incluye en una sola cita:
                     </span>
-                    <ul className="space-y-1.5 text-xs sm:text-sm text-warm-800">
+                    <ul className="space-y-2 text-xs sm:text-sm text-warm-900">
                       {promo.servicesIncluded.map((srv, idx) => (
-                        <li key={idx} className="flex items-center gap-2 font-medium">
-                          <div className="w-4 h-4 rounded-full bg-sage-200 flex items-center justify-center flex-shrink-0">
-                            <Check className="w-2.5 h-2.5 text-sage-800" />
+                        <li key={idx} className="flex items-center gap-2.5 font-medium">
+                          <div className="w-4 h-4 rounded-full bg-sage-700 text-white flex items-center justify-center flex-shrink-0">
+                            <Check className="w-2.5 h-2.5" />
                           </div>
-                          <span>{srv}</span>
+                          <span className="font-semibold">{srv}</span>
                         </li>
                       ))}
                     </ul>
@@ -86,21 +86,21 @@ export const Promotions: React.FC<PromotionsProps> = ({
 
                   {/* Pricing Comparison */}
                   <div className="flex items-baseline gap-3 pt-2">
-                    <span className="text-xs text-warm-400 line-through font-semibold">
+                    <span className="text-xs text-warm-800 line-through font-bold">
                       Antes: ${promo.regularPriceUSD.toFixed(2)}
                     </span>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="font-serif text-3xl font-bold text-sage-900">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-serif text-3xl sm:text-4xl font-black text-sage-900">
                         ${promo.promoPriceUSD.toFixed(2)}
                       </span>
-                      <span className="text-xs text-sage-600 font-medium">
+                      <span className="text-xs sm:text-sm text-sage-800 font-bold">
                         USD (≈ {priceVES.toFixed(0)} Bs)
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-[11px] text-warm-500">
-                    <Clock className="w-3.5 h-3.5 text-sage-500" />
+                  <div className="flex items-center gap-1.5 text-xs text-warm-900 font-medium">
+                    <Clock className="w-3.5 h-3.5 text-sage-600" />
                     <span>{promo.validUntil}</span>
                   </div>
                 </div>
@@ -109,10 +109,10 @@ export const Promotions: React.FC<PromotionsProps> = ({
                 <div className="pt-6">
                   <button
                     onClick={() => onSelectPromoForBooking(promo)}
-                    className="w-full py-3.5 px-5 bg-sage-800 hover:bg-sage-900 text-warm-50 text-xs sm:text-sm font-semibold rounded-2xl flex items-center justify-center gap-2 shadow-soft hover:shadow-luxury transition-all transform active:scale-98"
+                    className="w-full py-3.5 px-5 bg-sage-800 hover:bg-sage-900 text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center justify-center gap-2 shadow-soft hover:shadow-luxury transition-all transform active:scale-98"
                   >
                     <span>Aprovechar Combo & Agendar</span>
-                    <ArrowRight className="w-4 h-4 text-gold-400" />
+                    <ArrowRight className="w-4 h-4 text-amber-300" />
                   </button>
                 </div>
               </div>

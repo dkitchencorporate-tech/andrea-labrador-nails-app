@@ -1,0 +1,6 @@
+# Robots.txt for Andrea Labrador Manicurista Profesional
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://andrea-labrador-nails-app.vercel.app/sitemap.xml

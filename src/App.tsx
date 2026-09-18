@@ -42,6 +42,41 @@ export const App: React.FC = () => {
     refreshData();
   }, []);
 
+  // Synchronize route with Admin Panel
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      const search = new URLSearchParams(window.location.search);
+      if (path === '/admin' || path.startsWith('/admin') || hash === '#admin' || search.has('admin')) {
+        setIsAdminOpen(true);
+      }
+    };
+
+    checkAdminRoute();
+
+    window.addEventListener('popstate', checkAdminRoute);
+    window.addEventListener('hashchange', checkAdminRoute);
+    return () => {
+      window.removeEventListener('popstate', checkAdminRoute);
+      window.removeEventListener('hashchange', checkAdminRoute);
+    };
+  }, []);
+
+  const handleToggleAdmin = (openState?: boolean) => {
+    const nextState = openState !== undefined ? openState : !isAdminOpen;
+    setIsAdminOpen(nextState);
+    if (nextState) {
+      if (window.location.pathname !== '/admin') {
+        window.history.pushState(null, '', '/admin');
+      }
+    } else {
+      if (window.location.pathname === '/admin' || window.location.hash === '#admin') {
+        window.history.pushState(null, '', '/');
+      }
+    }
+  };
+
   // Booking triggers
   const handleOpenGeneralBooking = () => {
     setSelectedService(null);
@@ -53,6 +88,23 @@ export const App: React.FC = () => {
     setSelectedService(service);
     setSelectedPromo(null);
     setIsBookingOpen(true);
+  };
+
+  const handleSelectServiceById = (serviceId: string) => {
+    const svc = services.find(s => s.id === serviceId);
+    if (svc) {
+      setSelectedService(svc);
+      setSelectedPromo(null);
+      setIsBookingOpen(true);
+    } else {
+      // Fallback: smooth scroll to element or open booking
+      const el = document.getElementById(`service-${serviceId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        handleOpenGeneralBooking();
+      }
+    }
   };
 
   const handleSelectPromo = (promo: PromoOffer) => {
@@ -67,14 +119,17 @@ export const App: React.FC = () => {
       {/* Top Navbar */}
       <Navbar
         onOpenBooking={handleOpenGeneralBooking}
-        onToggleAdmin={() => setIsAdminOpen(!isAdminOpen)}
+        onToggleAdmin={() => handleToggleAdmin()}
         isAdminOpen={isAdminOpen}
         exchangeRate={exchangeRate}
       />
 
       {/* Main Content Sections */}
       <main className="flex-1 pb-16 sm:pb-0">
-        <Hero onOpenBooking={handleOpenGeneralBooking} />
+        <Hero 
+          onOpenBooking={handleOpenGeneralBooking}
+          onSelectServiceById={handleSelectServiceById}
+        />
 
         <Promotions
           promos={promos}
@@ -98,7 +153,7 @@ export const App: React.FC = () => {
 
       {/* Footer */}
       <Footer
-        onToggleAdmin={() => setIsAdminOpen(!isAdminOpen)}
+        onToggleAdmin={() => handleToggleAdmin()}
         onOpenBooking={handleOpenGeneralBooking}
       />
 
@@ -145,7 +200,7 @@ export const App: React.FC = () => {
       {/* Admin Panel Modal */}
       <AdminPanel
         isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
+        onClose={() => handleToggleAdmin(false)}
         services={services}
         promos={promos}
         bookings={bookings}
