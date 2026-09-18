@@ -13,16 +13,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   exchangeRate,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-warm-100/98 backdrop-blur-lg border-b border-sage-200/80 shadow-xs transition-all">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-        {/* Brand / Logo */}
-        <a href="#" className="flex flex-col group">
-          <span className="font-serif text-2xl sm:text-3xl font-bold tracking-wide text-sage-900 group-hover:text-sage-700 transition-colors">
-            ANDREA LABRADOR
+    <header className="sticky top-0 z-40 bg-[#FBF9F6] border-b border-sage-200/80 shadow-xs transition-all">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-2">
+        {/* Brand / Logo - Responsive and Non-wrapping */}
+        <a href="#" className="flex items-center gap-2 group shrink-0">
+          <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-sage-800 text-amber-200 font-serif font-bold text-xs sm:text-sm flex items-center justify-center shadow-xs">
+            AL
           </span>
-          <span className="text-[10px] sm:text-xs tracking-[0.25em] uppercase text-sage-600 font-sans font-bold">
-            Manicurista Profesional
-          </span>
+          <div className="flex flex-col">
+            <span className="font-serif text-base sm:text-2xl font-bold tracking-tight text-sage-900 group-hover:text-sage-700 transition-colors leading-tight">
+              Andrea Labrador
+            </span>
+            <span className="text-[8px] sm:text-[10px] tracking-[0.2em] uppercase text-sage-600 font-sans font-bold leading-none">
+              Manicurista Profesional
+            </span>
+          </div>
         </a>
 
         {/* Desktop Navigation Links */}
@@ -54,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Mobile Gift Shortcut */}
           <a
             href="/compartir"
@@ -64,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onNavigateToShare();
               }
             }}
-            className="md:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold"
+            className="md:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold shadow-xs active:scale-95"
             title="Club de Regalos"
           >
             <Gift className="w-3.5 h-3.5 text-amber-600" />
@@ -92,10 +97,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Book Appointment CTA Button */}
           <button
             onClick={onOpenBooking}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-sage-800 hover:bg-sage-900 text-white text-xs sm:text-sm font-bold rounded-full shadow-soft hover:shadow-luxury transition-all transform active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2.5 bg-sage-800 hover:bg-sage-900 text-white text-xs sm:text-sm font-bold rounded-full shadow-soft hover:shadow-luxury transition-all transform active:scale-95"
           >
-            <Calendar className="w-4 h-4 text-amber-300" />
-            <span>Agendar Cita</span>
+            <Calendar className="w-3.5 h-3.5 text-amber-300" />
+            <span className="hidden sm:inline">Agendar Cita</span>
+            <span className="sm:hidden">Cita</span>
           </button>
         </div>
       </div>

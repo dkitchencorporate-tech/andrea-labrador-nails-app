@@ -10,6 +10,7 @@ import { BookingModal } from './components/BookingModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { SharePage } from './components/SharePage';
 import { ReferralClub } from './components/ReferralClub';
+import { ClubInviteSection } from './components/ClubInviteSection';
 import { AppStore } from './services/store';
 import { ServiceItem, PromoOffer } from './types';
 import { Calendar, MessageCircle, Sparkles } from 'lucide-react';
@@ -192,6 +193,11 @@ export const App: React.FC = () => {
           services={services}
           exchangeRate={exchangeRate}
           onSelectPromoForBooking={handleSelectPromo}
+        />
+
+        {/* Visual Club Invite Section */}
+        <ClubInviteSection
+          onNavigateToShare={handleNavigateToShare}
         />
 
         <ServiceCatalog

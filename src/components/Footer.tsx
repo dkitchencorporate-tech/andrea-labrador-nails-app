@@ -9,8 +9,8 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare }) => {
   return (
-    <footer className="bg-sage-900 text-warm-100 pt-12 pb-32 sm:pb-16 border-t border-sage-800">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
+    <footer className="bg-sage-900 text-warm-100 pt-10 pb-20 sm:pb-12 border-t border-sage-800">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           
