@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ServiceItem, 
   ServiceAddon, 
@@ -37,6 +37,13 @@ interface BookingModalProps {
   onNavigateToShare?: () => void;
 }
 
+interface AvailableDateItem {
+  dateString: string;
+  dayName: string;
+  dayNumber: number;
+  monthName: string;
+}
+
 export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
@@ -70,8 +77,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [lastCreatedBooking, setLastCreatedBooking] = useState<AppointmentBooking | null>(null);
 
   // Available dates (Next 14 business days, skip Sundays)
-  const availableDates = useMemo(() => {
-    const dates = [];
+  const availableDates = useMemo<AvailableDateItem[]>(() => {
+    const dates: AvailableDateItem[] = [];
     const today = new Date();
     for (let i = 1; dates.length < 14; i++) {
       const nextDate = new Date(today);
@@ -509,7 +516,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </label>
 
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                      {availableDates.map((item) => {
+                      {availableDates.map((item: AvailableDateItem) => {
                         const isSelected = selectedDate === item.dateString;
                         return (
                           <button

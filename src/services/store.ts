@@ -120,6 +120,16 @@ export class AppStore {
     this.saveServices(services);
   }
 
+  static toggleServiceAvailability(id: string): void {
+    const services = this.getServices();
+    const service = services.find(s => s.id === id);
+    if (service) {
+      service.isAvailable = !service.isAvailable;
+      this.saveServices(services);
+      this.saveServiceRemote(service);
+    }
+  }
+
   // ─── PROMOCIONES ───────────────────────────────────────────────────────────
   static getPromos(): PromoOffer[] {
     return this.getStored<PromoOffer[]>(STORAGE_KEYS.PROMOS, INITIAL_PROMOS);
@@ -127,6 +137,21 @@ export class AppStore {
 
   static savePromos(promos: PromoOffer[]): void {
     this.setStored(STORAGE_KEYS.PROMOS, promos);
+  }
+
+  static addPromo(promo: PromoOffer): void {
+    const promos = this.getPromos();
+    promos.unshift(promo);
+    this.savePromos(promos);
+  }
+
+  static togglePromoActive(id: string): void {
+    const promos = this.getPromos();
+    const promo = promos.find(p => p.id === id);
+    if (promo) {
+      promo.isActive = !promo.isActive;
+      this.savePromos(promos);
+    }
   }
 
   // ─── CITAS Y RESERVAS ──────────────────────────────────────────────────────
