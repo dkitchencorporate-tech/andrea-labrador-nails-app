@@ -5,9 +5,10 @@ import {
   BlockedTimeSlot, 
   LoyaltyCard,
   ClientAccount,
-  PaymentMethodType
+  PaymentMethodType,
+  GallerySlide
 } from '../types';
-import { INITIAL_SERVICES, INITIAL_PROMOS, AVAILABLE_TIME_SLOTS } from '../data/initialData';
+import { INITIAL_SERVICES, INITIAL_PROMOS, AVAILABLE_TIME_SLOTS, INITIAL_GALLERY_SLIDES } from '../data/initialData';
 
 const STORAGE_KEYS = {
   SERVICES: 'andrea_labrador_services_v5',
@@ -20,6 +21,7 @@ const STORAGE_KEYS = {
   EMAIL_SETTINGS: 'andrea_labrador_email_settings_v2',
   CLIENT_ACCOUNTS: 'andrea_labrador_client_accounts_v1',
   ACTIVE_CLIENT: 'andrea_labrador_active_client_v1',
+  GALLERY: 'andrea_labrador_gallery_v1',
 };
 
 export interface StudioEmailSettings {
@@ -168,6 +170,75 @@ export class AppStore {
     if (promo) {
       promo.isActive = !promo.isActive;
       this.savePromos(promos);
+    }
+  }
+
+  // ─── CARRUSEL DE DISEÑOS / GALERÍA ─────────────────────────────────────────
+  static getGallery(): GallerySlide[] {
+    const list = this.getStored<GallerySlide[]>(STORAGE_KEYS.GALLERY, INITIAL_GALLERY_SLIDES);
+    if (!Array.isArray(list) || list.length === 0) {
+      this.saveGallery(INITIAL_GALLERY_SLIDES);
+      return INITIAL_GALLERY_SLIDES;
+    }
+    return list;
+  }
+
+  static saveGallery(slides: GallerySlide[]): void {
+    // Máximo 40 imágenes para evitar saturación de carga
+    const trimmed = slides.slice(0, 40);
+    this.setStored(STORAGE_KEYS.GALLERY, trimmed);
+  }
+
+  static addGallerySlide(slide: GallerySlide): { success: boolean; error?: string } {
+    const current = this.getGallery();
+    if (current.length >= 40) {
+      return { success: false, error: 'Has alcanzado el límite máximo de 40 imágenes en el carrusel.' };
+    }
+    current.unshift(slide);
+    this.saveGallery(current);
+    return { success: true };
+  }
+
+  static deleteGallerySlide(id: string): void {
+    const current = this.getGallery();
+    const filtered = current.filter(s => s.id !== id);
+    this.saveGallery(filtered);
+  }
+
+  static async fetchRemoteGallery(): Promise<GallerySlide[]> {
+    try {
+      const res = await fetch('/api/gallery');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.slides) && data.slides.length > 0) {
+          this.saveGallery(data.slides);
+          return data.slides;
+        }
+      }
+    } catch (e) {
+      console.warn('Usando carrusel local:', e);
+    }
+    return this.getGallery();
+  }
+
+  static async saveGallerySlideRemote(slide: GallerySlide): Promise<void> {
+    try {
+      await fetch('/api/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(slide)
+      });
+    } catch (e) {
+      console.error('Error guardando imagen en base de datos:', e);
+    }
+  }
+
+  static async deleteGallerySlideRemote(id: string): Promise<void> {
+    this.deleteGallerySlide(id);
+    try {
+      await fetch(`/api/gallery?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    } catch (e) {
+      console.error('Error eliminando imagen de base de datos:', e);
     }
   }
 

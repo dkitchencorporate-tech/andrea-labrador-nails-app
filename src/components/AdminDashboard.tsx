@@ -3,7 +3,8 @@ import {
   ServiceItem, 
   AppointmentBooking, 
   BlockedTimeSlot,
-  LoyaltyCard 
+  LoyaltyCard,
+  GallerySlide
 } from '../types';
 import { AppStore, StudioEmailSettings } from '../services/store';
 import { 
@@ -50,12 +51,13 @@ interface AdminDashboardProps {
   onExitToCatalog: () => void;
 }
 
-type TabKey = 'bookings' | 'calendar' | 'services' | 'crm' | 'settings';
+type TabKey = 'bookings' | 'calendar' | 'services' | 'gallery' | 'crm' | 'settings';
 
 const NAV_ITEMS: { key: TabKey; label: string; Icon: React.FC<{ className?: string }> }[] = [
   { key: 'bookings', label: 'Citas & Reservas',       Icon: LayoutDashboard },
   { key: 'calendar', label: 'Horarios & Agenda',      Icon: Calendar },
   { key: 'services', label: 'Catálogo de Servicios',  Icon: Sparkles },
+  { key: 'gallery',  label: 'Carrusel de Fotos',      Icon: ImageIcon },
   { key: 'crm',      label: 'Clientela & CRM',        Icon: Users },
   { key: 'settings', label: 'Tasa & Respaldos',       Icon: DollarSign },
 ];
@@ -101,6 +103,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     isAvailable: true,
     tags: ['Uña natural', 'Brillo intacto'],
   });
+
+  // ─── GALLERY / CAROUSEL STATE ───────────────────────────────────────────
+  const [gallerySlides, setGallerySlides] = useState<GallerySlide[]>(() => AppStore.getGallery());
+  const [newSlideName, setNewSlideName] = useState('');
+  const [newSlideTag, setNewSlideTag] = useState('Diseño Real');
+  const [newSlideImage, setNewSlideImage] = useState<string | null>(null);
+  const [galleryError, setGalleryError] = useState<string | null>(null);
+  const [gallerySuccess, setGallerySuccess] = useState<string | null>(null);
+  const [isUploadingSlide, setIsUploadingSlide] = useState(false);
 
   // ─── CRM & CLIENTS STATE ──────────────────────────────────────────────────
   const [crmSearch, setCrmSearch] = useState('');
@@ -235,10 +246,100 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     onRefreshData();
   };
 
-  const handleRemoveSlot = (slot: string) => {
-    if (window.confirm(`¿Deseas eliminar el turno ${slot}?`)) {
-      AppStore.removeTimeSlot(slot);
-      setAllTimeSlots(AppStore.getTimeSlots());
+  // ─── GALLERY / CAROUSEL MANAGEMENT ────────────────────────────────────────
+  const handleSlideImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGalleryError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validación de formato: solo JPG, PNG, WEBP
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setGalleryError('Formato inválido. Solo se admiten imágenes JPG, PNG o WEBP.');
+      return;
+    }
+
+    // Validación de peso máximo: 800 KB
+    if (file.size > 800 * 1024) {
+      setGalleryError('La imagen supera los 800 KB. Por favor selecciona una imagen más liviana.');
+      return;
+    }
+
+    // Compresión automática en Canvas para optimizar carga móvil
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 900;
+        const scaleSize = MAX_WIDTH / img.width;
+        if (scaleSize < 1) {
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+        } else {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        }
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          // Exportar en JPEG optimizado al 82%
+          const compressed = canvas.toDataURL('image/jpeg', 0.82);
+          setNewSlideImage(compressed);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddSlide = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGalleryError(null);
+    setGallerySuccess(null);
+
+    if (!newSlideName.trim()) {
+      setGalleryError('Por favor asigna un nombre o técnica a la foto.');
+      return;
+    }
+
+    if (!newSlideImage) {
+      setGalleryError('Por favor selecciona una foto para subir.');
+      return;
+    }
+
+    setIsUploadingSlide(true);
+    const slide: GallerySlide = {
+      id: 'slide_' + Date.now(),
+      name: newSlideName.trim(),
+      imageUrl: newSlideImage,
+      tag: newSlideTag.trim() || 'Diseño Real',
+      createdAt: new Date().toISOString(),
+    };
+
+    const res = AppStore.addGallerySlide(slide);
+    if (!res.success) {
+      setGalleryError(res.error || 'Error al agregar foto.');
+      setIsUploadingSlide(false);
+      return;
+    }
+
+    // Sincronizar remotamente con Neon Postgres
+    await AppStore.saveGallerySlideRemote(slide);
+    setGallerySlides(AppStore.getGallery());
+    setNewSlideName('');
+    setNewSlideImage(null);
+    setGallerySuccess('¡Foto agregada al carrusel con éxito!');
+    setIsUploadingSlide(false);
+    onRefreshData();
+    setTimeout(() => setGallerySuccess(null), 3000);
+  };
+
+  const handleDeleteSlide = async (id: string) => {
+    if (window.confirm('¿Segura que deseas eliminar esta foto del carrusel por completo?')) {
+      AppStore.deleteGallerySlide(id);
+      await AppStore.deleteGallerySlideRemote(id);
+      setGallerySlides(AppStore.getGallery());
       onRefreshData();
     }
   };
@@ -1318,6 +1419,155 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       )}
                     </div>
                   </form>
+                </div>
+
+              </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════════════════
+                TAB: CARRUSEL DE FOTOS & LOOKBOOK
+            ══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'gallery' && (
+              <div className="space-y-6">
+                {sectionHead(
+                  'Gestión del Carrusel de Fotos & Lookbook',
+                  `Administra las fotos reales de uñas que ven tus clientas en el inicio. Límite: ${gallerySlides.length} de 40 fotos permitidas.`
+                )}
+
+                {/* Subir Nueva Foto */}
+                <div className="p-6 rounded-3xl bg-white border border-sage-200 shadow-soft space-y-4">
+                  <div className="flex items-center justify-between border-b border-sage-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <ImagePlus className="w-5 h-5 text-sage-800" />
+                      <h4 className="font-serif font-bold text-base text-warm-900">Subir Nueva Foto al Carrusel</h4>
+                    </div>
+                    <span className="text-xs font-bold text-sage-700 bg-sage-50 px-3 py-1 rounded-full border border-sage-200">
+                      Tope Máximo: 40 Fotos
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleAddSlide} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-warm-800 block mb-1">Nombre del Servicio o Técnica *</label>
+                      <input
+                        type="text"
+                        value={newSlideName}
+                        onChange={e => setNewSlideName(e.target.value)}
+                        placeholder="Ej: Nivelación Rubber Cherry"
+                        className={inputCls}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-warm-800 block mb-1">Etiqueta Superior (Badge)</label>
+                      <input
+                        type="text"
+                        value={newSlideTag}
+                        onChange={e => setNewSlideTag(e.target.value)}
+                        placeholder="Ej: Refuerzo para uña natural"
+                        className={inputCls}
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-bold text-warm-800 block mb-1">
+                        Foto desde tu Teléfono, Tablet o PC (JPG, PNG o WEBP &bull; Máx 800 KB) *
+                      </label>
+                      <div className="flex items-center gap-4">
+                        <label className="flex-1 cursor-pointer flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 border-dashed border-sage-300 hover:border-sage-500 bg-warm-50 text-xs font-bold text-sage-800 transition-all">
+                          <Upload className="w-4 h-4 text-sage-600" />
+                          <span>{newSlideImage ? 'Cambiar Foto Seleccionada' : 'Seleccionar Archivo de Imagen'}</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleSlideImageUpload}
+                            className="hidden"
+                          />
+                        </label>
+                        {newSlideImage && (
+                          <div className="w-14 h-14 rounded-2xl overflow-hidden border border-sage-300 shrink-0 shadow-xs">
+                            <img src={newSlideImage} alt="Previa" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {galleryError && (
+                      <div className="sm:col-span-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                        <span>{galleryError}</span>
+                      </div>
+                    )}
+
+                    {gallerySuccess && (
+                      <div className="sm:col-span-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        <span>{gallerySuccess}</span>
+                      </div>
+                    )}
+
+                    <div className="sm:col-span-2 flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={isUploadingSlide}
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#16291F] hover:bg-sage-900 text-white font-bold text-xs shadow-soft transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <Plus className="w-4 h-4 text-amber-300" />
+                        <span>{isUploadingSlide ? 'Subiendo y Optimizando...' : 'Agregar Foto al Carrusel'}</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* Galería de Fotos Actuales */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-serif font-bold text-base text-warm-900">
+                      Fotos Activas en el Carrusel ({gallerySlides.length})
+                    </h4>
+                    <span className="text-xs text-warm-500">Se muestran en rotación automática</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+                    {gallerySlides.map((slide, idx) => (
+                      <div key={slide.id} className="relative rounded-2xl overflow-hidden border border-sage-200 bg-white shadow-xs group">
+                        <div className="aspect-[4/5] overflow-hidden bg-sage-950">
+                          <img
+                            src={slide.imageUrl}
+                            alt={slide.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                          />
+                        </div>
+
+                        {/* Tag */}
+                        <div className="absolute top-2 left-2">
+                          <span className="text-[9px] font-bold bg-black/60 backdrop-blur-md text-white px-2 py-0.5 rounded-full">
+                            #{idx + 1}
+                          </span>
+                        </div>
+
+                        {/* Info & Delete */}
+                        <div className="p-2.5 bg-white space-y-1">
+                          <p className="text-xs font-bold text-warm-900 truncate" title={slide.name}>
+                            {slide.name}
+                          </p>
+                          <div className="flex items-center justify-between pt-1 border-t border-sage-100">
+                            <span className="text-[10px] text-sage-600 truncate max-w-[90px]">
+                              {slide.tag || 'Diseño'}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteSlide(slide.id)}
+                              className="p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                              title="Eliminar foto por completo"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
               </div>

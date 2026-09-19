@@ -1,9 +1,10 @@
 import React from 'react';
-import { Calendar, Sparkles, Shield, MessageCircle, Gift, User, Tag } from 'lucide-react';
+import { Calendar, Sparkles, Shield, MessageCircle, Gift, User, Tag, Download } from 'lucide-react';
 
 interface NavbarProps {
   onOpenBooking: () => void;
   onOpenClientAccount: () => void;
+  onOpenInstall?: () => void;
   onNavigateToShare?: () => void;
   onNavigateToPromo?: () => void;
   exchangeRate: number;
@@ -17,7 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   exchangeRate,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-[#FBF9F6] border-b border-sage-200/80 shadow-xs transition-all">
+    <header className="bg-[#FBF9F6] border-b border-sage-200/80 shadow-xs transition-all">
       <div className="max-w-6xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-2">
         {/* Brand / Logo - Responsive and Non-wrapping */}
         <a href="#" className="flex items-center gap-2 group shrink-0">
@@ -50,6 +51,23 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Button Instalar App (PWA) */}
+          <button
+            onClick={() => {
+              if (onOpenInstall) {
+                onOpenInstall();
+              } else {
+                window.dispatchEvent(new CustomEvent('open-pwa-install'));
+              }
+            }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-amber-400 hover:bg-amber-300 text-sage-950 rounded-full text-[11px] sm:text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
+            title="Instalar App Oficial (Tarjeta VIP y Citas)"
+          >
+            <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span className="hidden sm:inline">Instalar App</span>
+            <span className="sm:hidden">App</span>
+          </button>
+
           {/* Button Mi Ficha (Client Account & Loyalty) */}
           <button
             onClick={onOpenClientAccount}

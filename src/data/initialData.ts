@@ -1,4 +1,49 @@
-import { ServiceItem, ServiceAddon, PromoOffer, StudioPolicy } from '../types';
+import { ServiceItem, ServiceAddon, PromoOffer, StudioPolicy, GallerySlide } from '../types';
+
+export const INITIAL_GALLERY_SLIDES: GallerySlide[] = [
+  {
+    id: 'slide-semipermanente',
+    name: 'Esmaltado Semipermanente',
+    technique: 'Rosa Glaseado & Cutícula Rusa',
+    imageUrl: '/images/esmaltado-semipermanente.png',
+    tag: 'Brillo hasta 3 semanas'
+  },
+  {
+    id: 'slide-base-rubber',
+    name: 'Nivelación de Base Rubber',
+    technique: 'Cherry Deep & Ápice Armónico',
+    imageUrl: '/images/base-rubber.png',
+    tag: 'Refuerzo para uña natural'
+  },
+  {
+    id: 'slide-jelly-tips',
+    name: 'Extensiones Jelly Tips',
+    technique: 'Red Waves & Simetría Perfecta',
+    imageUrl: '/images/jelly-tips.jpg',
+    tag: 'Longitud inmediata en gel'
+  },
+  {
+    id: 'slide-polygel-extensions',
+    name: 'Extensiones en Polygel',
+    technique: 'Nude Esculpido a Medida',
+    imageUrl: '/images/polygel-extensions.png',
+    tag: 'Máxima resistencia y durabilidad'
+  },
+  {
+    id: 'slide-polygel-capping',
+    name: 'Capping de Polygel',
+    technique: 'Milky Soft Natural',
+    imageUrl: '/images/polygel-capping.png',
+    tag: 'Protección sin extensiones'
+  },
+  {
+    id: 'slide-pedicure',
+    name: 'Pedicure Spa Integral',
+    technique: 'Limpieza, Exfoliación & Masaje',
+    imageUrl: '/images/pedicure-spa.jpg',
+    tag: 'Cuidado y relajación total'
+  },
+];
 
 export const INITIAL_SERVICES: ServiceItem[] = [
   {

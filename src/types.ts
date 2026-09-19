@@ -93,3 +93,12 @@ export interface StudioPolicy {
   description: string;
   iconName: string;
 }
+
+export interface GallerySlide {
+  id: string;
+  name: string;
+  imageUrl: string;
+  tag?: string;
+  technique?: string;
+  createdAt?: string;
+}

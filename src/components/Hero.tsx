@@ -10,10 +10,13 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
+import { GallerySlide } from '../types';
+import { AppStore } from '../services/store';
 
 interface HeroProps {
   onOpenBooking: () => void;
   onSelectServiceById?: (serviceId: string) => void;
+  gallerySlides?: GallerySlide[];
 }
 
 interface NailDesignSlide {
@@ -69,32 +72,38 @@ const NAIL_DESIGN_SLIDES: NailDesignSlide[] = [
   },
 ];
 
-export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
+export const Hero: React.FC<HeroProps> = ({ onOpenBooking, gallerySlides }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const currentSlide = NAIL_DESIGN_SLIDES[currentSlideIndex];
+  // Use dynamic gallery slides passed from store/DB, fallback to local
+  const slides = (gallerySlides && gallerySlides.length > 0) 
+    ? gallerySlides 
+    : AppStore.getGallery();
+
+  const totalSlides = slides.length || 1;
+  const currentSlide = slides[currentSlideIndex % totalSlides] || slides[0] || NAIL_DESIGN_SLIDES[0];
 
   // Auto-advance carousel
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || totalSlides <= 1) return;
 
     timerRef.current = setInterval(() => {
-      setCurrentSlideIndex((prev) => (prev + 1) % NAIL_DESIGN_SLIDES.length);
+      setCurrentSlideIndex((prev) => (prev + 1) % totalSlides);
     }, 4500);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isPaused]);
+  }, [isPaused, totalSlides]);
 
   const handlePrev = () => {
-    setCurrentSlideIndex((prev) => (prev - 1 + NAIL_DESIGN_SLIDES.length) % NAIL_DESIGN_SLIDES.length);
+    setCurrentSlideIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
   const handleNext = () => {
-    setCurrentSlideIndex((prev) => (prev + 1) % NAIL_DESIGN_SLIDES.length);
+    setCurrentSlideIndex((prev) => (prev + 1) % totalSlides);
   };
 
   return (
@@ -201,7 +210,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
                     Diseños & Técnicas Reales
                   </span>
                   <span className="text-[11px] font-semibold text-warm-600">
-                    {currentSlideIndex + 1} de {NAIL_DESIGN_SLIDES.length}
+                    {currentSlideIndex + 1} de {totalSlides}
                   </span>
                 </div>
 
@@ -221,7 +230,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
                   {/* Top Tag */}
                   <div className="absolute top-3 left-3 z-10">
                     <span className="px-3 py-1 bg-sage-800/90 backdrop-blur-md text-white text-[11px] font-bold rounded-full shadow-md">
-                      {currentSlide.tag}
+                      {currentSlide.tag || 'Diseño Real'}
                     </span>
                   </div>
 
@@ -253,7 +262,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
 
                 {/* Dots indicator */}
                 <div className="flex items-center justify-center gap-1.5 pt-3">
-                  {NAIL_DESIGN_SLIDES.map((_, idx) => (
+                  {slides.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentSlideIndex(idx)}

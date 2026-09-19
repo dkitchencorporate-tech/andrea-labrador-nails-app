@@ -14,11 +14,12 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { SharePage } from './components/SharePage';
 import { ClubInviteSection } from './components/ClubInviteSection';
 import { PWAInstallModal } from './components/PWAInstallModal';
+import { PWAInstallCard } from './components/PWAInstallCard';
 import { LegalModals, LegalModalType } from './components/LegalModals';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AppStore } from './services/store';
-import { ServiceItem, PromoOffer } from './types';
-import { Calendar, MessageCircle, Sparkles } from 'lucide-react';
+import { ServiceItem, PromoOffer, GallerySlide } from './types';
+import { Calendar, MessageCircle, Sparkles, Download } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Legal modal state
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
   // Store reactive state
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [promos, setPromos] = useState<PromoOffer[]>([]);
+  const [gallerySlides, setGallerySlides] = useState<GallerySlide[]>(AppStore.getGallery());
   const [bookings, setBookings] = useState(AppStore.getBookings());
   const [blockedSlots, setBlockedSlots] = useState(AppStore.getBlockedSlots());
   const [exchangeRate, setExchangeRate] = useState(AppStore.getExchangeRate());
@@ -82,10 +84,12 @@ export const App: React.FC = () => {
       AppStore.fetchRemoteBookings(),
       AppStore.fetchRemoteBlockedSlots(),
       AppStore.fetchRemoteLoyaltyCards(),
-    ]).then(([remoteServices, remoteBookings, remoteBlockedSlots]) => {
+      AppStore.fetchRemoteGallery(),
+    ]).then(([remoteServices, remoteBookings, remoteBlockedSlots, _, remoteGallery]) => {
       if (remoteServices && remoteServices.length > 0) setServices(remoteServices);
       if (remoteBookings) setBookings(remoteBookings);
       if (remoteBlockedSlots) setBlockedSlots(remoteBlockedSlots);
+      if (remoteGallery && remoteGallery.length > 0) setGallerySlides(remoteGallery);
     }).catch(console.warn);
   };
 
@@ -237,23 +241,25 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200">
       
-      {/* PWA Install Top Bar (Clean, non-intrusive) */}
-      <PWAInstallModal />
-
-      {/* Client Navbar (Completely clean, no admin lock) */}
-      <Navbar
-        onOpenBooking={handleOpenGeneralBooking}
-        onOpenClientAccount={() => setIsAccountModalOpen(true)}
-        onNavigateToShare={handleNavigateToShare}
-        onNavigateToPromo={handleNavigateToPromo}
-        exchangeRate={exchangeRate}
-      />
+      {/* Sticky Top Header: Persistent PWA Install Banner + Clean Client Navbar */}
+      <div className="sticky top-0 z-40">
+        <PWAInstallModal onOpenClientAccount={() => setIsAccountModalOpen(true)} />
+        <Navbar
+          onOpenBooking={handleOpenGeneralBooking}
+          onOpenClientAccount={() => setIsAccountModalOpen(true)}
+          onOpenInstall={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
+          onNavigateToShare={handleNavigateToShare}
+          onNavigateToPromo={handleNavigateToPromo}
+          exchangeRate={exchangeRate}
+        />
+      </div>
 
       {/* Main Public Content Sections */}
       <main className="flex-1 pb-16 sm:pb-0">
         <Hero 
           onOpenBooking={handleOpenGeneralBooking}
           onSelectServiceById={handleSelectServiceById}
+          gallerySlides={gallerySlides}
         />
 
         {/* Visual Loyalty & First Visit Banner */}
@@ -270,6 +276,12 @@ export const App: React.FC = () => {
 
         {/* Tarjeta Digital & Club VIP de Fidelización */}
         <LoyaltyClub />
+
+        {/* Sección Prominente de Instalación PWA y Tarjeta VIP */}
+        <PWAInstallCard
+          onOpenClientAccount={() => setIsAccountModalOpen(true)}
+          onOpenInstall={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
+        />
 
         <StudioPolicies />
 
@@ -300,6 +312,13 @@ export const App: React.FC = () => {
             title="Mi Ficha VIP"
           >
             <Sparkles className="w-4 h-4 text-amber-600" />
+          </button>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
+            className="p-2.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
+            title="Instalar App Oficial"
+          >
+            <Download className="w-4 h-4 text-amber-700 stroke-[2.5]" />
           </button>
           <a
             href="https://wa.me/584241360937"

@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X, Share, PlusSquare, Sparkles, Smartphone, CheckCircle2 } from 'lucide-react';
+import { Download, X, Share, PlusSquare, Sparkles, Smartphone, CheckCircle2, Calendar, Award } from 'lucide-react';
 
-export const PWAInstallModal: React.FC = () => {
+interface PWAInstallModalProps {
+  onOpenClientAccount?: () => void;
+}
+
+export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ onOpenClientAccount }) => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [installedSuccess, setInstalledSuccess] = useState(false);
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
 
   useEffect(() => {
-    // Check if already running in standalone mode (already installed)
+    // Check standalone mode
     const isRunningStandalone = 
       window.matchMedia('(display-mode: standalone)').matches || 
       (window.navigator as any).standalone === true;
@@ -26,56 +31,82 @@ export const PWAInstallModal: React.FC = () => {
       setDeferredPrompt(e);
     };
 
+    // Listen for global custom open event from any button in the app
+    const handleGlobalOpen = () => {
+      setShowModal(true);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('open-pwa-install', handleGlobalOpen);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('open-pwa-install', handleGlobalOpen);
     };
   }, []);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       // Android / Chromium native install prompt
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setInstalledSuccess(true);
-        setTimeout(() => setInstalledSuccess(false), 3000);
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          setInstalledSuccess(true);
+          setTimeout(() => setInstalledSuccess(false), 3500);
+        }
+        setDeferredPrompt(null);
+      } catch (err) {
+        setShowModal(true);
       }
-      setDeferredPrompt(null);
     } else {
-      // iOS or browser without direct prompt support: show instruction modal
+      // iOS or browser without direct prompt support
       setShowModal(true);
     }
   };
 
-  // If already installed as PWA, do not show button
-  if (isStandalone) {
-    return null;
-  }
-
   return (
     <>
-      {/* ── BANNER DISCRETO EN LA PARTE SUPERIOR (NO TAPA NAVEGACIÓN NI BOTONES) ── */}
-      <div className="bg-[#16291F] text-white px-4 py-2 text-xs border-b border-amber-300/30 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-2 max-w-xl truncate">
-          <div className="w-5 h-5 rounded-md bg-amber-400 text-sage-950 flex items-center justify-center shrink-0">
-            <Download className="w-3 h-3 stroke-[2.5]" />
+      {/* ── BANNER SUPERIOR PERSISTENTE Y VISIBLE (NO MOLESTA NI TAPA ELEMENTOS) ── */}
+      {!isStandalone && !isBannerDismissed && (
+        <div className="bg-[#16291F] text-white px-3 sm:px-4 py-2 border-b border-amber-300/30 flex items-center justify-between shadow-xs relative z-40">
+          <div 
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 max-w-xl truncate cursor-pointer hover:opacity-95 transition-opacity"
+          >
+            <div className="w-6 h-6 rounded-lg bg-amber-400 text-sage-950 flex items-center justify-center shrink-0 shadow-xs">
+              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 truncate">
+              <span className="font-bold text-[11px] sm:text-xs text-amber-300">
+                Instala la App Oficial:
+              </span>
+              <span className="font-medium text-[10px] sm:text-xs text-sage-100 truncate">
+                Consulta tu Tarjeta VIP de sellos y citas agendadas
+              </span>
+            </div>
           </div>
-          <span className="font-medium text-[11px] sm:text-xs text-sage-100 truncate">
-            {isIOS ? 'Instala la App en tu iPhone para agendar en 1 toque' : 'Instala la App en tu teléfono para acceso directo y reservas'}
-          </span>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleInstallClick}
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 hover:bg-amber-300 text-sage-950 text-[11px] font-bold rounded-full transition-all active:scale-95 shadow-xs cursor-pointer"
+            >
+              <span>{isIOS ? 'Cómo Instalar' : 'Instalar App'}</span>
+            </button>
+
+            <button
+              onClick={() => setIsBannerDismissed(true)}
+              className="p-1 rounded-full text-sage-300 hover:text-white hover:bg-white/10 transition-colors"
+              title="Cerrar aviso temporalmente"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
+      )}
 
-        <button
-          onClick={handleInstallClick}
-          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 hover:bg-amber-300 text-sage-950 text-[11px] font-bold rounded-full transition-all shrink-0 active:scale-95 shadow-xs"
-        >
-          <span>Instalar App</span>
-        </button>
-      </div>
-
-      {/* ── MODAL DE INSTRUCCIONES (ESPECIAL PARA IPHONE / APPLE) ── */}
+      {/* ── MODAL EXPLICATIVO Y GUÍA DE INSTALACIÓN PASO A PASO ── */}
       {showModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-warm-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-luxury border border-sage-200 overflow-hidden p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
@@ -83,97 +114,143 @@ export const PWAInstallModal: React.FC = () => {
             {/* Close button */}
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full text-warm-400 hover:text-warm-900 hover:bg-sage-50 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full text-warm-400 hover:text-warm-900 hover:bg-sage-50 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Header with App Logo */}
             <div className="flex items-center gap-3 pr-6">
-              <img
-                src="/favicon-192x192.png"
-                alt="Andrea Nails Logo"
-                className="w-12 h-12 rounded-2xl border border-sage-200 shadow-sm object-cover"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
-              />
+              <div className="w-12 h-12 rounded-2xl bg-[#16291F] border border-amber-400/40 shadow-sm flex items-center justify-center shrink-0">
+                <span className="font-serif font-bold text-amber-300 text-lg">AL</span>
+              </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                  Instalación PWA
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                  App PWA Oficial
                 </span>
                 <h3 className="font-serif text-lg font-bold text-warm-900 leading-tight">
-                  Instala Andrea Nails en tu {isIOS ? 'iPhone / iPad' : 'Dispositivo'}
+                  Andrea Labrador Nails en tu {isIOS ? 'iPhone / iPad' : 'Dispositivo'}
                 </h3>
               </div>
             </div>
 
-            <p className="text-xs text-warm-600 leading-relaxed">
-              Disfruta del catálogo offline, acceso directo desde tu pantalla de inicio y reserva tus citas en un toque sin descargar nada desde App Store.
-            </p>
-
-            {/* Steps Guide */}
-            <div className="space-y-3 bg-[#FBF9F6] p-4 rounded-2xl border border-sage-200 text-xs">
-              
-              {/* Step 1 */}
-              <div className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-[#16291F] text-amber-200 font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                  1
-                </span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-warm-900">
-                    Toca el botón Compartir
-                  </p>
-                  <p className="text-warm-600 text-[11px] flex items-center gap-1.5 flex-wrap">
-                    En la barra inferior de Safari, pulsa el ícono 
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white border border-sage-200 font-bold text-sage-800">
-                      <Share className="w-3 h-3" /> Compartir
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="flex items-start gap-3 pt-2 border-t border-sage-200/60">
-                <span className="w-6 h-6 rounded-full bg-[#16291F] text-amber-200 font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                  2
-                </span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-warm-900">
-                    Selecciona "Añadir a pantalla de inicio"
-                  </p>
-                  <p className="text-warm-600 text-[11px] flex items-center gap-1.5 flex-wrap">
-                    Desliza hacia abajo en el menú y toca 
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white border border-sage-200 font-bold text-sage-800">
-                      <PlusSquare className="w-3 h-3" /> Añadir a inicio
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="flex items-start gap-3 pt-2 border-t border-sage-200/60">
-                <span className="w-6 h-6 rounded-full bg-[#16291F] text-amber-200 font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                  3
-                </span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-warm-900">
-                    Confirma tocando "Añadir"
-                  </p>
-                  <p className="text-warm-600 text-[11px]">
-                    En la esquina superior derecha, presiona "Añadir". ¡Listo! Ya tienes la app con el logo oficial en tu pantalla.
-                  </p>
-                </div>
-              </div>
-
+            {/* Why install explanation */}
+            <div className="p-3.5 bg-warm-50 rounded-2xl border border-sage-200/80 space-y-2 text-xs">
+              <p className="font-bold text-warm-900 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span>¿Por qué descargar la App en tu inicio?</span>
+              </p>
+              <ul className="space-y-1.5 text-warm-700 text-[11px]">
+                <li className="flex items-start gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <span><strong>Tarjeta VIP con sellos:</strong> Monitorea tus visitas acumuladas (¡5 visitas = Depilación de Cejas de cortesía!).</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span><strong>Tus Citas Agendadas:</strong> Revisa el día y la hora de tu cita sin perder el mensaje en WhatsApp.</span>
+                </li>
+                <li className="flex items-start gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-sage-600 shrink-0 mt-0.5" />
+                  <span><strong>Acceso en 1 Toque:</strong> Abre el catálogo en 1 segundo sin ocupar memoria de tu teléfono.</span>
+                </li>
+              </ul>
             </div>
+
+            {/* If Android/Chromium has native prompt */}
+            {deferredPrompt && (
+              <div className="pt-1">
+                <button
+                  onClick={handleInstallClick}
+                  className="w-full py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-sage-950 text-xs sm:text-sm font-bold shadow-soft transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4 stroke-[2.5]" />
+                  <span>Instalar Ahora en mi Pantalla de Inicio</span>
+                </button>
+              </div>
+            )}
+
+            {/* iOS / Safari Step-by-Step Instructions */}
+            {isIOS && (
+              <div className="space-y-3 bg-[#FBF9F6] p-4 rounded-2xl border border-sage-200 text-xs">
+                <p className="font-bold text-sage-900 text-center">Pasos para iPhone / Safari:</p>
+                
+                {/* Step 1 */}
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-[#16291F] text-amber-200 font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    1
+                  </span>
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-warm-900">
+                      Toca el botón Compartir
+                    </p>
+                    <p className="text-warm-600 text-[11px] flex items-center gap-1.5 flex-wrap">
+                      En la barra inferior de Safari, pulsa el ícono 
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white border border-sage-200 font-bold text-sage-800">
+                        <Share className="w-3 h-3" /> Compartir
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="flex items-start gap-3 pt-2 border-t border-sage-200/60">
+                  <span className="w-6 h-6 rounded-full bg-[#16291F] text-amber-200 font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    2
+                  </span>
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-warm-900">
+                      Selecciona "Añadir a pantalla de inicio"
+                    </p>
+                    <p className="text-warm-600 text-[11px] flex items-center gap-1.5 flex-wrap">
+                      Desliza en el menú y presiona 
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white border border-sage-200 font-bold text-sage-800">
+                        <PlusSquare className="w-3 h-3" /> Añadir a inicio
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex items-start gap-3 pt-2 border-t border-sage-200/60">
+                  <span className="w-6 h-6 rounded-full bg-[#16291F] text-amber-200 font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    3
+                  </span>
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-warm-900">
+                      Confirma tocando "Añadir"
+                    </p>
+                    <p className="text-warm-600 text-[11px]">
+                      En la esquina superior derecha, pulsa "Añadir". ¡Listo! La app quedará instalada como ícono propio.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* Quick action: View VIP account directly */}
+            {onOpenClientAccount && (
+              <div className="pt-2 border-t border-sage-100 flex items-center justify-between">
+                <span className="text-[11px] text-warm-600">¿Ya tienes visitas registradas?</span>
+                <button
+                  onClick={() => {
+                    setShowModal(false);
+                    onOpenClientAccount();
+                  }}
+                  className="text-xs font-bold text-sage-800 hover:text-sage-950 underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Ver Mi Ficha VIP</span>
+                </button>
+              </div>
+            )}
 
             {/* Modal action */}
             <button
               onClick={() => setShowModal(false)}
-              className="w-full py-3 rounded-2xl bg-[#16291F] hover:bg-sage-900 text-white text-xs font-bold shadow-soft transition-all"
+              className="w-full py-3 rounded-2xl bg-[#16291F] hover:bg-sage-900 text-white text-xs font-bold shadow-soft transition-all cursor-pointer"
             >
-              Entendido, voy a instalarla
+              Cerrar y seguir navegando
             </button>
 
           </div>
@@ -184,7 +261,7 @@ export const PWAInstallModal: React.FC = () => {
       {installedSuccess && (
         <div className="fixed top-5 right-5 z-50 bg-emerald-800 text-white px-4 py-3 rounded-2xl shadow-luxury flex items-center gap-2 text-xs font-bold border border-emerald-500 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-          <span>¡App instalada con éxito en tu dispositivo!</span>
+          <span>¡App instalada con éxito en tu pantalla de inicio!</span>
         </div>
       )}
     </>
