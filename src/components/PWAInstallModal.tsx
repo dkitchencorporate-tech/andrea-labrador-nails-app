@@ -67,43 +67,54 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ onOpenClientAc
 
   return (
     <>
-      {/* ── BANNER SUPERIOR PERSISTENTE Y VISIBLE (NO MOLESTA NI TAPA ELEMENTOS) ── */}
+      {/* ── SECCIÓN ÚNICA SUPERIOR DE DESCARGA PWA CON PULSO VISUAL ── */}
       {!isStandalone && !isBannerDismissed && (
-        <div className="bg-[#16291F] text-white px-3 sm:px-4 py-2 border-b border-amber-300/30 flex items-center justify-between shadow-xs relative z-40">
-          <div 
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 max-w-xl truncate cursor-pointer hover:opacity-95 transition-opacity"
-          >
-            <div className="w-6 h-6 rounded-lg bg-amber-400 text-sage-950 flex items-center justify-center shrink-0 shadow-xs">
-              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 truncate">
-              <span className="font-bold text-[11px] sm:text-xs text-amber-300">
-                Instala la App Oficial:
-              </span>
-              <span className="font-medium text-[10px] sm:text-xs text-sage-100 truncate">
-                Consulta tu Tarjeta VIP de sellos y citas agendadas
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleInstallClick}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 hover:bg-amber-300 text-sage-950 text-[11px] font-bold rounded-full transition-all active:scale-95 shadow-xs cursor-pointer"
+        <section className="w-full max-w-full bg-[#16291F] text-white border-b border-amber-400/30 overflow-hidden relative shadow-sm z-40">
+          <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 min-w-0">
+            
+            {/* Indicador de Pulso Visual + Texto */}
+            <div 
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer hover:opacity-95 transition-opacity"
             >
-              <span>{isIOS ? 'Cómo Instalar' : 'Instalar App'}</span>
-            </button>
+              {/* Pulso Visual Ping */}
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-80"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400 shadow-[0_0_8px_#f59e0b]"></span>
+              </span>
 
-            <button
-              onClick={() => setIsBannerDismissed(true)}
-              className="p-1 rounded-full text-sage-300 hover:text-white hover:bg-white/10 transition-colors"
-              title="Cerrar aviso temporalmente"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+              {/* Mensaje de Invitación */}
+              <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+                <span className="font-bold text-[11px] sm:text-xs text-amber-300 shrink-0">
+                  Descarga la App:
+                </span>
+                <span className="font-medium text-[10px] sm:text-xs text-sage-100 truncate">
+                  Tarjeta VIP de sellos y citas en tu inicio
+                </span>
+              </div>
+            </div>
+
+            {/* Botón con Pulso Visual */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={handleInstallClick}
+                className="relative inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 text-sage-950 text-[11px] sm:text-xs font-bold rounded-full shadow-md transition-all active:scale-95 shrink-0 cursor-pointer animate-pulse ring-2 ring-amber-400/30"
+              >
+                <Download className="w-3 h-3 stroke-[2.5]" />
+                <span>{isIOS ? 'Cómo Instalar' : 'Descargar'}</span>
+              </button>
+
+              <button
+                onClick={() => setIsBannerDismissed(true)}
+                className="p-1 rounded-full text-sage-300 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                title="Cerrar aviso temporalmente"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
           </div>
-        </div>
+        </section>
       )}
 
       {/* ── MODAL EXPLICATIVO Y GUÍA DE INSTALACIÓN PASO A PASO ── */}

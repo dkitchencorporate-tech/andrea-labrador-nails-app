@@ -14,7 +14,6 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { SharePage } from './components/SharePage';
 import { ClubInviteSection } from './components/ClubInviteSection';
 import { PWAInstallModal } from './components/PWAInstallModal';
-import { PWAInstallCard } from './components/PWAInstallCard';
 import { LegalModals, LegalModalType } from './components/LegalModals';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AppStore } from './services/store';
@@ -241,13 +240,12 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200">
       
-      {/* Sticky Top Header: Persistent PWA Install Banner + Clean Client Navbar */}
+      {/* Sticky Top Header: PWA Install Banner + Client Navbar */}
       <div className="sticky top-0 z-40">
         <PWAInstallModal onOpenClientAccount={() => setIsAccountModalOpen(true)} />
         <Navbar
           onOpenBooking={handleOpenGeneralBooking}
           onOpenClientAccount={() => setIsAccountModalOpen(true)}
-          onOpenInstall={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
           onNavigateToShare={handleNavigateToShare}
           onNavigateToPromo={handleNavigateToPromo}
           exchangeRate={exchangeRate}
@@ -276,12 +274,6 @@ export const App: React.FC = () => {
 
         {/* Tarjeta Digital & Club VIP de Fidelización */}
         <LoyaltyClub />
-
-        {/* Sección Prominente de Instalación PWA y Tarjeta VIP */}
-        <PWAInstallCard
-          onOpenClientAccount={() => setIsAccountModalOpen(true)}
-          onOpenInstall={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
-        />
 
         <StudioPolicies />
 
