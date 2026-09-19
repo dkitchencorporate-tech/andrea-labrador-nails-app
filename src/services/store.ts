@@ -141,7 +141,12 @@ export class AppStore {
 
   // ─── PROMOCIONES ───────────────────────────────────────────────────────────
   static getPromos(): PromoOffer[] {
-    return this.getStored<PromoOffer[]>(STORAGE_KEYS.PROMOS, INITIAL_PROMOS);
+    const list = this.getStored<PromoOffer[]>(STORAGE_KEYS.PROMOS, INITIAL_PROMOS);
+    return list.map(p => ({
+      ...p,
+      regularPriceUSD: Number(p.regularPriceUSD) || 0,
+      promoPriceUSD: Number(p.promoPriceUSD) || 0,
+    }));
   }
 
   static savePromos(promos: PromoOffer[]): void {
@@ -165,7 +170,13 @@ export class AppStore {
 
   // ─── CITAS Y RESERVAS ──────────────────────────────────────────────────────
   static getBookings(): AppointmentBooking[] {
-    return this.getStored<AppointmentBooking[]>(STORAGE_KEYS.BOOKINGS, []);
+    const list = this.getStored<AppointmentBooking[]>(STORAGE_KEYS.BOOKINGS, []);
+    return list.map(b => ({
+      ...b,
+      servicePriceUSD: Number(b.servicePriceUSD) || 0,
+      totalPriceUSD: Number(b.totalPriceUSD) || 0,
+      discountUSD: Number(b.discountUSD) || 0,
+    }));
   }
 
   static saveBookings(bookings: AppointmentBooking[]): void {
@@ -178,8 +189,14 @@ export class AppStore {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.bookings)) {
-          this.saveBookings(data.bookings);
-          return data.bookings;
+          const bookings = data.bookings.map((b: any) => ({
+            ...b,
+            servicePriceUSD: Number(b.servicePriceUSD) || 0,
+            totalPriceUSD: Number(b.totalPriceUSD) || 0,
+            discountUSD: Number(b.discountUSD) || 0,
+          }));
+          this.saveBookings(bookings);
+          return bookings;
         }
       }
     } catch (e) {

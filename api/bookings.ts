@@ -206,7 +206,12 @@ export default async function handler(req: any, res: any) {
       `;
 
       return res.status(200).json({
-        bookings: rows,
+        bookings: rows.map((r: any) => ({
+          ...r,
+          servicePriceUSD: Number(r.servicePriceUSD) || 0,
+          totalPriceUSD: Number(r.totalPriceUSD) || 0,
+          discountUSD: Number(r.discountUSD) || 0,
+        })),
         databaseConnected: true,
       });
     } catch (err: any) {
