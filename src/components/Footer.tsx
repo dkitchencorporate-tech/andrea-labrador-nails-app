@@ -1,13 +1,15 @@
 import React from 'react';
 import { MessageCircle, Calendar, Gift, Sparkles } from 'lucide-react';
 import { InstagramIcon } from './Icons';
+import { LegalModalType } from './LegalModals';
 
 interface FooterProps {
   onOpenBooking: () => void;
   onNavigateToShare?: () => void;
+  onOpenLegal?: (type: LegalModalType) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare, onOpenLegal }) => {
   return (
     <footer className="bg-sage-900 text-warm-100 pt-10 pb-20 sm:pb-12 border-t border-sage-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
@@ -113,13 +115,28 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
 
         </div>
 
-        {/* Bottom Bar with Plenty of Padding */}
-        <div className="pt-6 border-t border-sage-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-sage-400">
-          <p>
-            &copy; {new Date().getFullYear()} Andrea Labrador &bull; Todos los derechos reservados.
-          </p>
-          <p className="text-sage-400 text-xs">
-            Cordero &bull; San Cristóbal, Estado Táchira, Venezuela
+        {/* Legal Links & Compliance */}
+        <div className="pt-6 border-t border-sage-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-sage-300">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-sage-300 font-medium">
+            <button onClick={() => onOpenLegal?.('terminos')} className="hover:text-amber-300 transition-colors underline-offset-2 hover:underline">
+              Términos del Servicio
+            </button>
+            <span>&bull;</span>
+            <button onClick={() => onOpenLegal?.('privacidad')} className="hover:text-amber-300 transition-colors underline-offset-2 hover:underline">
+              Privacidad &amp; Datos
+            </button>
+            <span>&bull;</span>
+            <button onClick={() => onOpenLegal?.('cookies')} className="hover:text-amber-300 transition-colors underline-offset-2 hover:underline">
+              Política de Cookies
+            </button>
+            <span>&bull;</span>
+            <button onClick={() => onOpenLegal?.('descargo')} className="hover:text-amber-300 transition-colors underline-offset-2 hover:underline">
+              Descargo de Responsabilidad
+            </button>
+          </div>
+
+          <p className="text-[11px] text-sage-400 text-center sm:text-right">
+            &copy; {new Date().getFullYear()} Andrea Labrador Nails Studio &bull; Cordero &bull; San Cristóbal, Táchira
           </p>
         </div>
 

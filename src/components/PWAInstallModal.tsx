@@ -56,19 +56,22 @@ export const PWAInstallModal: React.FC = () => {
 
   return (
     <>
-      {/* ── BOTÓN DISCRETO / ELEGANTE EN ESQUINA INFERIOR O BANNER ── */}
-      <div className="fixed bottom-20 left-4 z-40 sm:bottom-6 sm:left-6">
-        <button
-          onClick={handleInstallClick}
-          className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-[#16291F] text-white hover:bg-sage-900 border border-amber-300/40 shadow-luxury transition-all text-xs font-bold active:scale-95 group"
-          title="Instalar App en tu teléfono"
-        >
-          <div className="w-5 h-5 rounded-lg bg-amber-400 text-sage-950 flex items-center justify-center shrink-0">
+      {/* ── BANNER DISCRETO EN LA PARTE SUPERIOR (NO TAPA NAVEGACIÓN NI BOTONES) ── */}
+      <div className="bg-[#16291F] text-white px-4 py-2 text-xs border-b border-amber-300/30 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-2 max-w-xl truncate">
+          <div className="w-5 h-5 rounded-md bg-amber-400 text-sage-950 flex items-center justify-center shrink-0">
             <Download className="w-3 h-3 stroke-[2.5]" />
           </div>
-          <span className="hidden sm:inline">Descargar App</span>
-          <span className="sm:hidden">App Móvil</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span className="font-medium text-[11px] sm:text-xs text-sage-100 truncate">
+            {isIOS ? 'Instala la App en tu iPhone para agendar en 1 toque' : 'Instala la App en tu teléfono para acceso directo y reservas'}
+          </span>
+        </div>
+
+        <button
+          onClick={handleInstallClick}
+          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 hover:bg-amber-300 text-sage-950 text-[11px] font-bold rounded-full transition-all shrink-0 active:scale-95 shadow-xs"
+        >
+          <span>Instalar App</span>
         </button>
       </div>
 

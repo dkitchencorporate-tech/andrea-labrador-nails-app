@@ -21,7 +21,7 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     id: 'pedicure',
     name: 'Pedicure Spa',
     category: 'pedicure',
-    priceUSD: 11.50,
+    priceUSD: 13.00,
     durationMinutes: 75,
     shortDescription: 'Limpieza profunda, estética y relajación para tus pies.',
     fullDescription: 'Un servicio de cuidado integral enfocado en la limpieza profunda, estética y relajación, para que tus pies luzcan y se sientan impecables.',

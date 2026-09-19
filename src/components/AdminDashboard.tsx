@@ -1334,9 +1334,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 )}
 
                 <form onSubmit={handleSaveRate} className="p-5 rounded-2xl bg-sage-50 border border-sage-200 space-y-3">
-                  <span className="text-xs font-bold text-warm-900 uppercase tracking-wider block">Tasa del Dólar (VES / USD)</span>
+                  <span className="text-xs font-bold text-warm-900 uppercase tracking-wider block">Tasa de Cambio del Día (Binance / Monitor Bs / USD)</span>
                   <p className="text-xs text-warm-500">
-                    Se utiliza para calcular automáticamente el equivalente en Bolívares en el catálogo y en el mensaje de reserva a WhatsApp.
+                    Puedes actualizar esta tasa diariamente de forma manual según la cotización en Binance o tasa del día para los totales en WhatsApp y pagos móviles.
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="relative w-44">

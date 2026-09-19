@@ -60,21 +60,21 @@ export const ClubInviteSection: React.FC<ClubInviteSectionProps> = ({ onNavigate
                 <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white/10 border border-white/15 text-sage-100">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <div>
-                    <strong className="text-white block">6 Servicios = #7 GRATIS</strong>
-                    <span className="text-[11px] text-sage-300">Tu servicio completo de cortesía</span>
+                    <strong className="text-white block">5 Servicios = Depilación de Cejas</strong>
+                    <span className="text-[11px] text-sage-300">Premio exclusivo de cortesía en tu 5ª visita</span>
                   </div>
                 </div>
               </div>
 
               <div className="pt-1">
-                <button
-                  onClick={onNavigateToShare}
+                <a
+                  href="#club-vip"
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-sage-950 font-bold text-xs sm:text-sm rounded-full shadow-lg transition-all active:scale-95"
                 >
                   <Sparkles className="w-4 h-4 shrink-0 text-sage-900" />
                   <span>Ver Mi Tarjeta de Fidelización</span>
                   <ArrowRight className="w-3.5 h-3.5 shrink-0 text-sage-900" />
-                </button>
+                </a>
               </div>
             </div>
 

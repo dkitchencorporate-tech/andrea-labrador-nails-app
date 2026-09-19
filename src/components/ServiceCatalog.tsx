@@ -128,10 +128,7 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
                         Precio
                       </span>
                       <span className="font-serif text-xl font-bold text-sage-900">
-                        ${service.priceUSD.toFixed(2)}
-                      </span>
-                      <span className="text-[10px] text-warm-700 font-semibold block">
-                        ≈ {priceVES.toFixed(0)} Bs
+                        ${service.priceUSD.toFixed(2)} USD
                       </span>
                     </div>
                   </div>

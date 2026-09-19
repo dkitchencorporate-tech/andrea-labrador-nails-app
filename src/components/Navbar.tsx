@@ -35,35 +35,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-5 text-sm font-bold text-warm-900">
-          <a 
-            href="/promociones" 
-            onClick={(e) => {
-              if (onNavigateToPromo) {
-                e.preventDefault();
-                onNavigateToPromo();
-              }
-            }}
-            className="hover:text-sage-700 transition-colors flex items-center gap-1 text-amber-900"
-          >
-            <Tag className="w-3.5 h-3.5 text-amber-600" />
-            <span>Promos &amp; Combos</span>
-          </a>
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-bold text-warm-900">
           <a href="#catalogo" className="hover:text-sage-700 transition-colors">
             <span>Catálogo</span>
           </a>
-          <a 
-            href="/compartir" 
-            onClick={(e) => {
-              if (onNavigateToShare) {
-                e.preventDefault();
-                onNavigateToShare();
-              }
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition-all border border-amber-300 shadow-xs"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>⭐ Club VIP 6+1</span>
+          <a href="#club-vip" className="hover:text-sage-700 transition-colors">
+            <span>Fidelización</span>
           </a>
           <a href="#politicas" className="hover:text-sage-700 transition-colors flex items-center gap-1">
             <Shield className="w-3.5 h-3.5 text-sage-600" />

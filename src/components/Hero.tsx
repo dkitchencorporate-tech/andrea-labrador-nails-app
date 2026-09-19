@@ -242,14 +242,11 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
                     <ChevronRight className="w-5 h-5" />
                   </button>
 
-                  {/* Minimal Bottom Overlay: Only Design Name & Technique (No booking button) */}
+                  {/* Minimal Bottom Overlay: Strictly Service Name */}
                   <div className="absolute bottom-3 inset-x-3 bg-black/65 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/15 text-white z-10">
                     <h3 className="font-serif text-lg font-bold leading-tight">
                       {currentSlide.name}
                     </h3>
-                    <p className="text-xs text-sage-200 font-medium">
-                      {currentSlide.technique}
-                    </p>
                   </div>
 
                 </div>

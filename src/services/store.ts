@@ -62,8 +62,11 @@ export class AppStore {
       this.saveServices(INITIAL_SERVICES);
       return INITIAL_SERVICES;
     }
-    // Defensive: Neon may have cached string prices — ensure they are numbers
-    return list.map(s => ({ ...s, priceUSD: Number(s.priceUSD) || 0 }));
+    // Defensive: Neon/localStorage may have cached old 11.50 for pedicure — ensure 13.00 and numeric types
+    return list.map(s => {
+      const price = s.id === 'pedicure' && Number(s.priceUSD) === 11.5 ? 13.00 : Number(s.priceUSD) || 0;
+      return { ...s, priceUSD: price };
+    });
   }
 
   static saveServices(services: ServiceItem[]): void {
@@ -1082,28 +1085,31 @@ export class AppStore {
       : '';
     
     const loyaltyText = booking.isExistingClient
-      ? `\n⭐ *Clienta VIP Registrada:* Sumando a mi Tarjeta de Fidelización (7º servicio GRATIS)`
-      : `\n⭐ *Programa de Fidelización:* Suma a mis 6 servicios para el 7º GRATIS`;
+      ? `\n⭐ *Clienta VIP Registrada:* Sumando a mi Tarjeta de Fidelización (5 visitas = Depilación de Cejas GRATIS)`
+      : `\n⭐ *Programa de Fidelización:* Sumando a mi 5ª visita para Depilación de Cejas de cortesía`;
     
     const rate = this.getExchangeRate();
     const approxVES = (booking.totalPriceUSD * rate).toFixed(0);
 
     const totalText = (!booking.isExistingClient && booking.isFirstVisit)
-      ? `💰 *Total Estimado con Descuento:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)\n📌 _Nota: La bonificación de $2 USD la otorga Andrea directamente en el salón tras corroborar que sea tu primera visita._`
-      : `💰 *Total a Cancelar:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)`;
+      ? `💰 *Total Estimado con Descuento:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)\n📌 _Nota: La bonificación de $2 USD la aplica Andrea directamente en el salón tras corroborar que sea tu primera visita._`
+      : `💰 *Total del Servicio:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)`;
 
-    const message = `¡Hola Andrea! 💅✨ Deseo agendar una cita contigo desde tu catálogo:
+    const message = `💅 *SOLICITUD DE CITA — ANDREA LABRADOR NAILS STUDIO*
 
-👤 *Cliente:* ${booking.clientName}
+👤 *Clienta:* ${booking.clientName}
 📱 *Teléfono:* ${booking.clientPhone}${emailText}${igText}
-💅 *Servicio:* ${booking.serviceName}${addonsText}
-📅 *Fecha:* ${booking.date}
+🗓 *Fecha Solicitada:* ${booking.date}
 ⏰ *Hora:* ${booking.timeSlot}
+
+✨ *Servicios & Detalles:*
+• ${booking.serviceName}${addonsText}
+
 💳 *Forma de Pago:* ${paymentLabel}${firstVisitText}${loyaltyText}${notesText}
 
 ${totalText}
 
-¿Tienes este cupo disponible para confirmarme? ¡Muchas gracias! 💕`;
+Hola Andrea, ¿tienes este cupo disponible para confirmarme? ¡Muchas gracias! 💕`;
 
     const encoded = encodeURIComponent(message);
     return `https://wa.me/584241360937?text=${encoded}`;

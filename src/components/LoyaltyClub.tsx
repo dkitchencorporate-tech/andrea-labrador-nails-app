@@ -55,7 +55,7 @@ export const LoyaltyClub: React.FC = () => {
             Club VIP &bull; Tus Manos Recompensadas
           </h2>
           <p className="text-xs sm:text-sm text-warm-800/80">
-            Cada visita suma a tu cuidado. Acumula 6 sellos en tu tarjeta digital y disfruta de tu 7º servicio 100% GRATIS por cuenta de la casa.
+            Cada visita suma a tu cuidado. Con 5 servicios acumulados en tu tarjeta digital, obtienes una <strong>Depilación de Cejas 100% de cortesía</strong>.
           </p>
         </div>
 
@@ -80,11 +80,11 @@ export const LoyaltyClub: React.FC = () => {
             <div className="flex items-center gap-2">
               <div className="px-3 py-1.5 bg-white rounded-xl border border-sage-200 text-xs font-semibold text-sage-800 flex items-center gap-1.5 shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-gold-500" />
-                <span>6 Visitas Acumuladas</span>
+                <span>5 Visitas Acumuladas</span>
               </div>
               <div className="px-3 py-1.5 bg-white rounded-xl border border-sage-200 text-xs font-semibold text-sage-800 flex items-center gap-1.5 shadow-sm">
-                <Gift className="w-3.5 h-3.5 text-rose-500" />
-                <span>¡7º Servicio GRATIS!</span>
+                <Gift className="w-3.5 h-3.5 text-emerald-600" />
+                <span>¡Depilación de Cejas GRATIS!</span>
               </div>
             </div>
           </div>
@@ -108,22 +108,22 @@ export const LoyaltyClub: React.FC = () => {
                       isStamped
                         ? 'bg-sage-800 border-sage-800 text-white shadow-soft scale-102'
                         : isSpecial
-                        ? 'bg-white border-gold-400/80 text-gold-600 border-dashed'
+                        ? 'bg-white border-emerald-500 text-emerald-700 border-dashed shadow-sm'
                         : 'bg-white border-sage-200 text-warm-400 border-dashed'
                     }`}
                   >
                     {isStamped ? (
                       <CheckCircle2 className="w-7 h-7 text-gold-400 mb-1" />
                     ) : isSpecial ? (
-                      <Gift className="w-6 h-6 text-gold-500 mb-1 animate-bounce" />
+                      <Gift className="w-6 h-6 text-emerald-600 mb-1 animate-bounce" />
                     ) : (
                       <span className="font-serif text-lg font-bold text-warm-300 mb-1">
                         #{index + 1}
                       </span>
                     )}
 
-                    <span className="text-[10px] font-bold uppercase tracking-wider">
-                      {index === 5 ? '¡GRATIS!' : `Sello ${index + 1}`}
+                    <span className="text-[10px] font-bold uppercase tracking-wider leading-tight">
+                      {index === 5 ? 'Depilación de Cejas' : `Sello ${index + 1}`}
                     </span>
                   </div>
                 );

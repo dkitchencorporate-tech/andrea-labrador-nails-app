@@ -14,11 +14,16 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { SharePage } from './components/SharePage';
 import { ClubInviteSection } from './components/ClubInviteSection';
 import { PWAInstallModal } from './components/PWAInstallModal';
+import { LegalModals, LegalModalType } from './components/LegalModals';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { AppStore } from './services/store';
 import { ServiceItem, PromoOffer } from './types';
 import { Calendar, MessageCircle, Sparkles } from 'lucide-react';
 
 export const App: React.FC = () => {
+  // Legal modal state
+  const [activeLegalModal, setActiveLegalModal] = useState<LegalModalType>(null);
+
   // Store reactive state
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [promos, setPromos] = useState<PromoOffer[]>([]);
@@ -232,6 +237,9 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200">
       
+      {/* PWA Install Top Bar (Clean, non-intrusive) */}
+      <PWAInstallModal />
+
       {/* Client Navbar (Completely clean, no admin lock) */}
       <Navbar
         onOpenBooking={handleOpenGeneralBooking}
@@ -253,12 +261,6 @@ export const App: React.FC = () => {
           onNavigateToShare={handleNavigateToShare}
         />
 
-        {/* Promociones Especiales: 2 Banners Elegantes que Redirigen a /promociones */}
-        <PromotionBanners
-          onNavigateToPromo={handleNavigateToPromo}
-          exchangeRate={exchangeRate}
-        />
-
         {/* Catálogo Completo de Servicios */}
         <ServiceCatalog
           services={services}
@@ -278,6 +280,7 @@ export const App: React.FC = () => {
       <Footer
         onOpenBooking={handleOpenGeneralBooking}
         onNavigateToShare={handleNavigateToShare}
+        onOpenLegal={(type) => setActiveLegalModal(type)}
       />
 
       {/* Sticky Mobile Fast Booking Bar for Clients */}
@@ -336,8 +339,16 @@ export const App: React.FC = () => {
         onBookNewAppointment={handleOpenGeneralBooking}
       />
 
-      {/* PWA Install Button & Apple iOS Guide Modal */}
-      <PWAInstallModal />
+      {/* Cookie Consent Banner */}
+      <CookieConsentBanner
+        onOpenLegal={(type) => setActiveLegalModal(type)}
+      />
+
+      {/* Legal Modals (Términos, Privacidad, Cookies, Descargo) */}
+      <LegalModals
+        activeModal={activeLegalModal}
+        onClose={() => setActiveLegalModal(null)}
+      />
 
     </div>
   );

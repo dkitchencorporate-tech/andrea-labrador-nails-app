@@ -63,8 +63,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // Wizard steps: 1: Service & Addons, 2: Date & Time, 3: Client Info & Confirm
   const [step, setStep] = useState<1 | 2 | 3>(1);
   
-  // Selection state
-  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+  // Selection state (Supports multiple services e.g. Manos + Pies)
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
@@ -131,12 +131,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       }
     }
     if (preSelectedService) {
-      setSelectedServiceId(preSelectedService.id);
-    } else if (preSelectedPromo) {
-      // Find service matching promo
-      setSelectedServiceId('semipermanente');
-    } else if (services.length > 0 && !selectedServiceId) {
-      setSelectedServiceId(services[0].id);
+      setSelectedServiceIds([preSelectedService.id]);
+    } else if (services.length > 0 && selectedServiceIds.length === 0) {
+      setSelectedServiceIds([services[0].id]);
     }
 
     if (availableDates.length > 0 && !selectedDate) {
@@ -188,15 +185,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   if (!isOpen) return null;
 
-  const currentService = services.find(s => s.id === selectedServiceId) || services[0];
+  // Selected Services List (Multiple allowed: e.g. Manos + Pedicure Spa)
+  const currentServices = services.filter(s => selectedServiceIds.includes(s.id));
+  const currentService = currentServices[0] || services[0];
+  const combinedServiceNames = currentServices.map(s => s.name).join(' + ') || currentService.name;
+  const totalDurationMinutes = currentServices.reduce((acc, curr) => acc + curr.durationMinutes, 0);
+
   const selectedAddons = INITIAL_ADDONS.filter(a => selectedAddonIds.includes(a.id));
 
-  // Calculate pricing: no discount for promo combos OR recognized existing clients
-  const basePriceUSD = preSelectedPromo ? preSelectedPromo.promoPriceUSD : (currentService ? currentService.priceUSD : 10);
+  // Calculate pricing: sum of all selected services + addons
+  const basePriceUSD = currentServices.reduce((acc, curr) => acc + curr.priceUSD, 0);
   const addonsTotalUSD = selectedAddons.reduce((acc, curr) => acc + curr.priceUSD, 0);
-  const discountUSD = (!preSelectedPromo && !isExistingClient && isFirstVisit) ? 2.00 : 0.00;
+  const discountUSD = (!isExistingClient && isFirstVisit) ? 2.00 : 0.00;
   const totalPriceUSD = Math.max(0, basePriceUSD + addonsTotalUSD - discountUSD);
   const totalPriceVES = totalPriceUSD * exchangeRate;
+
+  // Toggle service selection (allows adding/removing services like Pedicure Spa)
+  const toggleService = (serviceId: string) => {
+    setSelectedServiceIds(prev => {
+      if (prev.includes(serviceId)) {
+        // Keep at least one service selected
+        if (prev.length === 1) return prev;
+        return prev.filter(id => id !== serviceId);
+      } else {
+        return [...prev, serviceId];
+      }
+    });
+  };
 
   // Toggle addon
   const toggleAddon = (id: string) => {
@@ -236,7 +251,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       clientPin: clientPin.trim() || undefined,
       clientInstagram: clientInstagram.trim() || undefined,
       serviceId: currentService.id,
-      serviceName: preSelectedPromo ? preSelectedPromo.title : currentService.name,
+      serviceName: combinedServiceNames,
       servicePriceUSD: basePriceUSD,
       selectedAddons,
       totalPriceUSD,
@@ -245,7 +260,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       paymentMethod,
       notes: notes.trim() || undefined,
       status: 'pendiente',
-      isFirstVisit: (!preSelectedPromo && !isExistingClient && isFirstVisit),
+      isFirstVisit: (!isExistingClient && isFirstVisit),
       discountUSD,
       createdAt: new Date().toISOString()
     };
@@ -448,48 +463,77 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               {/* STEP 1: SERVICE & ADDONS */}
               {step === 1 && (
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-sage-800">
-                      Servicio Principal Seleccionado
-                    </label>
-                    <select
-                      value={selectedServiceId}
-                      onChange={(e) => setSelectedServiceId(e.target.value)}
-                      className="w-full p-3.5 bg-warm-50 border border-sage-200 rounded-2xl text-xs sm:text-sm font-semibold text-warm-900 focus:ring-2 focus:ring-sage-400/40 focus:outline-none"
-                    >
-                      {services.filter(s => s.isAvailable).map((srv) => (
-                        <option key={srv.id} value={srv.id}>
-                          {srv.name} — ${srv.priceUSD.toFixed(2)} ({srv.durationMinutes} min)
-                        </option>
-                      ))}
-                    </select>
+                  {/* Elegant Boutique Multi-Service Selection (Replaces native black popup) */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-sage-800">
+                        Elige tus Servicios (Puedes seleccionar Manos y Pies)
+                      </label>
+                      <span className="text-[11px] text-sage-600 font-semibold">
+                        {currentServices.length} {currentServices.length === 1 ? 'servicio' : 'servicios'} ({totalDurationMinutes} min)
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {services.filter(s => s.isAvailable).map((srv) => {
+                        const isSelected = selectedServiceIds.includes(srv.id);
+                        return (
+                          <div
+                            key={srv.id}
+                            onClick={() => toggleService(srv.id)}
+                            className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-sage-50 border-sage-800 text-sage-950 shadow-sm ring-1 ring-sage-800'
+                                : 'bg-white border-sage-200/90 hover:bg-warm-50/80 text-warm-900'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                                isSelected ? 'bg-sage-800 border-sage-800 text-white' : 'border-sage-300 bg-white'
+                              }`}>
+                                {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                              </div>
+                              <div className="truncate">
+                                <p className="text-xs font-bold text-warm-900 truncate">{srv.name}</p>
+                                <p className="text-[10px] text-sage-600 font-medium">{srv.durationMinutes} min &bull; {srv.category === 'pedicure' ? 'Pies' : 'Manos'}</p>
+                              </div>
+                            </div>
+                            <span className="font-serif font-bold text-sm text-sage-900 shrink-0">
+                              ${srv.priceUSD.toFixed(2)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
 
-                  {currentService && (
-                    <div className="p-4 bg-sage-50/60 rounded-2xl border border-sage-200/60 flex items-center gap-4">
-                      <img 
-                        src={currentService.imageUrl} 
-                        alt={currentService.name} 
-                        className="w-16 h-16 rounded-xl object-cover"
-                      />
-                      <div className="space-y-0.5">
-                        <p className="text-xs font-bold text-warm-900">{currentService.name}</p>
-                        <p className="text-xs text-sage-700 italic">{currentService.shortDescription}</p>
-                        <p className="text-xs font-bold text-sage-900 font-serif">
-                          ${currentService.priceUSD.toFixed(2)} USD &bull; {currentService.durationMinutes} min
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Add-ons Section */}
+                  {/* Add-ons Section & Smart Cross-Sell Upsell */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-sage-800 flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-gold-500" />
-                        <span>Adicionales & Personalización (Opcional)</span>
+                        <span>Adicionales &amp; Personalización (Opcional)</span>
                       </span>
                     </div>
+
+                    {/* Sutil Recomendación Upsell Cruzado */}
+                    {!selectedServiceIds.includes('pedicure') && (
+                      <div
+                        onClick={() => toggleService('pedicure')}
+                        className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-300/80 cursor-pointer flex items-center justify-between gap-3 hover:bg-amber-100/60 transition-all"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-lg">🦶</span>
+                          <div>
+                            <p className="text-xs font-bold text-amber-950">¿Deseas sumar Pedicure Spa a tu cita?</p>
+                            <p className="text-[11px] text-amber-800">Aprovecha tu visita y sal con manos y pies perfectos.</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-bold text-amber-950 bg-amber-200/80 px-2.5 py-1 rounded-full border border-amber-300 shrink-0">
+                          + $13.00 USD
+                        </span>
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       {INITIAL_ADDONS.map((addon) => {
@@ -559,7 +603,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                             ¡Clienta VIP Reconocida!
                           </span>
                           <span className="text-[11px] text-sage-800 block">
-                            Esta cita sumará a tus sellos acumulados ({recognizedStamps}/6) para tu 7º servicio gratis.
+                            Esta cita sumará a tus sellos acumulados ({recognizedStamps}/5) para tu Depilación de Cejas de cortesía.
                           </span>
                         </div>
                       </div>
@@ -816,8 +860,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           </span>
                         </div>
                         <p className="text-emerald-800 text-[11px] leading-relaxed">
-                          Reconocida automáticamente en tu Ficha de Clienta. Cuentas con <b>{recognizedStamps} de 6 sellos</b> acumulados en tu Tarjeta de Fidelización.
-                          {recognizedStamps >= 5 ? ' ¡Esta visita te acerca a tu 7º servicio 100% GRATIS!' : ' ¡Esta cita sumará tu siguiente sello oficial!'}
+                          Reconocida automáticamente en tu Ficha de Clienta. Cuentas con <b>{recognizedStamps} de 5 sellos</b> acumulados en tu Tarjeta de Fidelización.
+                          {recognizedStamps >= 4 ? ' ¡Esta visita completa tu ciclo para tu Depilación de Cejas GRATIS!' : ' ¡Esta cita sumará tu siguiente sello oficial!'}
                         </p>
                       </div>
                     </div>
@@ -875,7 +919,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           Resumen de Cita
                         </span>
                         <p className="text-xs font-bold text-warm-900">
-                          {currentService.name} &bull; {selectedDate} ({selectedTimeSlot})
+                          {combinedServiceNames} &bull; {selectedDate} ({selectedTimeSlot})
                         </p>
                         <p className="text-[11px] text-sage-600">
                           Tasa estimada: ≈ {totalPriceVES.toFixed(0)} Bs
@@ -898,7 +942,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         </span>
                       ) : isExistingClient ? (
                         <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 text-[11px]">
-                          Clienta VIP: {recognizedStamps}/6 sellos
+                          Clienta VIP: {recognizedStamps}/5 sellos
                         </span>
                       ) : null}
                     </div>
