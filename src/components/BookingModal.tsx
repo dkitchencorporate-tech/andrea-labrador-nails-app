@@ -39,6 +39,7 @@ interface BookingModalProps {
   exchangeRate: number;
   referralCode?: string;
   onNavigateToShare?: () => void;
+  onBookingCreated?: () => void;
 }
 
 interface AvailableDateItem {
@@ -57,6 +58,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   exchangeRate,
   referralCode,
   onNavigateToShare,
+  onBookingCreated,
 }) => {
   // Wizard steps: 1: Service & Addons, 2: Date & Time, 3: Client Info & Confirm
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -262,6 +264,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     setIsSuccess(true);
     setIsSubmitting(false);
+    onBookingCreated?.();
 
     // Generate WhatsApp link
     const waUrl = AppStore.generateWhatsAppBookingUrl({

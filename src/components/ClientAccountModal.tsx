@@ -378,7 +378,9 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
                       <p className="flex items-center gap-1.5">
                         <Mail className="w-3.5 h-3.5 text-sage-600" />
                         <span>{activeAccount.email}</span>
-                        <Check className="w-3 h-3 text-emerald-600" title="Verificado" />
+                        <span title="Verificado" className="inline-flex items-center">
+                          <Check className="w-3 h-3 text-emerald-600" />
+                        </span>
                       </p>
                     )}
                   </div>

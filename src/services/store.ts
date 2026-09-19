@@ -702,6 +702,7 @@ export class AppStore {
     stampsCount: number;
     hasPin?: boolean;
     rewardEligible?: boolean;
+    lastVisit?: string;
   }> {
     const cleanPhone = phone.replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length < 7) {
@@ -718,6 +719,7 @@ export class AppStore {
         stampsCount: localAcc.stampsCount,
         hasPin: Boolean(localAcc.pin),
         rewardEligible: localAcc.stampsCount >= 6,
+        lastVisit: localAcc.createdAt,
       };
     }
 
@@ -737,6 +739,7 @@ export class AppStore {
             stampsCount: Number(data.stampsCount) || 0,
             hasPin: Boolean(data.hasPin),
             rewardEligible: Boolean(data.rewardEligible),
+            lastVisit: data.lastVisit,
           };
         }
       }
