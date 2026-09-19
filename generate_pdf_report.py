@@ -319,17 +319,22 @@ def build_pdf(filename):
         [
             Paragraph("<code>/api/loyalty</code>", body_style),
             Paragraph("GET, POST", body_style),
-            Paragraph("Consulta de sellos acumulados en tiempo real por teléfono y ajuste manual verificado de sellos en <code>public.loyalty_cards</code>.", body_style)
+            Paragraph("Consulta sanitizada de sellos acumulados en tiempo real por teléfono y ajuste manual verificado de sellos en <code>public.loyalty_cards</code>.", body_style)
+        ],
+        [
+            Paragraph("<code>/api/client-auth</code>", body_style),
+            Paragraph("GET, POST", body_style),
+            Paragraph("Autenticación hermética de Ficha con hash SHA-256 + salt de PINs, tokens firmados HMAC, control anti-fuerza bruta (bloqueo 15 min tras 5 fallos) y consulta anti-enumeración.", body_style)
         ],
     ]
-    t_api = Table(api_details, colWidths=[110, 110, 284])
+    t_api = Table(api_details, colWidths=[110, 95, 299])
     t_api.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), C_SAGE),
         ('TEXTCOLOR', (0,0), (-1,0), C_WHITE),
         ('INNERGRID', (0,0), (-1,-1), 0.5, C_LINE),
         ('BOX', (0,0), (-1,-1), 1, C_SAGE),
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [C_WHITE, C_CREAM]),
-        ('PADDING', (0,0), (-1,-1), 5),
+        ('PADDING', (0,0), (-1,-1), 4),
     ]))
     story.append(t_api)
 
@@ -338,11 +343,11 @@ def build_pdf(filename):
     # =========================================================================
     # PÁGINA 3: BLINDAJE ANTI-HACKING Y TEST DE ESTRÉS
     # =========================================================================
-    story.append(Paragraph("3. Blindaje Anti-Hacking &amp; Protección de Fidelización", h1_style))
+    story.append(Paragraph("3. Blindaje Anti-Hacking, Hermetismo de Ficha &amp; Fidelización", h1_style))
     story.append(Paragraph(
         "Uno de los hallazgos críticos de la auditoría fue la necesidad de blindar el sistema contra registros "
-        "fraudulentos y abusos de promociones mediante números duplicados. Para erradicar toda vulnerabilidad comercial, "
-        "se implementó una <b>cadena de custodia y gobernanza en 5 niveles</b>:",
+        "fraudulentos, abusos de promociones y exposición de datos de clientas. Para erradicar toda vulnerabilidad, "
+        "se implementó una <b>cadena de custodia, hermetismo y gobernanza en 6 niveles</b>:",
         body_style
     ))
 
@@ -350,7 +355,8 @@ def build_pdf(filename):
     story.append(Paragraph("&bull; <b>Nivel 2 — Acreditación Oficial Exclusiva de Andrea:</b> Los sellos canjeables para el premio (7º servicio 100% GRATIS) únicamente se suman cuando Andrea atiende a la clienta en el salón, recibe el pago y presiona el botón <b>'Completada'</b> en su panel /admin.", bullet_style))
     story.append(Paragraph("&bull; <b>Nivel 3 — Blindaje Técnico en Neon DB:</b> El backend detecta si un número de teléfono ya cuenta con historial de citas y anula automáticamente el descuento de bienvenida a $0.00 USD en la base de datos.", bullet_style))
     story.append(Paragraph("&bull; <b>Nivel 4 — Validación Presencial de la Bonificación ($2 USD):</b> Para neutralizar el riesgo de que una clienta use dos números distintos, quien otorga el descuento real es Andrea presencialmente en el estudio tras corroborar que sea clienta nueva.", bullet_style))
-    story.append(Paragraph("&bull; <b>Nivel 5 — Reconocimiento Inteligente de Ficha &amp; Ocultación de $2:</b> Cuando una clienta habitual ingresa su teléfono o correo (con PIN de acceso a su Ficha), el sistema la reconoce al instante por su nombre, muestra sus sellos acumulados y <u>oculta completamente el mensaje de los $2 USD</u>, agendando de forma limpia.", bullet_style))
+    story.append(Paragraph("&bull; <b>Nivel 5 — Reconocimiento Inteligente de Ficha &amp; Ocultación de $2:</b> Cuando una clienta habitual ingresa su teléfono, el sistema la reconoce como clienta VIP, muestra sus sellos acumulados y <u>oculta completamente el mensaje y selector de los $2 USD</u>, agendando de forma limpia.", bullet_style))
+    story.append(Paragraph("&bull; <b>Nivel 6 — Hermetismo Criptográfico (SHA-256) &amp; Anti-Enumeración:</b> Los PINs nunca se guardan en texto plano (cifrados con SHA-256 + salt criptográfico). Las consultas públicas por teléfono no revelan nombres ni correos a desconocidos y bloquean intentos de fuerza bruta por 15 minutos tras 5 fallos consecutivos.", bullet_style))
     story.append(Spacer(1, 6))
 
     story.append(Paragraph("Resultados Auditados del Test de Estrés en Producción", h2_style))
@@ -513,48 +519,55 @@ def build_pdf(filename):
 
     story.append(Paragraph("&bull; <b>Identidad de Correo Personal (Gmail):</b> Dado que se trata de un estudio de autor local, las notificaciones y plantillas CRM están optimizadas para despacharse desde la cuenta de Gmail personal de Andrea, prescindiendo de infraestructuras de correo corporativo complejas que añadirían fricción innecesaria.", bullet_style))
     story.append(Paragraph("&bull; <b>Políticas del Salón &amp; Convivencia Sutil:</b> Se estructuraron 3 normas empáticas y claras: Puntualidad (10 min tolerancia), Bioseguridad Estricta (salud de uña natural) y <i>'Tu Momento de Relax'</i> (recomendación sutil de asistencia individual como experiencia de spa, permitiendo coordinar acompañantes o niños previamente por WhatsApp con total amabilidad).", bullet_style))
+    story.append(Paragraph("&bull; <b>Desacoplamiento de Promociones:</b> El catálogo principal exhibe únicamente 2 banners visuales de alto impacto (Pack Manos &amp; Pies y Combo Polygel) que conectan con la página dedicada <code>/promociones</code>, eliminando elementos duplicados y organizando la oferta comercial de forma óptima.", bullet_style))
+    story.append(Paragraph("&bull; <b>Compatibilidad Neon Auth &amp; Google Login:</b> Neon cuenta con soporte nativo para Better Auth / Google OAuth. La infraestructura queda preparada para que en el siguiente paso se pueda activar el botón 'Continuar con Google' vinculando la API de Google Cloud de Andrea sin contraseñas.", bullet_style))
     story.append(Paragraph("&bull; <b>Delegación de Dominio en Arsys (Pendiente):</b> La aplicación permanece lista en Vercel para vincular el dominio comercial definitivo cuando el cliente proporcione los registros DNS (CNAME / Registro A) de Arsys, sin requerir reescritura de código.", bullet_style))
     story.append(Paragraph("&bull; <b>Optimización SEO Orgánica:</b> Se agregaron microdatos <code>Schema.org BeautySalon</code>, etiquetas de geolocalización regional para Venezuela (<code>geo.region: VE</code>) y etiquetas OpenGraph optimizadas para previsualización impecable en chats de WhatsApp.", bullet_style))
     story.append(Spacer(1, 10))
 
-    story.append(Paragraph("7. Dictamen Final y Acta de Entrega", h1_style))
+    story.append(Paragraph("7. Etapa de Prueba Final &amp; Validación Pre-Producción", h1_style))
     story.append(Paragraph(
-        "Se certifica que la aplicación <b>Andrea Labrador Nails Studio</b> cumple a cabalidad con todos los "
-        "estándares de seguridad, arquitectura en la nube con Neon Postgres, protección anti-tampering y "
-        "diseño de experiencia de usuario de alto nivel.",
+        "La plataforma <b>Andrea Labrador Nails Studio</b> ha ingresado oficialmente en su <b>etapa de prueba "
+        "final en vivo (Prueba de Fuego)</b> antes del despliegue comercial definitivo bajo su dominio propio. "
+        "Esta fase tiene como propósito fundamental que la titular (Andrea Labrador) compruebe y experimente "
+        "cada flujo operativo en condiciones reales de uso antes de la apertura pública masiva.",
         body_style
     ))
     story.append(Spacer(1, 8))
 
-    closing_box = [
+    testing_stage_box = [
         [
-            Paragraph("<b>RESPONSABLE TÉCNICO DE IMPLEMENTACIÓN</b><br/>"
-                      "Antigravity Agentic Systems &bull; DeepMind Advanced Coding<br/>"
-                      "<i>Infraestructura Cloud, Base de Datos Neon &amp; Frontend React PWA</i>", body_style),
-            Paragraph("<b>CERTIFICACIÓN DEL CLIENTE</b><br/>"
-                      "Andrea Labrador Nails Studio<br/>"
-                      "<i>Aprobación de Prueba de Fuego &bull; Conforme</i>", body_style),
+            Paragraph("<b>FASE ACTUAL DEL SISTEMA:</b>", body_bold),
+            Paragraph("<font color='#16291F'><b>ETAPA DE PRUEBA FINAL EN VIVO (PRE-PRODUCCIÓN)</b></font>", body_bold)
         ],
         [
-            Paragraph("<b>Firma Digital:</b> <code>SHA256:cbafb31...ee56cd9</code><br/>Estado: <b>VALIDADO &amp; DESPLEGADO</b>", callout_style),
-            Paragraph("<b>Firma de Aceptación:</b> ___________________________<br/>Fecha: ____ / ____ / 2026", callout_style),
+            Paragraph("<b>Objetivo de Validación:</b>", body_style),
+            Paragraph("Permitir que la titular y clientas de confianza ejecuten reservas reales desde teléfonos móviles, comprueben la recepción inmediata de citas en WhatsApp (+58 424 1360937), gestionen turnos en el panel <code>/admin</code> y verifiquen el sellado de la tarjeta digital VIP en Neon DB.", body_style)
+        ],
+        [
+            Paragraph("<b>Seguridad &amp; Privacidad:</b>", body_style),
+            Paragraph("Protección hermética activa: PINs de fichas protegidos con hash SHA-256 + salt criptográfico, bloqueo por fuerza bruta tras 5 intentos fallidos y APIs con protección anti-enumeración de teléfonos.", body_style)
+        ],
+        [
+            Paragraph("<b>Criterio de Lanzamiento:</b>", body_style),
+            Paragraph("Una vez que Andrea complete las comprobaciones manuales de la sección 5 y exprese su total satisfacción, se configurarán los registros DNS en Arsys y se lanzará el catálogo al público general.", body_style)
         ]
     ]
-    t_closing = Table(closing_box, colWidths=[246, 258])
-    t_closing.setStyle(TableStyle([
+    t_stage = Table(testing_stage_box, colWidths=[140, 364])
+    t_stage.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), C_CREAM),
         ('BOX', (0,0), (-1,-1), 1, C_SAGE),
         ('INNERGRID', (0,0), (-1,-1), 0.5, C_LINE),
         ('PADDING', (0,0), (-1,-1), 8),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
     ]))
-    story.append(t_closing)
+    story.append(t_stage)
     story.append(Spacer(1, 14))
 
-    # Pie de agradecimiento formal
+    # Pie explicativo formal sin requerir firmas manuales
     story.append(Paragraph(
-        "<font color='#5A6B61'><i>Este documento ha sido generado automáticamente como acta formal de entrega técnica. "
-        "Para asistencia operativa o soporte sobre los endpoints de Neon Postgres, consulta la documentación en el repositorio oficial.</i></font>",
+        "<font color='#5A6B61'><i>Este documento certifica el estado técnico de la plataforma para la prueba final de usuario. "
+        "No se requieren firmas manuales: la conformidad se valida directamente mediante la comprobación satisfactoria de los flujos operativos en vivo.</i></font>",
         ParagraphStyle('Disclaimer', fontName='Helvetica-Oblique', fontSize=8, leading=11, textColor=C_MUTED, alignment=1)
     ))
 

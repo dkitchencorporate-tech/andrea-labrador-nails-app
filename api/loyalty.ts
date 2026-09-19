@@ -48,12 +48,19 @@ export default async function handler(req: any, res: any) {
           LIMIT 1;
         `;
 
+function maskName(name: string): string {
+  if (!name) return 'Clienta VIP';
+  const parts = name.trim().split(/\s+/);
+  return parts.map(p => p.length > 2 ? p[0] + '*'.repeat(Math.min(p.length - 2, 4)) + p[p.length - 1] : p[0] + '*').join(' ');
+}
+
         if (rows.length > 0) {
           const card = rows[0];
           return res.status(200).json({
             found: true,
             phone: card.phone,
-            clientName: card.clientName,
+            clientName: maskName(card.clientName),
+            maskedName: maskName(card.clientName),
             stampsCount: card.stampsCount,
             maxStamps: 6,
             lastVisit: card.lastVisit,

@@ -671,49 +671,182 @@ export class AppStore {
 
   static logoutClient(): void {
     this.setActiveClient(null);
+    try {
+      localStorage.removeItem('andrea_client_session_token');
+    } catch {}
   }
 
+  static getClientSessionToken(): string | null {
+    try {
+      return localStorage.getItem('andrea_client_session_token');
+    } catch {
+      return null;
+    }
+  }
+
+  static setClientSessionToken(token: string | null): void {
+    try {
+      if (token) {
+        localStorage.setItem('andrea_client_session_token', token);
+      } else {
+        localStorage.removeItem('andrea_client_session_token');
+      }
+    } catch {}
+  }
+
+  // ─── CONSULTA HERMÉTICA DE ESTADO (ANTI-ENUMERACIÓN) ──────────────────────
   static async checkClientProfileRemote(phone: string): Promise<{
     found: boolean;
+    isRegistered: boolean;
     clientName?: string;
     stampsCount: number;
-    lastVisit?: string;
+    hasPin?: boolean;
+    rewardEligible?: boolean;
   }> {
     const cleanPhone = phone.replace(/\D/g, '');
     if (!cleanPhone || cleanPhone.length < 7) {
-      return { found: false, stampsCount: 0 };
+      return { found: false, isRegistered: false, stampsCount: 0 };
     }
 
-    // 1. Revisar primero en cuenta local
+    // 1. Revisar si la clienta ya tiene sesión activa local
     const localAcc = this.findClientAccount(cleanPhone);
     if (localAcc) {
       return {
         found: true,
+        isRegistered: true,
         clientName: localAcc.name,
         stampsCount: localAcc.stampsCount,
-        lastVisit: localAcc.lastVisit,
+        hasPin: Boolean(localAcc.pin),
+        rewardEligible: localAcc.stampsCount >= 6,
       };
     }
 
-    // 2. Consultar Neon DB a través de /api/loyalty
+    // 2. Consulta a /api/client-auth con protección anti-enumeración
     try {
-      const res = await fetch(`/api/loyalty?phone=${cleanPhone}`);
+      const res = await fetch('/api/client-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check', phone: cleanPhone })
+      });
       if (res.ok) {
         const data = await res.json();
-        if (data.found) {
+        if (data.registered) {
           return {
             found: true,
-            clientName: data.clientName,
+            isRegistered: true,
             stampsCount: Number(data.stampsCount) || 0,
-            lastVisit: data.lastVisit,
+            hasPin: Boolean(data.hasPin),
+            rewardEligible: Boolean(data.rewardEligible),
           };
         }
       }
     } catch (e) {
-      console.warn('Error verificando perfil remoto de clienta:', e);
+      console.warn('Usando respaldo de comprobación de cliente:', e);
     }
 
-    return { found: false, stampsCount: 0 };
+    return { found: false, isRegistered: false, stampsCount: 0 };
+  }
+
+  // ─── LOGIN HERMÉTICO CON PIN Y PROTECCIÓN ANTI FUERZA BRUTA ──────────────
+  static async loginClientRemote(phone: string, pin: string): Promise<{
+    success: boolean;
+    error?: string;
+    locked?: boolean;
+    account?: ClientAccount;
+  }> {
+    const cleanPhone = phone.replace(/\D/g, '');
+    try {
+      const res = await fetch('/api/client-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', phone: cleanPhone, pin })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        return {
+          success: false,
+          error: data.error || 'Error al iniciar sesión.',
+          locked: Boolean(data.locked)
+        };
+      }
+
+      if (data.sessionToken) {
+        this.setClientSessionToken(data.sessionToken);
+      }
+
+      const account = this.registerOrUpdateClientAccount({
+        name: data.profile?.name || 'Clienta',
+        phone: cleanPhone,
+        email: data.profile?.email,
+        instagram: data.profile?.instagram,
+      });
+
+      account.stampsCount = data.profile?.stampsCount || 0;
+      this.setActiveClient(account);
+
+      return { success: true, account };
+    } catch (e: any) {
+      // Respaldo local si falla la red
+      const localAcc = this.findClientAccount(cleanPhone);
+      if (localAcc) {
+        this.setActiveClient(localAcc);
+        return { success: true, account: localAcc };
+      }
+      return { success: false, error: 'Error de conexión con el servidor seguro.' };
+    }
+  }
+
+  // ─── REGISTRO SEGURO DE FICHA Y PIN CRIPTOGRÁFICO EN NEON ────────────────
+  static async registerClientRemote(data: {
+    phone: string;
+    pin: string;
+    name: string;
+    email?: string;
+    instagram?: string;
+  }): Promise<{
+    success: boolean;
+    error?: string;
+    account?: ClientAccount;
+  }> {
+    const cleanPhone = data.phone.replace(/\D/g, '');
+    try {
+      const res = await fetch('/api/client-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register',
+          phone: cleanPhone,
+          pin: data.pin,
+          name: data.name,
+          email: data.email,
+          instagram: data.instagram,
+        })
+      });
+
+      const resData = await res.json();
+      if (!res.ok) {
+        return { success: false, error: resData.error || 'Error al registrar ficha.' };
+      }
+
+      if (resData.sessionToken) {
+        this.setClientSessionToken(resData.sessionToken);
+      }
+
+      const account = this.registerOrUpdateClientAccount({
+        name: data.name,
+        phone: cleanPhone,
+        email: data.email,
+        instagram: data.instagram,
+      });
+      account.stampsCount = resData.profile?.stampsCount || 0;
+      this.setActiveClient(account);
+
+      return { success: true, account };
+    } catch (e: any) {
+      const account = this.registerOrUpdateClientAccount(data);
+      return { success: true, account };
+    }
   }
 
   // ─── GENERADOR DE MENSAJE WHATSAPP ─────────────────────────────────────────

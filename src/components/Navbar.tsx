@@ -5,6 +5,7 @@ interface NavbarProps {
   onOpenBooking: () => void;
   onOpenClientAccount: () => void;
   onNavigateToShare?: () => void;
+  onNavigateToPromo?: () => void;
   exchangeRate: number;
 }
 
@@ -12,6 +13,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenBooking,
   onOpenClientAccount,
   onNavigateToShare,
+  onNavigateToPromo,
   exchangeRate,
 }) => {
   return (
@@ -34,7 +36,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center space-x-5 text-sm font-bold text-warm-900">
-          <a href="#promociones" className="hover:text-sage-700 transition-colors flex items-center gap-1 text-amber-900">
+          <a 
+            href="/promociones" 
+            onClick={(e) => {
+              if (onNavigateToPromo) {
+                e.preventDefault();
+                onNavigateToPromo();
+              }
+            }}
+            className="hover:text-sage-700 transition-colors flex items-center gap-1 text-amber-900"
+          >
             <Tag className="w-3.5 h-3.5 text-amber-600" />
             <span>Promos &amp; Combos</span>
           </a>

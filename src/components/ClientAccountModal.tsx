@@ -54,48 +54,69 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [needsPinSetup, setNeedsPinSetup] = useState(false);
+  const [registerName, setRegisterName] = useState('');
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+    setIsLocked(false);
 
     if (!loginIdentifier.trim()) {
-      setLoginError('Por favor ingresa tu número de teléfono o correo.');
+      setLoginError('Por favor ingresa tu número de teléfono.');
       return;
     }
 
     const cleanInput = loginIdentifier.trim();
-    const account = AppStore.findClientAccount(cleanInput);
+    const cleanPhone = cleanInput.replace(/\D/g, '');
 
-    if (account) {
-      // Si la cuenta tiene PIN configurado y el usuario ingresó algo
-      if (account.pin && loginPin && account.pin !== loginPin) {
-        setLoginError('El PIN o contraseña ingresada no coincide.');
+    if (cleanPhone.length < 7) {
+      setLoginError('Ingresa un número de teléfono válido (al menos 7 dígitos).');
+      return;
+    }
+
+    // Si está en modo de configuración de PIN por primera vez
+    if (needsPinSetup) {
+      if (!loginPin || loginPin.length < 4) {
+        setLoginError('El PIN debe tener al menos 4 dígitos para proteger tu cuenta.');
         return;
       }
+      setIsSubmitting(true);
+      const regRes = await AppStore.registerClientRemote({
+        phone: cleanPhone,
+        pin: loginPin,
+        name: registerName || 'Clienta',
+      });
+      setIsSubmitting(false);
 
-      AppStore.setActiveClient(account);
-      setActiveAccount(account);
-      loadClientBookings(account.phone);
-    } else {
-      // Intentar buscar remotamente en Neon
-      const cleanPhone = cleanInput.replace(/\D/g, '');
-      if (cleanPhone.length >= 7) {
-        AppStore.checkClientProfileRemote(cleanPhone).then(remote => {
-          if (remote.found) {
-            const newAcc = AppStore.registerOrUpdateClientAccount({
-              name: remote.clientName || 'Clienta',
-              phone: cleanPhone,
-              pin: loginPin || undefined,
-            });
-            setActiveAccount(newAcc);
-            loadClientBookings(newAcc.phone);
-          } else {
-            setLoginError('No encontramos una ficha registrada con este teléfono. ¡Al agendar tu primera cita se creará automáticamente!');
-          }
-        });
+      if (regRes.success && regRes.account) {
+        setActiveAccount(regRes.account);
+        loadClientBookings(regRes.account.phone);
+        setNeedsPinSetup(false);
       } else {
-        setLoginError('No encontramos una ficha con estos datos.');
+        setLoginError(regRes.error || 'Error al configurar PIN de seguridad.');
       }
+      return;
+    }
+
+    // Modo Login habitual
+    setIsSubmitting(true);
+    const res = await AppStore.loginClientRemote(cleanPhone, loginPin);
+    setIsSubmitting(false);
+
+    if (res.success && res.account) {
+      setActiveAccount(res.account);
+      loadClientBookings(res.account.phone);
+    } else {
+      if (res.locked) {
+        setIsLocked(true);
+      }
+      if (res.error?.includes('aún no has establecido un PIN')) {
+        setNeedsPinSetup(true);
+      }
+      setLoginError(res.error || 'Credenciales incorrectas.');
     }
   };
 

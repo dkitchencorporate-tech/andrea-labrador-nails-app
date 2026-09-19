@@ -518,34 +518,53 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </div>
                   </div>
 
-                  {/* First Visit Discount Selector */}
-                  <div 
-                    onClick={() => setIsFirstVisit(!isFirstVisit)}
-                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                      isFirstVisit 
-                        ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-xs'
-                        : 'bg-warm-50 border-sage-200 text-warm-700 hover:bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
-                        isFirstVisit ? 'bg-amber-600 border-amber-600 text-white' : 'border-sage-300'
-                      }`}>
-                        {isFirstVisit && <Check className="w-3.5 h-3.5" />}
+                  {/* First Visit Discount Selector OR VIP Recognition Banner */}
+                  {!preSelectedPromo && !isExistingClient ? (
+                    <div 
+                      onClick={() => setIsFirstVisit(!isFirstVisit)}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                        isFirstVisit 
+                          ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-xs'
+                          : 'bg-warm-50 border-sage-200 text-warm-700 hover:bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                          isFirstVisit ? 'bg-amber-600 border-amber-600 text-white' : 'border-sage-300'
+                        }`}>
+                          {isFirstVisit && <Check className="w-3.5 h-3.5" />}
+                        </div>
+                        <div>
+                          <span className="text-xs sm:text-sm font-bold block">
+                            ¿Es tu primera cita con Andrea?
+                          </span>
+                          <span className="text-[11px] text-amber-900 font-medium block">
+                            Bonificación de $2.00 USD (validada presencialmente por Andrea en el salón para clientas nuevas).
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-xs sm:text-sm font-bold block">
-                          ¿Es tu primera cita con Andrea?
-                        </span>
-                        <span className="text-[11px] text-amber-900 font-medium block">
-                          Aplica $2.00 USD de descuento directo de bienvenida.
-                        </span>
-                      </div>
+                      <span className="text-xs sm:text-sm font-black text-amber-700 bg-amber-100/90 px-2.5 py-1 rounded-full border border-amber-300 shrink-0">
+                        -$2.00 USD
+                      </span>
                     </div>
-                    <span className="text-xs sm:text-sm font-black text-amber-700 bg-amber-100/90 px-2.5 py-1 rounded-full border border-amber-300 shrink-0">
-                      -$2.00 USD
-                    </span>
-                  </div>
+                  ) : isExistingClient ? (
+                    <div className="p-4 rounded-2xl bg-sage-100/80 border border-sage-300 text-sage-950 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
+                        <div>
+                          <span className="text-xs sm:text-sm font-bold block">
+                            ¡Clienta VIP Reconocida!
+                          </span>
+                          <span className="text-[11px] text-sage-800 block">
+                            Esta cita sumará a tus sellos acumulados ({recognizedStamps}/6) para tu 7º servicio gratis.
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-amber-800 bg-white/80 px-2.5 py-1 rounded-full border border-amber-200 shrink-0">
+                        Sellos VIP
+                      </span>
+                    </div>
+                  ) : null}
 
                   {/* Step 1 Footer */}
                   <div className="pt-4 flex items-center justify-between border-t border-sage-100">

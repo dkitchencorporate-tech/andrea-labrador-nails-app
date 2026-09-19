@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ServiceCatalog } from './components/ServiceCatalog';
-import { Promotions } from './components/Promotions';
+import { PromotionBanners } from './components/PromotionBanners';
+import { PromoPage } from './components/PromoPage';
 import { LoyaltyClub } from './components/LoyaltyClub';
 import { ClientAccountModal } from './components/ClientAccountModal';
 import { StudioPolicies } from './components/StudioPolicies';
@@ -39,6 +40,14 @@ export const App: React.FC = () => {
     const hash = window.location.hash.toLowerCase();
     const search = new URLSearchParams(window.location.search);
     return path.startsWith('/compartir') || hash === '#compartir' || search.has('compartir');
+  });
+
+  // Routing state for Dedicated Promo Page
+  const [isPromoRoute, setIsPromoRoute] = useState(() => {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const search = new URLSearchParams(window.location.search);
+    return path.startsWith('/promociones') || hash === '#promociones' || search.has('promociones');
   });
 
   // Referred by friend parameter
@@ -87,6 +96,7 @@ export const App: React.FC = () => {
       const search = new URLSearchParams(window.location.search);
       setIsAdminRoute(path.startsWith('/admin') || hash === '#admin' || search.has('admin'));
       setIsShareRoute(path.startsWith('/compartir') || hash === '#compartir' || search.has('compartir'));
+      setIsPromoRoute(path.startsWith('/promociones') || hash === '#promociones' || search.has('promociones'));
       if (search.get('ref')) {
         setReferralCode(search.get('ref') || '');
       }
@@ -105,6 +115,15 @@ export const App: React.FC = () => {
     window.history.pushState(null, '', '/compartir');
     setIsShareRoute(true);
     setIsAdminRoute(false);
+    setIsPromoRoute(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateToPromo = () => {
+    window.history.pushState(null, '', '/promociones');
+    setIsPromoRoute(true);
+    setIsShareRoute(false);
+    setIsAdminRoute(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -112,6 +131,7 @@ export const App: React.FC = () => {
     window.history.pushState(null, '', '/');
     setIsAdminRoute(false);
     setIsShareRoute(false);
+    setIsPromoRoute(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -176,6 +196,38 @@ export const App: React.FC = () => {
     );
   }
 
+  // --- RENDER DEDICATED PROMOTIONS PAGE ---
+  if (isPromoRoute) {
+    return (
+      <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200">
+        <PromoPage
+          promos={promos}
+          services={services}
+          exchangeRate={exchangeRate}
+          onSelectPromoForBooking={handleSelectPromo}
+          onOpenBooking={handleOpenGeneralBooking}
+          onExitToCatalog={handleExitToCatalog}
+        />
+        <BookingModal
+          isOpen={isBookingOpen}
+          onClose={() => setIsBookingOpen(false)}
+          services={services}
+          preSelectedService={selectedService}
+          preSelectedPromo={selectedPromo}
+          exchangeRate={exchangeRate}
+          referralCode={referralCode}
+          onBookingCreated={refreshData}
+        />
+        <ClientAccountModal
+          isOpen={isAccountModalOpen}
+          onClose={() => setIsAccountModalOpen(false)}
+          onBookNewAppointment={handleOpenGeneralBooking}
+        />
+        <PWAInstallModal />
+      </div>
+    );
+  }
+
   // --- RENDER PUBLIC CUSTOMER CATALOG (NO ADMIN LOCKS VISIBLE) ---
   return (
     <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200">
@@ -185,6 +237,7 @@ export const App: React.FC = () => {
         onOpenBooking={handleOpenGeneralBooking}
         onOpenClientAccount={() => setIsAccountModalOpen(true)}
         onNavigateToShare={handleNavigateToShare}
+        onNavigateToPromo={handleNavigateToPromo}
         exchangeRate={exchangeRate}
       />
 
@@ -200,12 +253,10 @@ export const App: React.FC = () => {
           onNavigateToShare={handleNavigateToShare}
         />
 
-        {/* Promociones & Combos Especiales */}
-        <Promotions
-          promos={promos}
-          services={services}
+        {/* Promociones Especiales: 2 Banners Elegantes que Redirigen a /promociones */}
+        <PromotionBanners
+          onNavigateToPromo={handleNavigateToPromo}
           exchangeRate={exchangeRate}
-          onSelectPromoForBooking={handleSelectPromo}
         />
 
         {/* Catálogo Completo de Servicios */}
