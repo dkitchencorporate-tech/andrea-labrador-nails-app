@@ -48,13 +48,26 @@ export const App: React.FC = () => {
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [selectedPromo, setSelectedPromo] = useState<PromoOffer | null>(null);
 
-  // Load store data
+  // Load store data with Neon Cloud synchronization
   const refreshData = () => {
+    // Immediate local cache render
     setServices(AppStore.getServices());
     setPromos(AppStore.getPromos());
     setBookings(AppStore.getBookings());
     setBlockedSlots(AppStore.getBlockedSlots());
     setExchangeRate(AppStore.getExchangeRate());
+
+    // Async background sync with Neon Serverless Postgres
+    Promise.all([
+      AppStore.fetchRemoteServices(),
+      AppStore.fetchRemoteBookings(),
+      AppStore.fetchRemoteBlockedSlots(),
+      AppStore.fetchRemoteLoyaltyCards(),
+    ]).then(([remoteServices, remoteBookings, remoteBlockedSlots]) => {
+      if (remoteServices && remoteServices.length > 0) setServices(remoteServices);
+      if (remoteBookings) setBookings(remoteBookings);
+      if (remoteBlockedSlots) setBlockedSlots(remoteBlockedSlots);
+    }).catch(console.warn);
   };
 
   useEffect(() => {

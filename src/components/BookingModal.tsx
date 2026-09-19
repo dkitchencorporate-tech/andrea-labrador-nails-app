@@ -66,15 +66,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   // Confirmation state
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastCreatedBooking, setLastCreatedBooking] = useState<AppointmentBooking | null>(null);
 
-  // Initialize dates: generate next 14 days excluding Sundays
-  const availableDates = React.useMemo(() => {
-    const dates: { dateString: string; dayName: string; dayNumber: number; monthName: string }[] = [];
+  // Available dates (Next 14 business days, skip Sundays)
+  const availableDates = useMemo(() => {
+    const dates = [];
     const today = new Date();
-    
-    for (let i = 1; i <= 14; i++) {
-      const nextDate = new Date();
+    for (let i = 1; dates.length < 14; i++) {
+      const nextDate = new Date(today);
       nextDate.setDate(today.getDate() + i);
       
       // Sunday is 0: Skip Sundays as studio is closed
@@ -94,8 +94,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return dates;
   }, []);
 
-  // Update selection when modal opens with pre-selected item
+  // Update selection when modal opens with pre-selected item and sync remote schedule
   useEffect(() => {
+    if (isOpen) {
+      AppStore.fetchRemoteBlockedSlots().catch(console.warn);
+    }
     if (preSelectedService) {
       setSelectedServiceId(preSelectedService.id);
     } else if (preSelectedPromo) {
@@ -130,7 +133,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   // Submit and open WhatsApp
-  const handleConfirmReservation = (e: React.FormEvent) => {
+  const handleConfirmReservation = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!clientName.trim() || !clientPhone.trim()) {
@@ -149,6 +152,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       alert('Lo sentimos, este horario acaba de ser reservado. Por favor elige otro horario.');
       return;
     }
+
+    setIsSubmitting(true);
 
     const booking: AppointmentBooking = {
       id: 'cita_' + Date.now(),
@@ -170,9 +175,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       createdAt: new Date().toISOString()
     };
 
-    // Save internally
-    AppStore.addBooking(booking);
-    setLastCreatedBooking(booking);
+    // Guardar en Neon Postgres y localmente
+    const remoteResult = await AppStore.createBookingRemote(booking);
+    const finalBooking = remoteResult.booking || booking;
+    setLastCreatedBooking(finalBooking);
 
     // Launch confetti celebration
     confetti({
@@ -182,28 +188,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     });
 
     setIsSuccess(true);
+    setIsSubmitting(false);
 
     // Generate WhatsApp link
     const waUrl = AppStore.generateWhatsAppBookingUrl({
-      serviceName: booking.serviceName,
-      totalPriceUSD: booking.totalPriceUSD,
-      date: booking.date,
-      timeSlot: booking.timeSlot,
-      clientName: booking.clientName,
-      clientPhone: booking.clientPhone,
-      clientInstagram: booking.clientInstagram,
-      addons: booking.selectedAddons,
-      paymentMethod: booking.paymentMethod,
-      notes: booking.notes,
+      serviceName: finalBooking.serviceName,
+      totalPriceUSD: finalBooking.totalPriceUSD,
+      date: finalBooking.date,
+      timeSlot: finalBooking.timeSlot,
+      clientName: finalBooking.clientName,
+      clientPhone: finalBooking.clientPhone,
+      clientInstagram: finalBooking.clientInstagram,
+      addons: finalBooking.selectedAddons,
+      paymentMethod: finalBooking.paymentMethod,
+      notes: finalBooking.notes,
       isFirstVisit,
-      discountUSD,
+      discountUSD: finalBooking.discountUSD,
       referralCode: referralCode || undefined,
     });
 
     // Open WhatsApp directly
     setTimeout(() => {
       window.location.href = waUrl;
-    }, 500);
+    }, 600);
   };
 
   const handleResetAndClose = () => {

@@ -200,28 +200,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleUpdateStatus = (id: string, status: AppointmentBooking['status']) => { 
-    AppStore.updateBookingStatus(id, status); 
+    AppStore.updateBookingStatusRemote(id, status); 
     onRefreshData(); 
   };
 
   const handleDeleteBooking = (id: string) => { 
     if (window.confirm('¿Deseas eliminar este registro de cita?')) { 
-      AppStore.deleteBooking(id); 
+      AppStore.deleteBookingRemote(id); 
       onRefreshData(); 
     } 
   };
 
   // ─── CALENDAR TIME SLOT MANAGEMENT ────────────────────────────────────────
   const handleToggleSlot = (slot: string) => {
-    AppStore.toggleBlockSlot(calendarDate, slot);
+    AppStore.toggleBlockSlotRemote(calendarDate, slot);
     onRefreshData();
   };
 
   const handleToggleBlockEntireDay = () => {
     if (isSelectedDayBlocked) {
-      AppStore.unblockEntireDay(calendarDate);
+      AppStore.unblockEntireDayRemote(calendarDate);
     } else {
-      AppStore.blockEntireDay(calendarDate, 'Día completo cerrado por el estudio');
+      AppStore.blockEntireDayRemote(calendarDate, allTimeSlots, 'Día completo cerrado por el estudio');
     }
     onRefreshData();
   };
@@ -306,7 +306,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       tags: serviceForm.tags || ['Especialidad Andrea Labrador'],
     };
 
-    AppStore.updateService(item);
+    AppStore.saveServiceRemote(item);
     setEditingService(null);
     setIsCreatingService(false);
     setServiceImagePreview(null);
@@ -315,7 +315,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleDeleteService = (id: string, name: string) => {
     if (window.confirm(`¿Seguro que deseas eliminar el servicio "${name}" del catálogo?`)) {
-      AppStore.deleteService(id);
+      AppStore.deleteServiceRemote(id);
       onRefreshData();
     }
   };
@@ -325,7 +325,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const existing = AppStore.getClientLoyalty(phone);
     const current = existing ? existing.stampsCount : 1;
     const next = Math.max(0, Math.min(6, current + delta));
-    AppStore.setLoyaltyStamps(phone, clientName, next);
+    AppStore.setLoyaltyStampsRemote(phone, clientName, next);
     onRefreshData();
   };
 
@@ -1248,7 +1248,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-sage-50 text-warm-900 border border-sage-300 rounded-xl text-xs font-bold transition-all"
                       >
                         <Copy className="w-3.5 h-3.5" />
-                        <span>{emailCopySuccess ? '¡Texto Copiado!' : 'Copiar para Webmail Arsys'}</span>
+                        <span>{emailCopySuccess ? '¡Texto Copiado!' : 'Copiar Plantilla de Correo'}</span>
                       </button>
 
                       <button
@@ -1256,61 +1256,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#16291F] hover:bg-sage-900 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
                       >
                         <Send className="w-3.5 h-3.5" />
-                        <span>Abrir en Cliente de Correo</span>
+                        <span>Abrir en Gmail / Correo</span>
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* ── ARSYS WEBMAIL & DOMAIN CONFIGURATION ── */}
+                {/* ── GMAIL PERSONAL & IDENTIDAD DEL ESTUDIO ── */}
                 <div className="p-5 rounded-2xl bg-white border border-sage-200 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-sage-800" />
-                    <h4 className="font-serif font-bold text-base text-warm-900">Configuración de Dominio &amp; Webmail Arsys</h4>
+                    <Mail className="w-4 h-4 text-sage-800" />
+                    <h4 className="font-serif font-bold text-base text-warm-900">Correo Personal de Contacto &amp; Notificaciones (Gmail)</h4>
                   </div>
                   <p className="text-xs text-warm-500">
-                    Ajusta los parámetros para cuando se apunte el dominio en Arsys. El sistema utilizará esta identidad en las comunicaciones oficiales.
+                    Configura el correo Gmail personal de Andrea para el envío de confirmaciones y fidelización directa.
                   </p>
 
                   <form onSubmit={handleSaveEmailSettings} className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     <div>
-                      <label className="text-[11px] font-bold text-warm-700 block mb-1">Dominio Arsys</label>
-                      <input
-                        type="text"
-                        value={emailSettings.domain}
-                        onChange={e => setEmailSettings({ ...emailSettings, domain: e.target.value })}
-                        className={inputCls}
-                        placeholder="andrealabrador.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] font-bold text-warm-700 block mb-1">Servidor Webmail / SMTP</label>
-                      <input
-                        type="text"
-                        value={emailSettings.webmailHost}
-                        onChange={e => setEmailSettings({ ...emailSettings, webmailHost: e.target.value })}
-                        className={inputCls}
-                        placeholder="mail.andrealabrador.com o smtp.arsys.es"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] font-bold text-warm-700 block mb-1">Correo Remitente Oficial</label>
+                      <label className="text-[11px] font-bold text-warm-700 block mb-1">Correo Gmail de Andrea</label>
                       <input
                         type="email"
-                        value={emailSettings.senderEmail}
-                        onChange={e => setEmailSettings({ ...emailSettings, senderEmail: e.target.value })}
+                        value={emailSettings.contactEmail}
+                        onChange={e => setEmailSettings({ ...emailSettings, contactEmail: e.target.value })}
                         className={inputCls}
-                        placeholder="citas@andrealabrador.com"
+                        placeholder="andrealabradornails@gmail.com"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold text-warm-700 block mb-1">Puerto Seguro</label>
+                      <label className="text-[11px] font-bold text-warm-700 block mb-1">Nombre Comercial Remitente</label>
                       <input
                         type="text"
-                        value={emailSettings.port}
-                        onChange={e => setEmailSettings({ ...emailSettings, port: e.target.value })}
+                        value={emailSettings.senderName}
+                        onChange={e => setEmailSettings({ ...emailSettings, senderName: e.target.value })}
                         className={inputCls}
-                        placeholder="465 (SSL) o 587 (TLS)"
+                        placeholder="Andrea Labrador Nails Studio"
                       />
                     </div>
                     <div className="sm:col-span-2 pt-1 flex items-center justify-between">
@@ -1318,11 +1298,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         type="submit"
                         className="px-5 py-2 rounded-xl bg-[#16291F] hover:bg-sage-900 text-white font-bold text-xs shadow-xs"
                       >
-                        Guardar Parámetros Arsys
+                        Guardar Configuración Gmail
                       </button>
                       {emailSettingsSaved && (
                         <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-                          <Check className="w-4 h-4" /> Parámetros guardados con éxito
+                          <Check className="w-4 h-4" /> Configuración de Gmail guardada con éxito
                         </span>
                       )}
                     </div>

@@ -6,10 +6,11 @@ import {
   Calendar, 
   MessageCircle, 
   ShieldCheck,
-  Heart,
   CheckCircle2,
-  Gift
+  Search,
+  Loader2
 } from 'lucide-react';
+import { AppStore } from '../services/store';
 
 interface ReferralClubProps {
   onOpenBooking: () => void;
@@ -20,10 +21,47 @@ export const ReferralClub: React.FC<ReferralClubProps> = ({
   onOpenBooking,
   isStandalonePage = false 
 }) => {
+  const [clientPhone, setClientPhone] = useState('');
   const [clientName, setClientName] = useState('');
-  const [simulatedStamps, setSimulatedStamps] = useState(3);
+  const [stampsCount, setStampsCount] = useState<number>(3);
+  const [isSearched, setIsSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchFeedback, setSearchFeedback] = useState<string | null>(null);
 
   const cleanName = clientName.trim() || 'Clienta VIP';
+
+  const handleLookupPhone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanPhone = clientPhone.replace(/\D/g, '');
+    if (cleanPhone.length < 7) {
+      alert('Por favor ingresa un número de teléfono válido.');
+      return;
+    }
+
+    setIsLoading(true);
+    setSearchFeedback(null);
+
+    try {
+      const card = await AppStore.fetchClientLoyaltyRemote(cleanPhone);
+      setIsSearched(true);
+      if (card && card.stampsCount > 0) {
+        setStampsCount(card.stampsCount);
+        if (card.clientName) setClientName(card.clientName);
+        setSearchFeedback(
+          card.stampsCount >= 6 
+            ? '🎉 ¡Felicidades! Tienes acumulados los 6 sellos. Tu 7º servicio es 100% GRATIS.' 
+            : `Tienes ${card.stampsCount} de 6 sellos acumulados. ¡Te faltan solo ${6 - card.stampsCount} para tu servicio gratis!`
+        );
+      } else {
+        setStampsCount(0);
+        setSearchFeedback('👋 ¡Bienvenida! Aún no tienes sellos registrados. Agenda tu primera cita para recibir $2 USD de descuento directo y activar tu primer sello.');
+      }
+    } catch (err) {
+      console.warn('Error consultando fidelización:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const whatsappInquiryMessage = `¡Hola Andrea! 💅✨ Te escribo desde tu catálogo oficial. Mi nombre es ${cleanName}.
 
@@ -84,7 +122,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
             </div>
           </div>
 
-          {/* Card 2: 10 + 1 Gratis */}
+          {/* Card 2: 6 + 1 Gratis */}
           <div className="bg-white p-6 rounded-3xl border border-emerald-300 shadow-soft hover:shadow-luxury transition-all flex flex-col justify-between group bg-gradient-to-br from-white to-emerald-50/40">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -101,7 +139,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
               </h3>
               
               <p className="text-xs sm:text-sm text-warm-700 leading-relaxed">
-                Por cada 6 servicios realizados en el estudio, tu <strong>7º servicio completo es 100% GRATIS</strong> como agradecimiento a tu preferencia y cuidado constante.
+                Cada servicio completado suma 1 sello a tu tarjeta digital. Al acumular <strong>6 visitas</strong>, tu <strong>7º servicio es 100% GRATIS</strong> (Esmaltado Semipermanente o Mantenimiento Rubber).
               </p>
             </div>
 
@@ -116,19 +154,40 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
         {/* Visual Interactive Loyalty Card */}
         <div className="bg-white rounded-3xl border border-sage-200 shadow-luxury p-5 sm:p-8 max-w-2xl mx-auto space-y-6">
           
-          <div className="space-y-2">
-            <label className="block text-xs uppercase font-bold tracking-wider text-sage-900">
-              Tu Nombre (para tu tarjeta digital):
-            </label>
-            <input
-              type="text"
-              placeholder="Ej: Camila, Sofía, Valeria..."
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              maxLength={25}
-              className="w-full p-3.5 bg-warm-50 border border-sage-300 rounded-2xl text-sm font-semibold text-warm-900 focus:ring-2 focus:ring-sage-500 focus:outline-none transition-all"
-            />
-          </div>
+          {/* Real-time Phone Lookup Form */}
+          <form onSubmit={handleLookupPhone} className="p-4 rounded-2xl bg-[#FBF9F6] border border-sage-200 space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span className="text-xs uppercase font-bold tracking-wider text-warm-900">
+                Consulta tus Sellos Acumulados en Tiempo Real
+              </span>
+            </div>
+            <p className="text-xs text-warm-600">
+              Ingresa tu número de WhatsApp para consultar tu tarjeta VIP en vivo:
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <input
+                type="tel"
+                placeholder="Ej: 04241234567"
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
+                className="w-full sm:flex-1 p-3 bg-white border border-sage-300 rounded-xl text-xs sm:text-sm font-semibold text-warm-900 focus:ring-2 focus:ring-sage-500 focus:outline-none transition-all"
+              />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl bg-[#16291F] hover:bg-sage-900 text-white font-bold text-xs transition-all shadow-xs shrink-0"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                <span>Verificar Sellos</span>
+              </button>
+            </div>
+            {searchFeedback && (
+              <p className="text-xs font-semibold text-sage-900 bg-sage-50 p-2.5 rounded-xl border border-sage-200">
+                {searchFeedback}
+              </p>
+            )}
+          </form>
 
           {/* VIRTUAL LOYALTY CARD */}
           <div className="p-5 sm:p-7 rounded-3xl bg-[#16291F] text-white border-2 border-amber-300/40 shadow-luxury space-y-5">
@@ -138,7 +197,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-300" />
                 <span className="font-serif text-xs sm:text-sm tracking-wider uppercase text-[#FDF2D6] font-bold">
-                  TARJETA DE FIDELIZACIÓN
+                  TARJETA DE FIDELIZACIÓN VIP
                 </span>
               </div>
               <span className="text-[10px] uppercase font-bold tracking-wider bg-amber-400/20 text-amber-200 px-3 py-0.5 rounded-full border border-amber-300/30">
@@ -160,30 +219,27 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between text-xs text-sage-300">
                 <span>Progreso de visitas acumuladas:</span>
-                <span className="text-amber-200 font-bold">{Math.min(6, simulatedStamps)} de 6 servicios</span>
+                <span className="text-amber-200 font-bold">{Math.min(6, stampsCount)} de 6 servicios</span>
               </div>
 
               <div className="grid grid-cols-6 gap-2 pt-1">
                 {[1, 2, 3, 4, 5, 6].map((num) => {
-                  const isFilled = num <= simulatedStamps;
+                  const isFilled = num <= stampsCount;
                   return (
-                    <button
+                    <div
                       key={num}
-                      type="button"
-                      onClick={() => setSimulatedStamps(num)}
                       className={`h-12 rounded-xl flex flex-col items-center justify-center transition-all border ${
                         isFilled
                           ? 'bg-amber-400 border-amber-300 text-sage-950 font-bold shadow-sm'
-                          : 'bg-white/5 border-white/15 text-sage-300 hover:bg-white/10'
+                          : 'bg-white/5 border-white/15 text-sage-300'
                       }`}
-                      title={`Clic para probar estado de ${num} visitas`}
                     >
                       {isFilled ? (
                         <Check className="w-5 h-5 text-sage-950 stroke-[3]" />
                       ) : (
                         <span className="text-sm font-serif font-bold">{num}</span>
                       )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -196,7 +252,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white block">Servicio #7: 100% GRATIS</span>
-                    <span className="text-[10px] text-emerald-200">Esmaltado Semipermanente o Mantenimiento</span>
+                    <span className="text-[10px] text-emerald-200">Esmaltado Semipermanente o Mantenimiento Rubber</span>
                   </div>
                 </div>
                 <Award className="w-5 h-5 text-amber-300" />
@@ -229,7 +285,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
                 className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs sm:text-sm shadow-soft transition-all active:scale-98"
               >
                 <MessageCircle className="w-4 h-4 fill-white" />
-                <span>Consultar mis Citas por WhatsApp</span>
+                <span>Consultar por WhatsApp</span>
               </a>
             </div>
           </div>
