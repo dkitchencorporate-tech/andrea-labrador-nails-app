@@ -246,6 +246,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     onRefreshData();
   };
 
+  const handleRemoveSlot = (slot: string) => {
+    AppStore.removeTimeSlot(slot);
+    setAllTimeSlots(AppStore.getTimeSlots());
+    onRefreshData();
+  };
+
   // ─── GALLERY / CAROUSEL MANAGEMENT ────────────────────────────────────────
   const handleSlideImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGalleryError(null);

@@ -13,6 +13,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenBooking,
   onOpenClientAccount,
+  onOpenInstall,
   onNavigateToShare,
   onNavigateToPromo,
   exchangeRate,
