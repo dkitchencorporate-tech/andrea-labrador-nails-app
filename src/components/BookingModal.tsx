@@ -22,7 +22,8 @@ import {
   User, 
   Phone, 
   CreditCard,
-  Gift
+  Gift,
+  Info
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
@@ -696,6 +697,24 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     />
                   </div>
 
+                  {/* Beneficio Primera Cita (Con verificación presencial de Andrea) */}
+                  <label className="flex items-start gap-3 p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl cursor-pointer hover:bg-amber-100/50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={isFirstVisit}
+                      onChange={(e) => setIsFirstVisit(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 accent-amber-600 cursor-pointer"
+                    />
+                    <div className="text-xs space-y-0.5">
+                      <span className="font-bold text-amber-950 block">
+                        ¿Es tu primera cita con Andrea? (Descuento de bienvenida -$2.00 USD)
+                      </span>
+                      <span className="text-[11px] text-amber-800 leading-tight block">
+                        <b>Validación Presencial:</b> Quien otorga el descuento real de $2.00 USD es Andrea al momento de tu cita en el salón tras verificar que sea tu primera visita. Si ya has sido atendida previamente, aplicará la tarifa regular.
+                      </span>
+                    </div>
+                  </label>
+
                   {/* Resumen Final de Reserva */}
                   <div className="p-4 bg-sage-50/80 rounded-2xl border border-sage-200/80 space-y-2.5">
                     <div className="flex items-center justify-between">
@@ -722,11 +741,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     <div className="pt-2 border-t border-sage-200/60 flex flex-wrap items-center justify-between text-xs text-sage-800 gap-1.5">
                       <span>Base: ${basePriceUSD.toFixed(2)} {addonsTotalUSD > 0 && `+ Adicionales: $${addonsTotalUSD.toFixed(2)}`}</span>
                       {isFirstVisit && (
-                        <span className="font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
-                          Descuento 1ª Cita: -$2.00 USD
+                        <span className="font-bold text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-300 text-[11px]">
+                          1ª Cita: -$2.00 USD (Sujeto a validación)
                         </span>
                       )}
                     </div>
+
+                    {isFirstVisit && (
+                      <div className="p-2.5 rounded-xl bg-amber-100/70 border border-amber-200/90 text-[11px] text-amber-900 flex items-start gap-2">
+                        <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                        <span><b>Aviso de Seguridad:</b> La bonificación de $2.00 USD será validada y aplicada por Andrea en persona en el salón al momento de tu atención.</span>
+                      </div>
+                    )}
 
                     <div className="pt-1 text-[11px] text-sage-700 font-medium flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />

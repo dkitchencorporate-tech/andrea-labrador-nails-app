@@ -20,11 +20,11 @@ export const StudioPolicies: React.FC = () => {
           </p>
         </div>
 
-        {/* 2 Authentic Warm Policies */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {/* 3 Warm Authentic Policies */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* 1. Puntualidad */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-sage-50/80 border border-sage-200/90 shadow-soft hover:shadow-luxury transition-all space-y-3.5">
+          <div className="p-6 rounded-3xl bg-sage-50/80 border border-sage-200/90 shadow-soft hover:shadow-luxury transition-all space-y-3.5">
             <div className="w-12 h-12 rounded-2xl bg-sage-700 text-white flex items-center justify-center shadow-sm">
               <Clock className="w-6 h-6" />
             </div>
@@ -39,7 +39,7 @@ export const StudioPolicies: React.FC = () => {
           </div>
 
           {/* 2. Bioseguridad */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-sage-50/80 border border-sage-200/90 shadow-soft hover:shadow-luxury transition-all space-y-3.5">
+          <div className="p-6 rounded-3xl bg-sage-50/80 border border-sage-200/90 shadow-soft hover:shadow-luxury transition-all space-y-3.5">
             <div className="w-12 h-12 rounded-2xl bg-sage-700 text-white flex items-center justify-center shadow-sm">
               <ShieldCheck className="w-6 h-6" />
             </div>
@@ -48,7 +48,22 @@ export const StudioPolicies: React.FC = () => {
                 Bioseguridad & Salud
               </h3>
               <p className="text-sm text-warm-900 leading-relaxed font-normal">
-                Por estrictas normas de higiene y prevención, no atiendo a personas que presenten patologías o sospecha de hongos en las uñas. La salud y bienestar de tu uña natural es siempre primero.
+                Por estrictas normas de higiene y prevención, no atiendo a personas con patologías o sospecha de hongos. La salud y bienestar de tu uña natural es siempre primero.
+              </p>
+            </div>
+          </div>
+
+          {/* 3. Confort & Relajación (Sutil) */}
+          <div className="p-6 rounded-3xl bg-sage-50/80 border border-sage-200/90 shadow-soft hover:shadow-luxury transition-all space-y-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-sage-700 text-white flex items-center justify-center shadow-sm">
+              <Heart className="w-6 h-6" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-serif text-xl font-bold text-warm-900">
+                Tu Momento de Relax
+              </h3>
+              <p className="text-sm text-warm-900 leading-relaxed font-normal">
+                Para brindarte una experiencia exclusiva de spa y desconexión, te sugerimos asistir individualmente a tu cita. Si requieres venir acompañada o con pequeños, con gusto avísame previamente por WhatsApp para coordinarlo.
               </p>
             </div>
           </div>

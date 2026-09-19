@@ -587,12 +587,16 @@ export class AppStore {
     const igText = booking.clientInstagram ? `\n📸 *Instagram:* @${booking.clientInstagram.replace('@', '')}` : '';
     const notesText = booking.notes ? `\n📝 *Nota:* ${booking.notes}` : '';
     const firstVisitText = booking.isFirstVisit 
-      ? `\n🎉 *Beneficio Primera Cita:* -$2.00 USD de descuento aplicado`
+      ? `\n🎉 *Beneficio 1ª Cita:* -$2.00 USD (Sujeto a validación presencial en el estudio por Andrea para clientas nuevas)`
       : '';
     const loyaltyText = `\n⭐ *Programa de Fidelización:* Suma a mis 6 servicios para el 7º GRATIS`;
     
     const rate = this.getExchangeRate();
     const approxVES = (booking.totalPriceUSD * rate).toFixed(0);
+
+    const totalText = booking.isFirstVisit
+      ? `💰 *Total Estimado con Descuento:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)\n📌 _Nota: La bonificación de $2 USD la otorga Andrea directamente en el salón tras corroborar que sea tu primera visita._`
+      : `💰 *Total a Cancelar:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)`;
 
     const message = `¡Hola Andrea! 💅✨ Deseo agendar una cita contigo desde tu catálogo:
 
@@ -603,7 +607,7 @@ export class AppStore {
 ⏰ *Hora:* ${booking.timeSlot}
 💳 *Forma de Pago:* ${paymentLabel}${firstVisitText}${loyaltyText}${notesText}
 
-💰 *Total a Cancelar:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)
+${totalText}
 
 ¿Tienes este cupo disponible para confirmarme? ¡Muchas gracias! 💕`;
 

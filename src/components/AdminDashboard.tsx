@@ -342,7 +342,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (emailTemplate === 'confirmation') {
       return {
         subject: `Confirmación de Cita — Andrea Labrador Nails Studio`,
-        body: `Hola ${name},\n\n¡Tu cita ha sido confirmada con éxito!\n\nDetalles de tu servicio:\n💅 Servicio: ${svc}\n📅 Fecha: ${date}\n⏰ Hora: ${time}\n💰 Total: $${priceUSD} USD (≈ ${priceVES} Bs)\n\n📍 Políticas del estudio:\n- Contamos con 10 minutos de margen de tolerancia.\n- Por favor asiste sin acompañantes.\n\n¡Te esperamos con entusiasmo para consentir tus manos!\n\nAndrea Labrador — Manicurista Profesional\nWhatsApp: +58 424 1360937\nInstagram: @andrealabradorl`
+        body: `Hola ${name},\n\n¡Tu cita ha sido confirmada con éxito!\n\nDetalles de tu servicio:\n💅 Servicio: ${svc}\n📅 Fecha: ${date}\n⏰ Hora: ${time}\n💰 Total: $${priceUSD} USD (≈ ${priceVES} Bs)\n\n📍 Políticas del estudio:\n- Contamos con 10 minutos de margen de tolerancia.\n- Te sugerimos asistir sola para disfrutar de tu momento de relax y desconexión (si requieres venir acompañada o con niños, avísame con gusto por WhatsApp para coordinarlo).\n\n¡Te esperamos con entusiasmo para consentir tus manos!\n\nAndrea Labrador — Manicurista Profesional\nWhatsApp: +58 424 1360937\nInstagram: @andrealabradorl`
       };
     }
 
@@ -589,8 +589,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 'bg-rose-100 text-rose-800 border border-rose-300'
                               }`}>{b.status}</span>
                               {b.isFirstVisit && (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300">
-                                  1ª Cita (-$2 OFF)
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300" title="Verificar presencialmente que sea clienta nueva para aplicar el descuento de bienvenida">
+                                  1ª Cita (-$2 OFF) &bull; Validar en salón
                                 </span>
                               )}
                             </div>
