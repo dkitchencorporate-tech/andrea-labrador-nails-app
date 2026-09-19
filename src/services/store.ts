@@ -747,11 +747,13 @@ export class AppStore {
     return { found: false, isRegistered: false, stampsCount: 0 };
   }
 
-  // ─── LOGIN HERMÉTICO CON PIN Y PROTECCIÓN ANTI FUERZA BRUTA ──────────────
-  static async loginClientRemote(phone: string, pin: string): Promise<{
+  // ─── LOGIN HERMÉTICO CON REGLA DE LOS 3 FALLOS ESTRICTOS ─────────────────
+  static async loginClientRemote(phone: string, pin: string, rememberMe = true): Promise<{
     success: boolean;
     error?: string;
-    locked?: boolean;
+    requiresReset?: boolean;
+    emailMasked?: string;
+    remainingAttempts?: number;
     account?: ClientAccount;
   }> {
     const cleanPhone = phone.replace(/\D/g, '');
@@ -767,12 +769,20 @@ export class AppStore {
         return {
           success: false,
           error: data.error || 'Error al iniciar sesión.',
-          locked: Boolean(data.locked)
+          requiresReset: Boolean(data.requiresReset),
+          emailMasked: data.emailMasked,
+          remainingAttempts: data.remainingAttempts,
         };
       }
 
       if (data.sessionToken) {
-        this.setClientSessionToken(data.sessionToken);
+        if (rememberMe) {
+          this.setClientSessionToken(data.sessionToken);
+        } else {
+          try {
+            sessionStorage.setItem('andrea_client_session_token', data.sessionToken);
+          } catch {}
+        }
       }
 
       const account = this.registerOrUpdateClientAccount({
@@ -787,13 +797,172 @@ export class AppStore {
 
       return { success: true, account };
     } catch (e: any) {
-      // Respaldo local si falla la red
       const localAcc = this.findClientAccount(cleanPhone);
       if (localAcc) {
         this.setActiveClient(localAcc);
         return { success: true, account: localAcc };
       }
       return { success: false, error: 'Error de conexión con el servidor seguro.' };
+    }
+  }
+
+  // ─── RECUPERACIÓN DE CONTRASEÑA POR CORREO ELECTRÓNICO (3 FALLOS) ──────────
+  static async requestPasswordResetRemote(phone: string): Promise<{
+    success: boolean;
+    error?: string;
+    emailMasked?: string;
+    verificationCode?: string;
+    message?: string;
+  }> {
+    const cleanPhone = phone.replace(/\D/g, '');
+    try {
+      const res = await fetch('/api/client-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request_reset', phone: cleanPhone })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Error al solicitar código de recuperación.' };
+      }
+      return {
+        success: true,
+        emailMasked: data.emailMasked,
+        verificationCode: data.verificationCode,
+        message: data.message
+      };
+    } catch (e) {
+      return { success: false, error: 'Error de conexión con el servidor de recuperación.' };
+    }
+  }
+
+  static async resetPasswordWithCodeRemote(phone: string, code: string, newPin: string): Promise<{
+    success: boolean;
+    error?: string;
+    account?: ClientAccount;
+  }> {
+    const cleanPhone = phone.replace(/\D/g, '');
+    try {
+      const res = await fetch('/api/client-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset_password', phone: cleanPhone, code, newPin })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Código incorrecto o expirado.' };
+      }
+
+      if (data.sessionToken) {
+        this.setClientSessionToken(data.sessionToken);
+      }
+
+      const account = this.findClientAccount(cleanPhone) || this.registerOrUpdateClientAccount({
+        name: data.profile?.name || 'Clienta',
+        phone: cleanPhone,
+        email: data.profile?.email,
+      });
+
+      this.setActiveClient(account);
+      return { success: true, account };
+    } catch (e) {
+      return { success: false, error: 'Error de conexión al actualizar contraseña.' };
+    }
+  }
+
+  // ─── INICIO DE SESIÓN OAUTH CON GOOGLE Y APPLE ─────────────────────────────
+  static async oauthLoginRemote(provider: 'google' | 'apple', email: string, name?: string, providerId?: string): Promise<{
+    success: boolean;
+    error?: string;
+    isExisting?: boolean;
+    needsCompletion?: boolean;
+    email?: string;
+    name?: string;
+    provider?: string;
+    providerId?: string;
+    account?: ClientAccount;
+  }> {
+    try {
+      const res = await fetch('/api/client-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'oauth_login', provider, email, name, providerId })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Error al autenticar con proveedor.' };
+      }
+
+      if (data.isExisting && data.sessionToken) {
+        this.setClientSessionToken(data.sessionToken);
+        const account = this.registerOrUpdateClientAccount({
+          name: data.profile?.name || name || 'Clienta',
+          phone: data.profile?.phone,
+          email: data.profile?.email || email,
+        });
+        account.stampsCount = data.profile?.stampsCount || 0;
+        this.setActiveClient(account);
+        return { success: true, isExisting: true, account };
+      }
+
+      return {
+        success: true,
+        needsCompletion: Boolean(data.needsCompletion),
+        email: data.email,
+        name: data.name,
+        provider: data.provider,
+        providerId: data.providerId
+      };
+    } catch (e) {
+      return { success: false, error: 'Error de conexión con el servicio OAuth.' };
+    }
+  }
+
+  static async oauthCompleteRemote(data: {
+    provider: 'google' | 'apple';
+    email: string;
+    name: string;
+    phone: string;
+    pin: string;
+    providerId?: string;
+  }): Promise<{
+    success: boolean;
+    error?: string;
+    account?: ClientAccount;
+  }> {
+    const cleanPhone = data.phone.replace(/\D/g, '');
+    try {
+      const res = await fetch('/api/client-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'oauth_complete',
+          provider: data.provider,
+          email: data.email,
+          name: data.name,
+          phone: cleanPhone,
+          pin: data.pin,
+          providerId: data.providerId
+        })
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        return { success: false, error: resData.error || 'Error al completar registro.' };
+      }
+
+      if (resData.sessionToken) {
+        this.setClientSessionToken(resData.sessionToken);
+      }
+
+      const account = this.registerOrUpdateClientAccount({
+        name: data.name,
+        phone: cleanPhone,
+        email: data.email,
+      });
+      this.setActiveClient(account);
+      return { success: true, account };
+    } catch (e) {
+      return { success: false, error: 'Error de conexión al completar registro.' };
     }
   }
 
