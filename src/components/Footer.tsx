@@ -66,7 +66,6 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
             </span>
             <ul className="space-y-2 text-xs sm:text-sm text-sage-200 font-medium">
               <li><a href="#catalogo" className="hover:text-white transition-colors">Catálogo de Servicios</a></li>
-              <li><a href="#promociones" className="hover:text-white transition-colors">Combos & Promociones</a></li>
               <li>
                 <a 
                   href="/compartir" 
@@ -78,8 +77,8 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
                   }}
                   className="text-amber-300 hover:text-white transition-colors flex items-center gap-1.5 font-bold"
                 >
-                  <Gift className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Club Amigas: Manicura Gratis</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Fidelización: 10+1 &amp; $2 OFF</span>
                 </a>
               </li>
               <li><a href="#politicas" className="hover:text-white transition-colors">Políticas del Estudio</a></li>

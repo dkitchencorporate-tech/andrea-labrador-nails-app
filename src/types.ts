@@ -54,6 +54,8 @@ export interface AppointmentBooking {
   paymentMethod: PaymentMethodType;
   notes?: string;
   status: 'pendiente' | 'confirmada' | 'completada' | 'cancelada';
+  isFirstVisit?: boolean;
+  discountUSD?: number;
   createdAt: string;
 }
 
@@ -66,7 +68,7 @@ export interface BlockedTimeSlot {
 export interface LoyaltyCard {
   phone: string;
   clientName: string;
-  stampsCount: number; // 0 to 6
+  stampsCount: number; // 0 to 10
   lastVisit: string;
   rewardsEarned: string[];
 }

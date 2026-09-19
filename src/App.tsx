@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ServiceCatalog } from './components/ServiceCatalog';
-import { Promotions } from './components/Promotions';
 import { StudioPolicies } from './components/StudioPolicies';
 import { PaymentMethods } from './components/PaymentMethods';
 import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { SharePage } from './components/SharePage';
-import { ReferralClub } from './components/ReferralClub';
 import { ClubInviteSection } from './components/ClubInviteSection';
 import { AppStore } from './services/store';
 import { ServiceItem, PromoOffer } from './types';
@@ -164,15 +162,13 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200">
       
-      {/* Referral Welcome Banner if visiting via friend link */}
-      {referralCode && (
-        <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 text-center text-xs font-bold text-amber-950 flex items-center justify-center gap-2 shadow-xs">
-          <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
-          <span>
-            ¡Bienvenida! Tienes un <strong>Pase VIP de {referralCode}</strong>: $2 USD de regalo o Nail Art de cortesía en tu primera cita.
-          </span>
-        </div>
-      )}
+      {/* Welcome Banner: 1st Visit Discount & Loyalty */}
+      <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 text-center text-xs font-bold text-amber-950 flex items-center justify-center gap-2 shadow-xs">
+        <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
+        <span>
+          ¡Bienvenida a Andrea Labrador Nails! Disfruta de <strong>$2 USD de descuento</strong> en tu primera cita y acumula visitas para tu <strong>11º servicio GRATIS</strong>.
+        </span>
+      </div>
 
       {/* Client Navbar (Completely clean, no admin lock) */}
       <Navbar
@@ -188,14 +184,7 @@ export const App: React.FC = () => {
           onSelectServiceById={handleSelectServiceById}
         />
 
-        <Promotions
-          promos={promos}
-          services={services}
-          exchangeRate={exchangeRate}
-          onSelectPromoForBooking={handleSelectPromo}
-        />
-
-        {/* Visual Club Invite Section */}
+        {/* Visual Loyalty & First Visit Banner */}
         <ClubInviteSection
           onNavigateToShare={handleNavigateToShare}
         />
@@ -204,11 +193,6 @@ export const App: React.FC = () => {
           services={services}
           exchangeRate={exchangeRate}
           onSelectServiceForBooking={handleSelectService}
-        />
-
-        {/* Special Launch Referral Club Section (Invitación y Regalo Mutuo) */}
-        <ReferralClub
-          onOpenBooking={handleOpenGeneralBooking}
         />
 
         <StudioPolicies />

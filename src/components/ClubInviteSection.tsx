@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gift, Sparkles, Heart } from 'lucide-react';
+import { Sparkles, Award, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 interface ClubInviteSectionProps {
   onNavigateToShare: () => void;
@@ -14,7 +14,7 @@ export const ClubInviteSection: React.FC<ClubInviteSectionProps> = ({ onNavigate
         <div className="rounded-3xl bg-[#16291F] text-white border border-amber-300/50 shadow-luxury overflow-hidden">
           <div className="p-6 sm:p-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
 
-            {/* Nail art stack */}
+            {/* Nail art visual stack */}
             <div className="flex items-center justify-center shrink-0">
               <div className="flex items-center">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-amber-200/80 shadow-lg -mr-4 relative z-0">
@@ -29,44 +29,53 @@ export const ClubInviteSection: React.FC<ClubInviteSectionProps> = ({ onNavigate
               </div>
             </div>
 
-            {/* Copy */}
+            {/* Copy & Benefits */}
             <div className="flex-1 text-center sm:text-left space-y-3 min-w-0">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
-                <Gift className="w-3 h-3 shrink-0" />
-                <span>Especial de Lanzamiento Oficial</span>
+                <Award className="w-3.5 h-3.5 shrink-0 text-amber-300" />
+                <span>Beneficios Oficiales para Clientas</span>
               </div>
 
               <h2 className="font-serif text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-snug">
-                Club Embajadora VIP{' '}
+                Programa de Fidelización{' '}
                 <span className="italic font-normal text-amber-200">
-                  — ¡Invita 2 Amigas &amp; Gana tu Manicura!
+                  &amp; Bienvenida
                 </span>
               </h2>
 
-              <p className="text-sm text-sage-200 leading-relaxed">
-                Tus amigas reciben <strong className="text-white">$2 OFF o Nail Art Glaseado</strong> de cortesía.
-                Cuando asistan a su 1ª cita,{' '}
-                <strong className="text-amber-300">tu servicio es 100% GRATIS</strong>.
+              <p className="text-xs sm:text-sm text-sage-200 leading-relaxed">
+                Premio directo a tu preferencia continua, sin condiciones ocultas:
               </p>
 
-              <div className="flex flex-wrap gap-2 text-xs">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-sage-100">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                  <span>$2 OFF para tus amigas</span>
+              {/* 2 Rules Pill Badges */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white/10 border border-white/15 text-sage-100">
+                  <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
+                  <div>
+                    <strong className="text-white block">1ª Cita: $2 USD de Descuento</strong>
+                    <span className="text-[11px] text-sage-300">Si es tu primera vez en el estudio</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-sage-100">
-                  <Heart className="w-3.5 h-3.5 text-rose-300 shrink-0" />
-                  <span>Tu manicura 100% Gratis</span>
+
+                <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white/10 border border-white/15 text-sage-100">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div>
+                    <strong className="text-white block">10 Servicios = #11 GRATIS</strong>
+                    <span className="text-[11px] text-sage-300">Tu servicio completo de cortesía</span>
+                  </div>
                 </div>
               </div>
 
-              <button
-                onClick={onNavigateToShare}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-sage-950 font-bold text-xs sm:text-sm rounded-full shadow-lg transition-all active:scale-95 mt-1"
-              >
-                <Gift className="w-4 h-4 shrink-0" />
-                <span>🎁 Conocer el Club &amp; Obtener mi Pase VIP</span>
-              </button>
+              <div className="pt-1">
+                <button
+                  onClick={onNavigateToShare}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-sage-950 font-bold text-xs sm:text-sm rounded-full shadow-lg transition-all active:scale-95"
+                >
+                  <Sparkles className="w-4 h-4 shrink-0 text-sage-900" />
+                  <span>Ver Mi Tarjeta de Fidelización</span>
+                  <ArrowRight className="w-3.5 h-3.5 shrink-0 text-sage-900" />
+                </button>
+              </div>
             </div>
 
           </div>

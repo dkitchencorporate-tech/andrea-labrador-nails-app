@@ -35,10 +35,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           <a href="#catalogo" className="hover:text-sage-700 transition-colors">
             <span>Catálogo</span>
           </a>
-          <a href="#promociones" className="hover:text-sage-700 transition-colors flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>Combos & Promos</span>
-          </a>
           <a 
             href="/compartir" 
             onClick={(e) => {
@@ -49,8 +45,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition-all border border-amber-300 shadow-xs"
           >
-            <Gift className="w-3.5 h-3.5 text-amber-600" />
-            <span>🎁 Regalo de Lanzamiento</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>⭐ Fidelización: 10+1 &amp; $2 OFF</span>
           </a>
           <a href="#politicas" className="hover:text-sage-700 transition-colors flex items-center gap-1">
             <Shield className="w-3.5 h-3.5 text-sage-600" />
@@ -60,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {/* Mobile Gift Shortcut */}
+          {/* Mobile Loyalty Shortcut */}
           <a
             href="/compartir"
             onClick={(e) => {
@@ -70,10 +66,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               }
             }}
             className="md:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold shadow-xs active:scale-95"
-            title="Club de Regalos"
+            title="Programa de Fidelización"
           >
-            <Gift className="w-3.5 h-3.5 text-amber-600" />
-            <span>Regalo</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>Fidelidad</span>
           </a>
 
           {/* Exchange rate indicator pill */}

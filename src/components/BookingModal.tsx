@@ -62,6 +62,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [clientInstagram, setClientInstagram] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('pago_movil');
   const [notes, setNotes] = useState('');
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
 
   // Confirmation state
   const [isSuccess, setIsSuccess] = useState(false);
@@ -117,7 +118,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // Calculate pricing
   const basePriceUSD = preSelectedPromo ? preSelectedPromo.promoPriceUSD : (currentService ? currentService.priceUSD : 10);
   const addonsTotalUSD = selectedAddons.reduce((acc, curr) => acc + curr.priceUSD, 0);
-  const totalPriceUSD = basePriceUSD + addonsTotalUSD;
+  const discountUSD = isFirstVisit ? 2.00 : 0.00;
+  const totalPriceUSD = Math.max(0, basePriceUSD + addonsTotalUSD - discountUSD);
   const totalPriceVES = totalPriceUSD * exchangeRate;
 
   // Toggle addon
@@ -163,6 +165,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       paymentMethod,
       notes: notes.trim() || undefined,
       status: 'pendiente',
+      isFirstVisit,
+      discountUSD,
       createdAt: new Date().toISOString()
     };
 
@@ -191,6 +195,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       addons: booking.selectedAddons,
       paymentMethod: booking.paymentMethod,
       notes: booking.notes,
+      isFirstVisit,
+      discountUSD,
       referralCode: referralCode || undefined,
     });
 
@@ -297,19 +303,19 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </button>
               </div>
 
-              {/* Special Launch Gift Club Banner */}
+              {/* Official Loyalty Program Confirmation Banner */}
               {onNavigateToShare && (
-                <div className="p-4 bg-gradient-to-r from-amber-50 to-warm-100 border border-amber-300/80 rounded-2xl text-left flex items-center justify-between gap-3 max-w-md mx-auto shadow-xs">
+                <div className="p-4 bg-sage-50 border border-sage-200 rounded-2xl text-left flex items-center justify-between gap-3 max-w-md mx-auto shadow-xs">
                   <div className="space-y-0.5">
-                    <span className="text-[10px] uppercase font-bold text-amber-900 tracking-wider flex items-center gap-1">
-                      <Gift className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Premio de Lanzamiento</span>
+                    <span className="text-[10px] uppercase font-bold text-sage-800 tracking-wider flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Programa de Fidelización</span>
                     </span>
                     <p className="text-xs font-bold text-warm-900">
-                      ¿Quieres tu próxima manicura 100% Gratis?
+                      ¡10 Servicios = Tu 11º Servicio 100% GRATIS!
                     </p>
                     <p className="text-[11px] text-warm-600">
-                      Invita a 2 amigas con tu pase y gana tu servicio completo.
+                      Esta visita sumará automáticamente a tu tarjeta digital.
                     </p>
                   </div>
                   <button
@@ -317,9 +323,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       handleResetAndClose();
                       onNavigateToShare();
                     }}
-                    className="shrink-0 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                    className="shrink-0 px-3.5 py-2 bg-sage-800 hover:bg-sage-900 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
                   >
-                    Obtener Pase
+                    Ver Tarjeta
                   </button>
                 </div>
               )}
@@ -430,10 +436,46 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </div>
                   </div>
 
+                  {/* First Visit Discount Selector */}
+                  <div 
+                    onClick={() => setIsFirstVisit(!isFirstVisit)}
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                      isFirstVisit 
+                        ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-xs'
+                        : 'bg-warm-50 border-sage-200 text-warm-700 hover:bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                        isFirstVisit ? 'bg-amber-600 border-amber-600 text-white' : 'border-sage-300'
+                      }`}>
+                        {isFirstVisit && <Check className="w-3.5 h-3.5" />}
+                      </div>
+                      <div>
+                        <span className="text-xs sm:text-sm font-bold block">
+                          ¿Es tu primera cita con Andrea?
+                        </span>
+                        <span className="text-[11px] text-amber-900 font-medium block">
+                          Aplica $2.00 USD de descuento directo de bienvenida.
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs sm:text-sm font-black text-amber-700 bg-amber-100/90 px-2.5 py-1 rounded-full border border-amber-300 shrink-0">
+                      -$2.00 USD
+                    </span>
+                  </div>
+
                   {/* Step 1 Footer */}
                   <div className="pt-4 flex items-center justify-between border-t border-sage-100">
                     <div>
-                      <span className="text-[10px] text-sage-600 block uppercase">Subtotal</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-sage-600 uppercase font-bold">Total Estimado</span>
+                        {isFirstVisit && (
+                          <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full font-bold">
+                            -$2 OFF 1ª Cita
+                          </span>
+                        )}
+                      </div>
                       <span className="font-serif text-2xl font-bold text-warm-900">
                         ${totalPriceUSD.toFixed(2)} USD
                       </span>
@@ -634,23 +676,40 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
 
                   {/* Resumen Final de Reserva */}
-                  <div className="p-4 bg-sage-50/80 rounded-2xl border border-sage-200/80 flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-sage-700 uppercase tracking-wider">
-                        Resumen de Cita
-                      </span>
-                      <p className="text-xs font-bold text-warm-900">
-                        {currentService.name} &bull; {selectedDate} ({selectedTimeSlot})
-                      </p>
-                      <p className="text-[11px] text-sage-600">
-                        Tasa estimada: ≈ {totalPriceVES.toFixed(0)} Bs
-                      </p>
+                  <div className="p-4 bg-sage-50/80 rounded-2xl border border-sage-200/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-bold text-sage-700 uppercase tracking-wider">
+                          Resumen de Cita
+                        </span>
+                        <p className="text-xs font-bold text-warm-900">
+                          {currentService.name} &bull; {selectedDate} ({selectedTimeSlot})
+                        </p>
+                        <p className="text-[11px] text-sage-600">
+                          Tasa estimada: ≈ {totalPriceVES.toFixed(0)} Bs
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-sage-600 block uppercase">Total a Pagar</span>
+                        <span className="font-serif text-2xl font-bold text-sage-900">
+                          ${totalPriceUSD.toFixed(2)} USD
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-sage-600 block uppercase">Total a Pagar</span>
-                      <span className="font-serif text-2xl font-bold text-sage-900">
-                        ${totalPriceUSD.toFixed(2)} USD
-                      </span>
+
+                    {/* Breakdown & Loyalty notes */}
+                    <div className="pt-2 border-t border-sage-200/60 flex flex-wrap items-center justify-between text-xs text-sage-800 gap-1.5">
+                      <span>Base: ${basePriceUSD.toFixed(2)} {addonsTotalUSD > 0 && `+ Adicionales: $${addonsTotalUSD.toFixed(2)}`}</span>
+                      {isFirstVisit && (
+                        <span className="font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
+                          Descuento 1ª Cita: -$2.00 USD
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="pt-1 text-[11px] text-sage-700 font-medium flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <span>Suma 1 servicio en tu Tarjeta de Fidelización (el 11º servicio es 100% GRATIS).</span>
                     </div>
                   </div>
 

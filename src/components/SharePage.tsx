@@ -35,8 +35,8 @@ export const SharePage: React.FC<SharePageProps> = ({
             <span className="font-serif text-base sm:text-xl font-bold tracking-tight text-sage-900 leading-tight">
               Andrea Labrador
             </span>
-            <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-950 font-bold uppercase border border-amber-300">
-              Club VIP
+            <span className="text-[9px] px-2 py-0.5 rounded-full bg-sage-100 text-sage-900 font-bold uppercase border border-sage-300">
+              Fidelización
             </span>
           </div>
 
@@ -62,7 +62,7 @@ export const SharePage: React.FC<SharePageProps> = ({
         <div className="max-w-3xl mx-auto px-4 space-y-2">
           <p className="font-serif text-base font-bold text-white">ANDREA LABRADOR &bull; NAILS STUDIO</p>
           <p className="text-sage-300 text-[11px]">
-            Programa de Lanzamiento Oficial &bull; Venezuela
+            Programa Oficial de Fidelización &bull; Venezuela
           </p>
           <p className="text-sage-400 text-[10px] pt-1">
             &copy; {new Date().getFullYear()} Todos los derechos reservados.

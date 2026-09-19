@@ -200,13 +200,10 @@ export class AppStore {
 
     existing.clientName = clientName;
     existing.lastVisit = new Date().toISOString().split('T')[0];
-    existing.stampsCount = Math.min(6, existing.stampsCount + 1);
+    existing.stampsCount = Math.min(10, existing.stampsCount + 1);
 
-    if (existing.stampsCount === 5 && !existing.rewardsEarned.includes('30% OFF en 5ta visita')) {
-      existing.rewardsEarned.push('30% OFF en 5ta visita');
-    }
-    if (existing.stampsCount === 6 && !existing.rewardsEarned.includes('Esmaltado de Cortesía en 6ta visita')) {
-      existing.rewardsEarned.push('Esmaltado de Cortesía en 6ta visita');
+    if (existing.stampsCount === 10 && !existing.rewardsEarned.includes('¡11º Servicio 100% GRATIS!')) {
+      existing.rewardsEarned.push('¡11º Servicio 100% GRATIS!');
     }
 
     cards[normalized] = existing;
@@ -235,6 +232,8 @@ export class AppStore {
     addons?: { name: string; priceUSD: number }[];
     paymentMethod: PaymentMethodType;
     notes?: string;
+    isFirstVisit?: boolean;
+    discountUSD?: number;
     referralCode?: string;
   }): string {
     const paymentLabel = {
@@ -249,7 +248,10 @@ export class AppStore {
 
     const igText = booking.clientInstagram ? `\n📸 *Instagram:* @${booking.clientInstagram.replace('@', '')}` : '';
     const notesText = booking.notes ? `\n📝 *Nota:* ${booking.notes}` : '';
-    const referralText = booking.referralCode ? `\n🎁 *Pase de Lanzamiento:* Referida por ${booking.referralCode} (Aplica $2 OFF o Nail Art cortesía)` : '';
+    const firstVisitText = booking.isFirstVisit 
+      ? `\n🎉 *Beneficio Primera Cita:* -$2.00 USD de descuento aplicado`
+      : '';
+    const loyaltyText = `\n⭐ *Programa de Fidelización:* Suma a mis 10 servicios para el 11º GRATIS`;
     
     const rate = this.getExchangeRate();
     const approxVES = (booking.totalPriceUSD * rate).toFixed(0);
@@ -261,7 +263,7 @@ export class AppStore {
 💅 *Servicio:* ${booking.serviceName}${addonsText}
 📅 *Fecha:* ${booking.date}
 ⏰ *Hora:* ${booking.timeSlot}
-💳 *Forma de Pago:* ${paymentLabel}${referralText}${notesText}
+💳 *Forma de Pago:* ${paymentLabel}${firstVisitText}${loyaltyText}${notesText}
 
 💰 *Total a Cancelar:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)
 
