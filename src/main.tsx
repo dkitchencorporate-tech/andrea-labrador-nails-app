@@ -14,6 +14,10 @@ class ErrorBoundary extends React.Component<
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error: error?.message || 'Error desconocido' };
   }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    // Log full error for diagnosis
+    console.error('[ErrorBoundary]', error.message, info.componentStack);
+  }
   render() {
     if (this.state.hasError) {
       return (
@@ -27,9 +31,17 @@ class ErrorBoundary extends React.Component<
           <h1 style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
             Andrea Labrador Nails Studio
           </h1>
-          <p style={{ fontSize: '0.95rem', color: '#5a6e5e', marginBottom: '1.5rem', maxWidth: '380px' }}>
-            La aplicación está cargando. Si ves esto, por favor recarga la página.
+          <p style={{ fontSize: '0.95rem', color: '#5a6e5e', marginBottom: '1rem', maxWidth: '380px' }}>
+            Error de carga — diagnóstico:
           </p>
+          <pre style={{
+            fontSize: '0.7rem', color: '#c0392b', background: '#fff5f5',
+            border: '1px solid #fcc', borderRadius: '8px',
+            padding: '0.75rem', maxWidth: '90vw', overflow: 'auto',
+            textAlign: 'left', marginBottom: '1.5rem', whiteSpace: 'pre-wrap'
+          }}>
+            {this.state.error}
+          </pre>
           <button
             onClick={() => window.location.reload()}
             style={{
