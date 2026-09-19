@@ -1,14 +1,16 @@
 import React from 'react';
-import { Calendar, Sparkles, Shield, MessageCircle, Gift } from 'lucide-react';
+import { Calendar, Sparkles, Shield, MessageCircle, Gift, User, Tag } from 'lucide-react';
 
 interface NavbarProps {
   onOpenBooking: () => void;
+  onOpenClientAccount: () => void;
   onNavigateToShare?: () => void;
   exchangeRate: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenBooking,
+  onOpenClientAccount,
   onNavigateToShare,
   exchangeRate,
 }) => {
@@ -31,7 +33,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-bold text-warm-900">
+        <nav className="hidden md:flex items-center space-x-5 text-sm font-bold text-warm-900">
+          <a href="#promociones" className="hover:text-sage-700 transition-colors flex items-center gap-1 text-amber-900">
+            <Tag className="w-3.5 h-3.5 text-amber-600" />
+            <span>Promos &amp; Combos</span>
+          </a>
           <a href="#catalogo" className="hover:text-sage-700 transition-colors">
             <span>Catálogo</span>
           </a>
@@ -46,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition-all border border-amber-300 shadow-xs"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>⭐ Fidelización: 6+1 &amp; $2 OFF</span>
+            <span>⭐ Club VIP 6+1</span>
           </a>
           <a href="#politicas" className="hover:text-sage-700 transition-colors flex items-center gap-1">
             <Shield className="w-3.5 h-3.5 text-sage-600" />
@@ -55,25 +61,19 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {/* Mobile Loyalty Shortcut */}
-          <a
-            href="/compartir"
-            onClick={(e) => {
-              if (onNavigateToShare) {
-                e.preventDefault();
-                onNavigateToShare();
-              }
-            }}
-            className="md:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold shadow-xs active:scale-95"
-            title="Programa de Fidelización"
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Button Mi Ficha (Client Account & Loyalty) */}
+          <button
+            onClick={onOpenClientAccount}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-sage-100 hover:bg-sage-200 text-sage-900 rounded-full border border-sage-200 text-[11px] sm:text-xs font-bold transition-all shadow-xs"
+            title="Mi Ficha de Clienta y Sellos VIP"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>Fidelidad</span>
-          </a>
+            <User className="w-3.5 h-3.5 text-sage-700" />
+            <span>Mi Ficha</span>
+          </button>
 
           {/* Exchange rate indicator pill */}
-          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-sage-100 rounded-full border border-sage-200 text-xs text-sage-900 font-sans font-bold">
+          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 bg-sage-100 rounded-full border border-sage-200 text-xs text-sage-900 font-sans font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>$1 = {exchangeRate.toFixed(2)} Bs</span>
           </div>
@@ -83,7 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             href="https://wa.me/584241360937?text=Hola%20Andrea!%20Deseo%20hacerte%20una%20consulta%20sobre%20tus%20servicios"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full transition-all shadow-sm"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full transition-all shadow-sm"
             title="Chat directo con Andrea Labrador"
           >
             <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
@@ -93,7 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Book Appointment CTA Button */}
           <button
             onClick={onOpenBooking}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2.5 bg-sage-800 hover:bg-sage-900 text-white text-xs sm:text-sm font-bold rounded-full shadow-soft hover:shadow-luxury transition-all transform active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-sage-800 hover:bg-sage-900 text-white text-xs sm:text-sm font-bold rounded-full shadow-soft hover:shadow-luxury transition-all transform active:scale-95"
           >
             <Calendar className="w-3.5 h-3.5 text-amber-300" />
             <span className="hidden sm:inline">Agendar Cita</span>

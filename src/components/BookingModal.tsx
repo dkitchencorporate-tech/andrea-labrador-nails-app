@@ -23,7 +23,10 @@ import {
   Phone, 
   CreditCard,
   Gift,
-  Info
+  Info,
+  Mail,
+  Lock,
+  CheckCircle2
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
@@ -67,10 +70,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // Client details
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [clientEmail, setClientEmail] = useState('');
+  const [clientPin, setClientPin] = useState('');
   const [clientInstagram, setClientInstagram] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('pago_movil');
   const [notes, setNotes] = useState('');
   const [isFirstVisit, setIsFirstVisit] = useState(true);
+
+  // Intelligent client recognition state
+  const [isExistingClient, setIsExistingClient] = useState(false);
+  const [recognizedStamps, setRecognizedStamps] = useState<number>(0);
+  const [isCheckingClient, setIsCheckingClient] = useState(false);
 
   // Confirmation state
   const [isSuccess, setIsSuccess] = useState(false);
@@ -102,10 +112,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return dates;
   }, []);
 
-  // Update selection when modal opens with pre-selected item and sync remote schedule
+  // Sync remote schedule and check active client on open
   useEffect(() => {
     if (isOpen) {
       AppStore.fetchRemoteBlockedSlots().catch(console.warn);
+
+      const active = AppStore.getActiveClient();
+      if (active) {
+        if (!clientName) setClientName(active.name);
+        if (!clientPhone) setClientPhone(active.phone);
+        if (active.email && !clientEmail) setClientEmail(active.email);
+        if (active.instagram && !clientInstagram) setClientInstagram(active.instagram);
+        setIsExistingClient(true);
+        setIsFirstVisit(false);
+        setRecognizedStamps(active.stampsCount || 0);
+      }
     }
     if (preSelectedService) {
       setSelectedServiceId(preSelectedService.id);
@@ -121,15 +142,57 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
   }, [isOpen, preSelectedService, preSelectedPromo, services, availableDates]);
 
+  // Intelligent real-time recognition by phone or email
+  useEffect(() => {
+    const cleanPhone = clientPhone.replace(/\D/g, '');
+    if (cleanPhone.length >= 7) {
+      setIsCheckingClient(true);
+      const localAcc = AppStore.findClientAccount(cleanPhone) || (clientEmail ? AppStore.findClientAccount(clientEmail) : null);
+      if (localAcc) {
+        if (!clientName) setClientName(localAcc.name);
+        if (!clientEmail && localAcc.email) setClientEmail(localAcc.email);
+        setIsExistingClient(true);
+        setIsFirstVisit(false);
+        setRecognizedStamps(localAcc.stampsCount || 0);
+        setIsCheckingClient(false);
+      } else {
+        AppStore.checkClientProfileRemote(cleanPhone).then(remote => {
+          if (remote.found) {
+            if (!clientName && remote.clientName) setClientName(remote.clientName);
+            setIsExistingClient(true);
+            setIsFirstVisit(false);
+            setRecognizedStamps(remote.stampsCount || 0);
+          } else {
+            setIsExistingClient(false);
+          }
+          setIsCheckingClient(false);
+        });
+      }
+    } else if (clientEmail && clientEmail.includes('@')) {
+      const localAcc = AppStore.findClientAccount(clientEmail);
+      if (localAcc) {
+        if (!clientName) setClientName(localAcc.name);
+        if (!clientPhone) setClientPhone(localAcc.phone);
+        setIsExistingClient(true);
+        setIsFirstVisit(false);
+        setRecognizedStamps(localAcc.stampsCount || 0);
+      } else {
+        setIsExistingClient(false);
+      }
+    } else {
+      setIsExistingClient(false);
+    }
+  }, [clientPhone, clientEmail]);
+
   if (!isOpen) return null;
 
   const currentService = services.find(s => s.id === selectedServiceId) || services[0];
   const selectedAddons = INITIAL_ADDONS.filter(a => selectedAddonIds.includes(a.id));
 
-  // Calculate pricing
+  // Calculate pricing: no discount for promo combos OR recognized existing clients
   const basePriceUSD = preSelectedPromo ? preSelectedPromo.promoPriceUSD : (currentService ? currentService.priceUSD : 10);
   const addonsTotalUSD = selectedAddons.reduce((acc, curr) => acc + curr.priceUSD, 0);
-  const discountUSD = isFirstVisit ? 2.00 : 0.00;
+  const discountUSD = (!preSelectedPromo && !isExistingClient && isFirstVisit) ? 2.00 : 0.00;
   const totalPriceUSD = Math.max(0, basePriceUSD + addonsTotalUSD - discountUSD);
   const totalPriceVES = totalPriceUSD * exchangeRate;
 
@@ -167,6 +230,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       id: 'cita_' + Date.now(),
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
+      clientEmail: clientEmail.trim() || undefined,
+      clientPin: clientPin.trim() || undefined,
       clientInstagram: clientInstagram.trim() || undefined,
       serviceId: currentService.id,
       serviceName: preSelectedPromo ? preSelectedPromo.title : currentService.name,
@@ -178,7 +243,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       paymentMethod,
       notes: notes.trim() || undefined,
       status: 'pendiente',
-      isFirstVisit,
+      isFirstVisit: (!preSelectedPromo && !isExistingClient && isFirstVisit),
       discountUSD,
       createdAt: new Date().toISOString()
     };
@@ -206,11 +271,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       timeSlot: finalBooking.timeSlot,
       clientName: finalBooking.clientName,
       clientPhone: finalBooking.clientPhone,
+      clientEmail: finalBooking.clientEmail,
       clientInstagram: finalBooking.clientInstagram,
       addons: finalBooking.selectedAddons,
       paymentMethod: finalBooking.paymentMethod,
       notes: finalBooking.notes,
-      isFirstVisit,
+      isFirstVisit: finalBooking.isFirstVisit,
+      isExistingClient,
       discountUSD: finalBooking.discountUSD,
       referralCode: referralCode || undefined,
     });
@@ -655,6 +722,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
+                        <Mail className="w-3.5 h-3.5 text-sage-600" />
+                        <span>Correo Electrónico (Para tu Ficha)</span>
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="tuemail@gmail.com"
+                        value={clientEmail}
+                        onChange={(e) => setClientEmail(e.target.value)}
+                        className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
                         <InstagramIcon className="w-3.5 h-3.5 text-sage-600" />
                         <span>Usuario de Instagram (Opcional)</span>
                       </label>
@@ -666,22 +747,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sage-400 focus:outline-none"
                       />
                     </div>
+                  </div>
 
-                    <div className="space-y-1">
-                      <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
-                        <CreditCard className="w-3.5 h-3.5 text-sage-600" />
-                        <span>Método de Pago Preferido</span>
-                      </label>
-                      <select
-                        value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType)}
-                        className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-sage-400 focus:outline-none"
-                      >
-                        <option value="pago_movil">Pago Móvil (Bolívares)</option>
-                        <option value="efectivo">Efectivo en Dólares ($)</option>
-                        <option value="binance">Binance Pay (USDT)</option>
-                      </select>
-                    </div>
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
+                      <CreditCard className="w-3.5 h-3.5 text-sage-600" />
+                      <span>Método de Pago Preferido</span>
+                    </label>
+                    <select
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType)}
+                      className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                    >
+                      <option value="pago_movil">Pago Móvil (Bolívares)</option>
+                      <option value="efectivo">Efectivo en Dólares ($)</option>
+                      <option value="binance">Binance Pay (USDT)</option>
+                    </select>
                   </div>
 
                   <div className="space-y-1">
@@ -697,23 +778,72 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     />
                   </div>
 
-                  {/* Beneficio Primera Cita (Con verificación presencial de Andrea) */}
-                  <label className="flex items-start gap-3 p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl cursor-pointer hover:bg-amber-100/50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={isFirstVisit}
-                      onChange={(e) => setIsFirstVisit(e.target.checked)}
-                      className="mt-0.5 w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 accent-amber-600 cursor-pointer"
-                    />
-                    <div className="text-xs space-y-0.5">
-                      <span className="font-bold text-amber-950 block">
-                        ¿Es tu primera cita con Andrea? (Descuento de bienvenida -$2.00 USD)
-                      </span>
-                      <span className="text-[11px] text-amber-800 leading-tight block">
-                        <b>Validación Presencial:</b> Quien otorga el descuento real de $2.00 USD es Andrea al momento de tu cita en el salón tras verificar que sea tu primera visita. Si ya has sido atendida previamente, aplicará la tarifa regular.
-                      </span>
+                  {/* Reconocimiento Inteligente de Clienta Habitual vs Nueva Clienta */}
+                  {isExistingClient ? (
+                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/90 flex items-start gap-3 shadow-xs">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0">
+                        <Sparkles className="w-5 h-5 text-amber-300" />
+                      </div>
+                      <div className="space-y-0.5 text-xs flex-1">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="font-bold text-emerald-950 text-sm">
+                            ¡Qué alegría verte de nuevo, {clientName || 'Clienta'}! 💅✨
+                          </span>
+                          <span className="text-[10px] uppercase font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
+                            Clienta VIP Habitual
+                          </span>
+                        </div>
+                        <p className="text-emerald-800 text-[11px] leading-relaxed">
+                          Reconocida automáticamente en tu Ficha de Clienta. Cuentas con <b>{recognizedStamps} de 6 sellos</b> acumulados en tu Tarjeta de Fidelización.
+                          {recognizedStamps >= 5 ? ' ¡Esta visita te acerca a tu 7º servicio 100% GRATIS!' : ' ¡Esta cita sumará tu siguiente sello oficial!'}
+                        </p>
+                      </div>
                     </div>
-                  </label>
+                  ) : preSelectedPromo ? (
+                    <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 flex items-center gap-2">
+                      <Gift className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span><b>Combo Promocional:</b> Ahorro directo aplicado en paquete cerrado. Suma automáticamente a tu Tarjeta VIP.</span>
+                    </div>
+                  ) : (
+                    /* Beneficio Primera Cita (Solo para clientas NO registradas) */
+                    <div className="space-y-3">
+                      <label className="flex items-start gap-3 p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl cursor-pointer hover:bg-amber-100/50 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={isFirstVisit}
+                          onChange={(e) => setIsFirstVisit(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500 accent-amber-600 cursor-pointer"
+                        />
+                        <div className="text-xs space-y-0.5">
+                          <span className="font-bold text-amber-950 block">
+                            ¿Es tu primera cita con Andrea? (Descuento de bienvenida -$2.00 USD)
+                          </span>
+                          <span className="text-[11px] text-amber-800 leading-tight block">
+                            <b>Validación Presencial:</b> Quien otorga el descuento real de $2.00 USD es Andrea al momento de tu cita en el salón tras verificar que sea tu primera visita. Si ya has sido atendida previamente, aplicará la tarifa regular.
+                          </span>
+                        </div>
+                      </label>
+
+                      {/* Crear PIN / Contraseña opcional para su ficha */}
+                      <div className="p-3 rounded-2xl bg-sage-50 border border-sage-200/80 space-y-1.5">
+                        <label className="block text-[11px] font-bold text-sage-800 flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-sage-600" />
+                          <span>Crea tu PIN o Contraseña para tu Ficha de Clienta (Opcional - 4 dígitos)</span>
+                        </label>
+                        <input
+                          type="password"
+                          maxLength={6}
+                          placeholder="Ej: 1234"
+                          value={clientPin}
+                          onChange={(e) => setClientPin(e.target.value)}
+                          className="w-full p-2.5 bg-white border border-sage-200 rounded-xl text-xs focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                        />
+                        <p className="text-[10px] text-warm-500">
+                          Te permitirá consultar tus sellos acumulados y citas en cualquier momento desde tu teléfono o correo.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Resumen Final de Reserva */}
                   <div className="p-4 bg-sage-50/80 rounded-2xl border border-sage-200/80 space-y-2.5">
@@ -740,14 +870,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     {/* Breakdown & Loyalty notes */}
                     <div className="pt-2 border-t border-sage-200/60 flex flex-wrap items-center justify-between text-xs text-sage-800 gap-1.5">
                       <span>Base: ${basePriceUSD.toFixed(2)} {addonsTotalUSD > 0 && `+ Adicionales: $${addonsTotalUSD.toFixed(2)}`}</span>
-                      {isFirstVisit && (
+                      {!preSelectedPromo && !isExistingClient && isFirstVisit ? (
                         <span className="font-bold text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-300 text-[11px]">
                           1ª Cita: -$2.00 USD (Sujeto a validación)
                         </span>
-                      )}
+                      ) : isExistingClient ? (
+                        <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 text-[11px]">
+                          Clienta VIP: {recognizedStamps}/6 sellos
+                        </span>
+                      ) : null}
                     </div>
 
-                    {isFirstVisit && (
+                    {!preSelectedPromo && !isExistingClient && isFirstVisit && (
                       <div className="p-2.5 rounded-xl bg-amber-100/70 border border-amber-200/90 text-[11px] text-amber-900 flex items-start gap-2">
                         <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                         <span><b>Aviso de Seguridad:</b> La bonificación de $2.00 USD será validada y aplicada por Andrea en persona en el salón al momento de tu atención.</span>

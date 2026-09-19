@@ -99,10 +99,19 @@ export const Promotions: React.FC<PromotionsProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs text-warm-900 font-medium">
-                    <Clock className="w-3.5 h-3.5 text-sage-600" />
-                    <span>{promo.validUntil}</span>
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-warm-900 font-medium pt-1">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-sage-600" />
+                      <span>{promo.validUntil}</span>
+                    </div>
+                    <span className="text-[11px] text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-bold">
+                      ⭐ Suma a tu Tarjeta VIP
+                    </span>
                   </div>
+
+                  <p className="text-[11px] text-warm-600 italic">
+                    * Precio promocional cerrado con ahorro directo. No acumulable con el cupón de bienvenida individual.
+                  </p>
                 </div>
 
                 {/* Booking Button */}
@@ -111,7 +120,7 @@ export const Promotions: React.FC<PromotionsProps> = ({
                     onClick={() => onSelectPromoForBooking(promo)}
                     className="w-full py-3.5 px-5 bg-sage-800 hover:bg-sage-900 text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center justify-center gap-2 shadow-soft hover:shadow-luxury transition-all transform active:scale-98"
                   >
-                    <span>Aprovechar Combo & Agendar</span>
+                    <span>Aprovechar Combo & Agendar (${promo.promoPriceUSD.toFixed(2)} USD)</span>
                     <ArrowRight className="w-4 h-4 text-amber-300" />
                   </button>
                 </div>

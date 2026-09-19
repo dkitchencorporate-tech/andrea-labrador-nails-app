@@ -43,6 +43,8 @@ export interface AppointmentBooking {
   id: string;
   clientName: string;
   clientPhone: string;
+  clientEmail?: string;
+  clientPin?: string;
   clientInstagram?: string;
   serviceId: string;
   serviceName: string;
@@ -57,6 +59,18 @@ export interface AppointmentBooking {
   isFirstVisit?: boolean;
   discountUSD?: number;
   createdAt: string;
+}
+
+export interface ClientAccount {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  pin?: string;
+  instagram?: string;
+  stampsCount: number;
+  createdAt: string;
+  lastVisit?: string;
 }
 
 export interface BlockedTimeSlot {

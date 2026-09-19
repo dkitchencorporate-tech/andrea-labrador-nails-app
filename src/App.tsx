@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ServiceCatalog } from './components/ServiceCatalog';
+import { Promotions } from './components/Promotions';
+import { LoyaltyClub } from './components/LoyaltyClub';
+import { ClientAccountModal } from './components/ClientAccountModal';
 import { StudioPolicies } from './components/StudioPolicies';
 import { PaymentMethods } from './components/PaymentMethods';
 import { Footer } from './components/Footer';
@@ -48,6 +51,7 @@ export const App: React.FC = () => {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [selectedPromo, setSelectedPromo] = useState<PromoOffer | null>(null);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   // Load store data with Neon Cloud synchronization
   const refreshData = () => {
@@ -179,6 +183,7 @@ export const App: React.FC = () => {
       {/* Client Navbar (Completely clean, no admin lock) */}
       <Navbar
         onOpenBooking={handleOpenGeneralBooking}
+        onOpenClientAccount={() => setIsAccountModalOpen(true)}
         onNavigateToShare={handleNavigateToShare}
         exchangeRate={exchangeRate}
       />
@@ -195,11 +200,23 @@ export const App: React.FC = () => {
           onNavigateToShare={handleNavigateToShare}
         />
 
+        {/* Promociones & Combos Especiales */}
+        <Promotions
+          promos={promos}
+          services={services}
+          exchangeRate={exchangeRate}
+          onSelectPromoForBooking={handleSelectPromo}
+        />
+
+        {/* Catálogo Completo de Servicios */}
         <ServiceCatalog
           services={services}
           exchangeRate={exchangeRate}
           onSelectServiceForBooking={handleSelectService}
         />
+
+        {/* Tarjeta Digital & Club VIP de Fidelización */}
+        <LoyaltyClub />
 
         <StudioPolicies />
 
@@ -223,6 +240,13 @@ export const App: React.FC = () => {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsAccountModalOpen(true)}
+            className="p-2.5 rounded-full bg-sage-100 text-sage-800"
+            title="Mi Ficha VIP"
+          >
+            <Sparkles className="w-4 h-4 text-amber-600" />
+          </button>
           <a
             href="https://wa.me/584241360937"
             target="_blank"
@@ -252,6 +276,13 @@ export const App: React.FC = () => {
         exchangeRate={exchangeRate}
         referralCode={referralCode}
         onNavigateToShare={handleNavigateToShare}
+      />
+
+      {/* Client Account & Loyalty Card Modal */}
+      <ClientAccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        onBookNewAppointment={handleOpenGeneralBooking}
       />
 
       {/* PWA Install Button & Apple iOS Guide Modal */}

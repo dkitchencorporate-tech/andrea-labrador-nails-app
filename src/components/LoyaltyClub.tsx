@@ -7,17 +7,39 @@ export const LoyaltyClub: React.FC = () => {
   const [searchPhone, setSearchPhone] = useState('');
   const [searchedCard, setSearchedCard] = useState<LoyaltyCard | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchPhone.trim()) return;
-    const card = AppStore.getClientLoyalty(searchPhone);
-    setSearchedCard(card);
+    setIsSearching(true);
     setHasSearched(true);
+
+    const localCard = AppStore.getClientLoyalty(searchPhone);
+    if (localCard) {
+      setSearchedCard(localCard);
+      setIsSearching(false);
+      return;
+    }
+
+    // Buscar en Neon DB
+    const remote = await AppStore.checkClientProfileRemote(searchPhone);
+    if (remote.found) {
+      setSearchedCard({
+        phone: searchPhone,
+        clientName: remote.clientName || 'Clienta VIP',
+        stampsCount: remote.stampsCount,
+        lastVisit: remote.lastVisit || new Date().toISOString().split('T')[0],
+        rewardsEarned: remote.stampsCount >= 6 ? ['¡7º Servicio 100% GRATIS!'] : [],
+      });
+    } else {
+      setSearchedCard(null);
+    }
+    setIsSearching(false);
   };
 
   const stampsTotal = 6;
-  const currentStamps = searchedCard ? searchedCard.stampsCount : 2; // Preview default
+  const currentStamps = searchedCard ? searchedCard.stampsCount : 0;
 
   return (
     <section id="club-vip" className="py-16 bg-white border-t border-sage-200/50">
@@ -33,7 +55,7 @@ export const LoyaltyClub: React.FC = () => {
             Club VIP &bull; Tus Manos Recompensadas
           </h2>
           <p className="text-xs sm:text-sm text-warm-800/80">
-            Cada visita suma a tu cuidado. Acumula sellos en tu tarjeta digital y disfruta de descuentos y servicios de cortesía exclusivos.
+            Cada visita suma a tu cuidado. Acumula 6 sellos en tu tarjeta digital y disfruta de tu 7º servicio 100% GRATIS por cuenta de la casa.
           </p>
         </div>
 
@@ -47,7 +69,7 @@ export const LoyaltyClub: React.FC = () => {
                 Tarjeta Digital de Lealtad
               </span>
               <h3 className="font-serif text-2xl font-bold text-sage-900">
-                {searchedCard ? searchedCard.clientName : 'Cliente Distinguida'}
+                {searchedCard ? searchedCard.clientName : 'Tarjeta VIP Oficial'}
               </h3>
               <p className="text-xs text-warm-600">
                 {searchedCard ? `Teléfono: ${searchedCard.phone}` : 'Consulta tus sellos acumulados'}
@@ -57,12 +79,12 @@ export const LoyaltyClub: React.FC = () => {
             {/* Reward badges */}
             <div className="flex items-center gap-2">
               <div className="px-3 py-1.5 bg-white rounded-xl border border-sage-200 text-xs font-semibold text-sage-800 flex items-center gap-1.5 shadow-sm">
-                <Gift className="w-3.5 h-3.5 text-gold-500" />
-                <span>5ª Visita: 30% OFF</span>
+                <Sparkles className="w-3.5 h-3.5 text-gold-500" />
+                <span>6 Visitas Acumuladas</span>
               </div>
               <div className="px-3 py-1.5 bg-white rounded-xl border border-sage-200 text-xs font-semibold text-sage-800 flex items-center gap-1.5 shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                <span>6ª Visita: Cortesía</span>
+                <Gift className="w-3.5 h-3.5 text-rose-500" />
+                <span>¡7º Servicio GRATIS!</span>
               </div>
             </div>
           </div>
@@ -77,7 +99,7 @@ export const LoyaltyClub: React.FC = () => {
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4">
               {Array.from({ length: stampsTotal }).map((_, index) => {
                 const isStamped = index < currentStamps;
-                const isSpecial = index === 4 || index === 5;
+                const isSpecial = index === 5;
 
                 return (
                   <div
@@ -101,7 +123,7 @@ export const LoyaltyClub: React.FC = () => {
                     )}
 
                     <span className="text-[10px] font-bold uppercase tracking-wider">
-                      {index === 4 ? '30% OFF' : index === 5 ? 'GRATIS' : `Visita ${index + 1}`}
+                      {index === 5 ? '¡GRATIS!' : `Sello ${index + 1}`}
                     </span>
                   </div>
                 );

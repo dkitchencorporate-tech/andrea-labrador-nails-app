@@ -342,14 +342,15 @@ def build_pdf(filename):
     story.append(Paragraph(
         "Uno de los hallazgos críticos de la auditoría fue la necesidad de blindar el sistema contra registros "
         "fraudulentos y abusos de promociones mediante números duplicados. Para erradicar toda vulnerabilidad comercial, "
-        "se implementó una <b>cadena de custodia de datos en 4 niveles</b>:",
+        "se implementó una <b>cadena de custodia y gobernanza en 5 niveles</b>:",
         body_style
     ))
 
     story.append(Paragraph("&bull; <b>Nivel 1 — Cita en Estado 'Pendiente':</b> Todo formulario completado en la web entra a la base de datos exclusivamente como 'pendiente'. <u>Bajo ninguna circunstancia se acreditan sellos de fidelización en este punto</u>.", bullet_style))
     story.append(Paragraph("&bull; <b>Nivel 2 — Acreditación Oficial Exclusiva de Andrea:</b> Los sellos canjeables para el premio (7º servicio 100% GRATIS) únicamente se suman cuando Andrea atiende a la clienta en el salón, recibe el pago y presiona el botón <b>'Completada'</b> en su panel /admin.", bullet_style))
     story.append(Paragraph("&bull; <b>Nivel 3 — Blindaje Técnico en Neon DB:</b> El backend detecta si un número de teléfono ya cuenta con historial de citas y anula automáticamente el descuento de bienvenida a $0.00 USD en la base de datos.", bullet_style))
-    story.append(Paragraph("&bull; <b>Nivel 4 — Validación Presencial de la Bonificación ($2 USD):</b> Para neutralizar el riesgo de que una clienta use dos números distintos, quien otorga el descuento real es Andrea presencialmente en el estudio. El sistema notifica expresamente en la web y en WhatsApp que la bonificación se valida en persona al verificar que sea su primera cita; si ya fue atendida, abona la tarifa regular.", bullet_style))
+    story.append(Paragraph("&bull; <b>Nivel 4 — Validación Presencial de la Bonificación ($2 USD):</b> Para neutralizar el riesgo de que una clienta use dos números distintos, quien otorga el descuento real es Andrea presencialmente en el estudio tras corroborar que sea clienta nueva.", bullet_style))
+    story.append(Paragraph("&bull; <b>Nivel 5 — Reconocimiento Inteligente de Ficha &amp; Ocultación de $2:</b> Cuando una clienta habitual ingresa su teléfono o correo (con PIN de acceso a su Ficha), el sistema la reconoce al instante por su nombre, muestra sus sellos acumulados y <u>oculta completamente el mensaje de los $2 USD</u>, agendando de forma limpia.", bullet_style))
     story.append(Spacer(1, 6))
 
     story.append(Paragraph("Resultados Auditados del Test de Estrés en Producción", h2_style))
@@ -565,7 +566,8 @@ def build_pdf(filename):
 if __name__ == "__main__":
     targets = [
         r"C:\Users\karc0\OneDrive\Desktop\catalogos app\andrea-labrador-nails\Doc operativos",
-        r"C:\Users\karc0\.gemini\antigravity-cli\brain\e9c6cec9-dd2c-481e-98ae-d1036c719df9"
+        r"C:\Users\karc0\.gemini\antigravity-cli\brain\e9c6cec9-dd2c-481e-98ae-d1036c719df9",
+        r"C:\Users\karc0\projects\andrea-labrador-nails-app\public"
     ]
     for target_dir in targets:
         os.makedirs(target_dir, exist_ok=True)

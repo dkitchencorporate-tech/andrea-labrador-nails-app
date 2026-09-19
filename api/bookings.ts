@@ -32,6 +32,8 @@ export default async function handler(req: any, res: any) {
       const {
         clientName,
         clientPhone,
+        clientEmail,
+        clientPin,
         clientInstagram,
         serviceId,
         serviceName,
@@ -51,10 +53,13 @@ export default async function handler(req: any, res: any) {
 
       const cleanPhone = String(clientPhone).replace(/\D/g, '');
       const cleanName = String(clientName).trim().slice(0, 80);
+      const cleanEmail = clientEmail ? String(clientEmail).trim().toLowerCase().slice(0, 80) : '';
+      const cleanPin = clientPin ? String(clientPin).trim().slice(0, 10) : '';
       const cleanInstagram = clientInstagram ? String(clientInstagram).replace('@', '').trim().slice(0, 40) : '';
       const cleanDate = String(date).trim().slice(0, 10);
       const cleanTime = String(timeSlot).trim().slice(0, 10);
-      const cleanNotes = notes ? String(notes).trim().slice(0, 300) : '';
+      const rawNotes = notes ? String(notes).trim().slice(0, 300) : '';
+      const cleanNotes = [rawNotes, cleanEmail ? `Email: ${cleanEmail}` : ''].filter(Boolean).join(' | ');
       const validPayment = ['pago_movil', 'efectivo', 'binance'].includes(paymentMethod)
         ? paymentMethod
         : 'pago_movil';
@@ -126,6 +131,7 @@ export default async function handler(req: any, res: any) {
               id: bookingId,
               clientName: cleanName,
               clientPhone: cleanPhone,
+              clientEmail: cleanEmail || undefined,
               clientInstagram: cleanInstagram || undefined,
               serviceId,
               serviceName,

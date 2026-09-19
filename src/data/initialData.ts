@@ -145,6 +145,12 @@ export const STUDIO_POLICIES: StudioPolicy[] = [
     title: 'Bioseguridad & Salud',
     description: 'Por estrictas normas de higiene y prevención, no atiendo a personas que presenten patologías o sospecha de hongos en las uñas.',
     iconName: 'ShieldCheck'
+  },
+  {
+    id: 'relax',
+    title: 'Tu Momento de Relax',
+    description: 'Para una experiencia exclusiva de spa y desconexión, sugerimos asistir de forma individual. Si requieres venir acompañada o con pequeños, con gusto avísame previamente por WhatsApp para coordinarlo.',
+    iconName: 'Heart'
   }
 ];
 

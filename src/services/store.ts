@@ -4,6 +4,7 @@ import {
   AppointmentBooking, 
   BlockedTimeSlot, 
   LoyaltyCard,
+  ClientAccount,
   PaymentMethodType
 } from '../types';
 import { INITIAL_SERVICES, INITIAL_PROMOS, AVAILABLE_TIME_SLOTS } from '../data/initialData';
@@ -17,6 +18,8 @@ const STORAGE_KEYS = {
   LOYALTY: 'andrea_labrador_loyalty_v2',
   EXCHANGE_RATE: 'andrea_labrador_exchange_rate_v1',
   EMAIL_SETTINGS: 'andrea_labrador_email_settings_v2',
+  CLIENT_ACCOUNTS: 'andrea_labrador_client_accounts_v1',
+  ACTIVE_CLIENT: 'andrea_labrador_active_client_v1',
 };
 
 export interface StudioEmailSettings {
@@ -194,6 +197,8 @@ export class AppStore {
         body: JSON.stringify({
           clientName: booking.clientName,
           clientPhone: booking.clientPhone,
+          clientEmail: booking.clientEmail,
+          clientPin: booking.clientPin,
           clientInstagram: booking.clientInstagram,
           serviceId: booking.serviceId,
           serviceName: booking.serviceName,
@@ -229,6 +234,15 @@ export class AppStore {
     bookings.unshift(booking);
     this.saveBookings(bookings);
     this.recordLoyaltyVisit(booking.clientPhone, booking.clientName);
+    
+    // Auto-registrar o actualizar ficha de clienta
+    this.registerOrUpdateClientAccount({
+      name: booking.clientName,
+      phone: booking.clientPhone,
+      email: booking.clientEmail,
+      pin: booking.clientPin,
+      instagram: booking.clientInstagram,
+    });
   }
 
   static async updateBookingStatusRemote(id: string, status: AppointmentBooking['status']): Promise<void> {
@@ -558,6 +572,150 @@ export class AppStore {
     this.setStored(STORAGE_KEYS.EXCHANGE_RATE, rate);
   }
 
+  // ─── GESTIÓN DE CUENTAS & FICHAS DE CLIENTAS ──────────────────────────────
+  static getClientAccounts(): Record<string, ClientAccount> {
+    return this.getStored<Record<string, ClientAccount>>(STORAGE_KEYS.CLIENT_ACCOUNTS, {});
+  }
+
+  static saveClientAccounts(accounts: Record<string, ClientAccount>): void {
+    this.setStored(STORAGE_KEYS.CLIENT_ACCOUNTS, accounts);
+  }
+
+  static findClientAccount(identifier: string): ClientAccount | null {
+    if (!identifier) return null;
+    const clean = identifier.trim().toLowerCase();
+    const cleanPhone = clean.replace(/\D/g, '');
+    const accounts = this.getClientAccounts();
+
+    // 1. Buscar en cuentas explícitas por teléfono o correo
+    for (const key of Object.keys(accounts)) {
+      const acc = accounts[key];
+      const accPhone = (acc.phone || '').replace(/\D/g, '');
+      const accEmail = (acc.email || '').trim().toLowerCase();
+      if ((cleanPhone && accPhone === cleanPhone) || (accEmail && accEmail === clean)) {
+        return acc;
+      }
+    }
+
+    // 2. Si no tiene cuenta formal, buscar en tarjetas de fidelización existentes
+    if (cleanPhone) {
+      const loyalty = this.getClientLoyalty(cleanPhone);
+      if (loyalty && (loyalty.stampsCount > 0 || loyalty.clientName)) {
+        return {
+          id: 'acc_' + cleanPhone,
+          name: loyalty.clientName || 'Clienta Habitual',
+          phone: cleanPhone,
+          stampsCount: loyalty.stampsCount,
+          createdAt: loyalty.lastVisit || new Date().toISOString(),
+          lastVisit: loyalty.lastVisit,
+        };
+      }
+
+      // 3. Buscar si tiene citas previas registradas
+      const bookings = this.getBookings();
+      const prev = bookings.find(b => (b.clientPhone || '').replace(/\D/g, '') === cleanPhone);
+      if (prev) {
+        return {
+          id: 'acc_' + cleanPhone,
+          name: prev.clientName,
+          phone: cleanPhone,
+          email: prev.clientEmail,
+          instagram: prev.clientInstagram,
+          stampsCount: loyalty ? loyalty.stampsCount : 0,
+          createdAt: prev.createdAt,
+          lastVisit: prev.date,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  static registerOrUpdateClientAccount(data: {
+    name: string;
+    phone: string;
+    email?: string;
+    pin?: string;
+    instagram?: string;
+  }): ClientAccount {
+    const accounts = this.getClientAccounts();
+    const cleanPhone = data.phone.replace(/\D/g, '');
+    const existing = this.findClientAccount(cleanPhone) || (data.email ? this.findClientAccount(data.email) : null);
+    const loyalty = this.getClientLoyalty(cleanPhone);
+
+    const account: ClientAccount = {
+      id: existing?.id || 'acc_' + cleanPhone,
+      name: data.name.trim() || existing?.name || 'Clienta',
+      phone: cleanPhone,
+      email: data.email?.trim() || existing?.email,
+      pin: data.pin?.trim() || existing?.pin,
+      instagram: data.instagram?.trim() || existing?.instagram,
+      stampsCount: loyalty?.stampsCount || existing?.stampsCount || 0,
+      createdAt: existing?.createdAt || new Date().toISOString(),
+      lastVisit: new Date().toISOString().split('T')[0],
+    };
+
+    accounts[cleanPhone] = account;
+    this.saveClientAccounts(accounts);
+    this.setActiveClient(account);
+    return account;
+  }
+
+  static getActiveClient(): ClientAccount | null {
+    return this.getStored<ClientAccount | null>(STORAGE_KEYS.ACTIVE_CLIENT, null);
+  }
+
+  static setActiveClient(account: ClientAccount | null): void {
+    this.setStored(STORAGE_KEYS.ACTIVE_CLIENT, account);
+  }
+
+  static logoutClient(): void {
+    this.setActiveClient(null);
+  }
+
+  static async checkClientProfileRemote(phone: string): Promise<{
+    found: boolean;
+    clientName?: string;
+    stampsCount: number;
+    lastVisit?: string;
+  }> {
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 7) {
+      return { found: false, stampsCount: 0 };
+    }
+
+    // 1. Revisar primero en cuenta local
+    const localAcc = this.findClientAccount(cleanPhone);
+    if (localAcc) {
+      return {
+        found: true,
+        clientName: localAcc.name,
+        stampsCount: localAcc.stampsCount,
+        lastVisit: localAcc.lastVisit,
+      };
+    }
+
+    // 2. Consultar Neon DB a través de /api/loyalty
+    try {
+      const res = await fetch(`/api/loyalty?phone=${cleanPhone}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.found) {
+          return {
+            found: true,
+            clientName: data.clientName,
+            stampsCount: Number(data.stampsCount) || 0,
+            lastVisit: data.lastVisit,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Error verificando perfil remoto de clienta:', e);
+    }
+
+    return { found: false, stampsCount: 0 };
+  }
+
   // ─── GENERADOR DE MENSAJE WHATSAPP ─────────────────────────────────────────
   static generateWhatsAppBookingUrl(booking: {
     serviceName: string;
@@ -566,11 +724,13 @@ export class AppStore {
     timeSlot: string;
     clientName: string;
     clientPhone: string;
+    clientEmail?: string;
     clientInstagram?: string;
     addons?: { name: string; priceUSD: number }[];
     paymentMethod: PaymentMethodType;
     notes?: string;
     isFirstVisit?: boolean;
+    isExistingClient?: boolean;
     discountUSD?: number;
     referralCode?: string;
   }): string {
@@ -584,24 +744,30 @@ export class AppStore {
       ? `\n✨ *Adicionales:* ${booking.addons.map(a => `${a.name} (+$${a.priceUSD.toFixed(2)})`).join(', ')}`
       : '';
 
+    const emailText = booking.clientEmail ? `\n📧 *Correo:* ${booking.clientEmail}` : '';
     const igText = booking.clientInstagram ? `\n📸 *Instagram:* @${booking.clientInstagram.replace('@', '')}` : '';
     const notesText = booking.notes ? `\n📝 *Nota:* ${booking.notes}` : '';
-    const firstVisitText = booking.isFirstVisit 
+    
+    // Si la clienta es habitual, el mensaje NO menciona ningún descuento de primera cita
+    const firstVisitText = (!booking.isExistingClient && booking.isFirstVisit)
       ? `\n🎉 *Beneficio 1ª Cita:* -$2.00 USD (Sujeto a validación presencial en el estudio por Andrea para clientas nuevas)`
       : '';
-    const loyaltyText = `\n⭐ *Programa de Fidelización:* Suma a mis 6 servicios para el 7º GRATIS`;
+    
+    const loyaltyText = booking.isExistingClient
+      ? `\n⭐ *Clienta VIP Registrada:* Sumando a mi Tarjeta de Fidelización (7º servicio GRATIS)`
+      : `\n⭐ *Programa de Fidelización:* Suma a mis 6 servicios para el 7º GRATIS`;
     
     const rate = this.getExchangeRate();
     const approxVES = (booking.totalPriceUSD * rate).toFixed(0);
 
-    const totalText = booking.isFirstVisit
+    const totalText = (!booking.isExistingClient && booking.isFirstVisit)
       ? `💰 *Total Estimado con Descuento:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)\n📌 _Nota: La bonificación de $2 USD la otorga Andrea directamente en el salón tras corroborar que sea tu primera visita._`
       : `💰 *Total a Cancelar:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)`;
 
     const message = `¡Hola Andrea! 💅✨ Deseo agendar una cita contigo desde tu catálogo:
 
 👤 *Cliente:* ${booking.clientName}
-📱 *Teléfono:* ${booking.clientPhone}${igText}
+📱 *Teléfono:* ${booking.clientPhone}${emailText}${igText}
 💅 *Servicio:* ${booking.serviceName}${addonsText}
 📅 *Fecha:* ${booking.date}
 ⏰ *Hora:* ${booking.timeSlot}
