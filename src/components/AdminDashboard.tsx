@@ -628,9 +628,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           >
                             <MessageCircle className="w-3.5 h-3.5" /><span>Responder por WhatsApp</span>
                           </a>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <button onClick={() => handleUpdateStatus(b.id, 'confirmada')} className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold">Confirmar</button>
                             <button onClick={() => handleUpdateStatus(b.id, 'completada')} className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-semibold">Completada</button>
+                            {b.status === 'completada' && (
+                              <a
+                                href={`https://wa.me/${b.clientPhone.replace(/\D/g,'')}?text=¡Hola%20${encodeURIComponent(b.clientName)}%20bella!%20💅✨%20¡Muchas%20gracias%20por%20tu%20visita%20de%20hoy!%20Hemos%20registrado%20tu%20servicio%20y%20se%20ha%20sumado%20tu%20sello%20en%20tu%20Tarjeta%20VIP.%20Recuerda%20que%20al%20completar%206%20visitas,%20¡tu%207º%20servicio%20es%20100%25%20GRATIS!%20Nos%20vemos%20pronto%20💕`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-xs"
+                                title="Enviar sello acreditado a la clienta por WhatsApp"
+                              >
+                                <Sparkles className="w-3 h-3 text-amber-300" />
+                                <span>Notificar Sello</span>
+                              </a>
+                            )}
                             <button onClick={() => handleDeleteBooking(b.id)} className="p-1.5 text-rose-400 hover:bg-rose-50 rounded-xl border border-transparent hover:border-rose-200 transition-colors" title="Eliminar registro"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </div>

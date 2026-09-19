@@ -9,6 +9,7 @@ import { BookingModal } from './components/BookingModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { SharePage } from './components/SharePage';
 import { ClubInviteSection } from './components/ClubInviteSection';
+import { PWAInstallModal } from './components/PWAInstallModal';
 import { AppStore } from './services/store';
 import { ServiceItem, PromoOffer } from './types';
 import { Calendar, MessageCircle, Sparkles } from 'lucide-react';
@@ -252,6 +253,9 @@ export const App: React.FC = () => {
         referralCode={referralCode}
         onNavigateToShare={handleNavigateToShare}
       />
+
+      {/* PWA Install Button & Apple iOS Guide Modal */}
+      <PWAInstallModal />
 
     </div>
   );
