@@ -40,11 +40,6 @@ class ErrorBoundary extends React.Component<
           >
             Recargar
           </button>
-          {import.meta.env.DEV && (
-            <pre style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#c0392b', maxWidth: '90vw', overflow: 'auto' }}>
-              {this.state.error}
-            </pre>
-          )}
         </div>
       );
     }
