@@ -60,7 +60,7 @@ export const ClubInviteSection: React.FC<ClubInviteSectionProps> = ({ onNavigate
                 <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white/10 border border-white/15 text-sage-100">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <div>
-                    <strong className="text-white block">10 Servicios = #11 GRATIS</strong>
+                    <strong className="text-white block">6 Servicios = #7 GRATIS</strong>
                     <span className="text-[11px] text-sage-300">Tu servicio completo de cortesía</span>
                   </div>
                 </div>

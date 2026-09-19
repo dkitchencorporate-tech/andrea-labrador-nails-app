@@ -162,14 +162,6 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200">
       
-      {/* Welcome Banner: 1st Visit Discount & Loyalty */}
-      <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 text-center text-xs font-bold text-amber-950 flex items-center justify-center gap-2 shadow-xs">
-        <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
-        <span>
-          ¡Bienvenida a Andrea Labrador Nails! Disfruta de <strong>$2 USD de descuento</strong> en tu primera cita y acumula visitas para tu <strong>11º servicio GRATIS</strong>.
-        </span>
-      </div>
-
       {/* Client Navbar (Completely clean, no admin lock) */}
       <Navbar
         onOpenBooking={handleOpenGeneralBooking}

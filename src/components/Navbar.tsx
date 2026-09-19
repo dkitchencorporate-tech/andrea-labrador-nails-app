@@ -46,7 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition-all border border-amber-300 shadow-xs"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>⭐ Fidelización: 10+1 &amp; $2 OFF</span>
+            <span>⭐ Fidelización: 6+1 &amp; $2 OFF</span>
           </a>
           <a href="#politicas" className="hover:text-sage-700 transition-colors flex items-center gap-1">
             <Shield className="w-3.5 h-3.5 text-sage-600" />

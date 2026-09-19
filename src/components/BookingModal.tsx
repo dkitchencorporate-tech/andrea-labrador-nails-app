@@ -312,7 +312,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       <span>Programa de Fidelización</span>
                     </span>
                     <p className="text-xs font-bold text-warm-900">
-                      ¡10 Servicios = Tu 11º Servicio 100% GRATIS!
+                      ¡6 Servicios = Tu 7º Servicio 100% GRATIS!
                     </p>
                     <p className="text-[11px] text-warm-600">
                       Esta visita sumará automáticamente a tu tarjeta digital.
@@ -534,41 +534,48 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       <span>2. Horarios Disponibles ({selectedDate || 'Elige fecha primero'})</span>
                     </label>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                      {AVAILABLE_TIME_SLOTS.map((slot) => {
-                        const isOccupied = AppStore.isSlotOccupied(selectedDate, slot);
-                        const isSelected = selectedTimeSlot === slot;
+                    {selectedDate && AppStore.isDayEntirelyBlocked(selectedDate) ? (
+                      <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-center text-xs text-rose-800 font-semibold space-y-1">
+                        <p>Día no disponible para citas.</p>
+                        <p className="text-[11px] font-normal text-rose-600">El estudio no tiene turnos abiertos en esta fecha. Por favor selecciona otro día.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        {AppStore.getTimeSlots().map((slot) => {
+                          const isOccupied = AppStore.isSlotOccupied(selectedDate, slot);
+                          const isSelected = selectedTimeSlot === slot;
 
-                        return (
-                          <button
-                            key={slot}
-                            type="button"
-                            disabled={isOccupied}
-                            onClick={() => setSelectedTimeSlot(slot)}
-                            className={`p-3 rounded-2xl border text-xs sm:text-sm font-semibold flex items-center justify-between transition-all ${
-                              isOccupied
-                                ? 'bg-warm-100 border-sage-100 text-warm-400 cursor-not-allowed line-through'
-                                : isSelected
-                                ? 'bg-sage-800 border-sage-800 text-white shadow-soft'
-                                : 'bg-white border-sage-200 text-sage-900 hover:border-sage-400 hover:bg-sage-50'
-                            }`}
-                          >
-                            <span>{slot}</span>
-                            {isOccupied ? (
-                              <span className="text-[10px] uppercase font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md">
-                                Ocupado
-                              </span>
-                            ) : isSelected ? (
-                              <Check className="w-4 h-4 text-gold-400" />
-                            ) : (
-                              <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-                                Libre
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                          return (
+                            <button
+                              key={slot}
+                              type="button"
+                              disabled={isOccupied}
+                              onClick={() => setSelectedTimeSlot(slot)}
+                              className={`p-3 rounded-2xl border text-xs sm:text-sm font-semibold flex items-center justify-between transition-all ${
+                                isOccupied
+                                  ? 'bg-warm-100 border-sage-100 text-warm-400 cursor-not-allowed line-through'
+                                  : isSelected
+                                  ? 'bg-sage-800 border-sage-800 text-white shadow-soft'
+                                  : 'bg-white border-sage-200 text-sage-900 hover:border-sage-400 hover:bg-sage-50'
+                              }`}
+                            >
+                              <span>{slot}</span>
+                              {isOccupied ? (
+                                <span className="text-[10px] uppercase font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md">
+                                  Ocupado
+                                </span>
+                              ) : isSelected ? (
+                                <Check className="w-4 h-4 text-gold-400" />
+                              ) : (
+                                <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                  Libre
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Step 2 Footer */}
@@ -709,7 +716,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                     <div className="pt-1 text-[11px] text-sage-700 font-medium flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                      <span>Suma 1 servicio en tu Tarjeta de Fidelización (el 11º servicio es 100% GRATIS).</span>
+                      <span>Suma 1 servicio en tu Tarjeta de Fidelización (el 7º servicio es 100% GRATIS).</span>
                     </div>
                   </div>
 

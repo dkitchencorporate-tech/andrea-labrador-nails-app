@@ -6,16 +6,25 @@ import {
   LoyaltyCard,
   PaymentMethodType
 } from '../types';
-import { INITIAL_SERVICES, INITIAL_PROMOS } from '../data/initialData';
+import { INITIAL_SERVICES, INITIAL_PROMOS, AVAILABLE_TIME_SLOTS } from '../data/initialData';
 
 const STORAGE_KEYS = {
   SERVICES: 'andrea_labrador_services_v4',
   PROMOS: 'andrea_labrador_promos_v3',
   BOOKINGS: 'andrea_labrador_bookings_v1',
   BLOCKED_SLOTS: 'andrea_labrador_blocked_slots_v1',
+  TIME_SLOTS: 'andrea_labrador_time_slots_v1',
   LOYALTY: 'andrea_labrador_loyalty_v1',
   EXCHANGE_RATE: 'andrea_labrador_exchange_rate_v1',
+  EMAIL_SETTINGS: 'andrea_labrador_email_settings_v1',
 };
+
+export interface StudioEmailSettings {
+  domain: string;
+  webmailHost: string;
+  senderEmail: string;
+  port: string;
+}
 
 export interface AppStoreData {
   services: ServiceItem[];
@@ -78,6 +87,11 @@ export class AppStore {
       service.isAvailable = !service.isAvailable;
       this.saveServices(services);
     }
+  }
+
+  static deleteService(id: string): void {
+    const services = this.getServices().filter(s => s.id !== id);
+    this.saveServices(services);
   }
 
   // --- PROMOCIONES ---
@@ -172,6 +186,49 @@ export class AppStore {
     return booked;
   }
 
+  // --- TURNOS Y HORARIOS CONFIGURABLES ---
+  static getTimeSlots(): string[] {
+    return this.getStored<string[]>(STORAGE_KEYS.TIME_SLOTS, AVAILABLE_TIME_SLOTS);
+  }
+
+  static saveTimeSlots(slots: string[]): void {
+    this.setStored(STORAGE_KEYS.TIME_SLOTS, slots);
+  }
+
+  static addTimeSlot(slot: string): void {
+    const slots = this.getTimeSlots();
+    if (!slots.includes(slot)) {
+      slots.push(slot);
+      this.saveTimeSlots(slots);
+    }
+  }
+
+  static removeTimeSlot(slot: string): void {
+    const slots = this.getTimeSlots().filter(s => s !== slot);
+    this.saveTimeSlots(slots);
+  }
+
+  static blockEntireDay(date: string, reason = 'Día cerrado / libre'): void {
+    const slots = this.getTimeSlots();
+    const current = this.getBlockedSlots().filter(s => s.date !== date);
+    slots.forEach(slot => {
+      current.push({ date, timeSlot: slot, reason });
+    });
+    this.saveBlockedSlots(current);
+  }
+
+  static unblockEntireDay(date: string): void {
+    const current = this.getBlockedSlots().filter(s => s.date !== date);
+    this.saveBlockedSlots(current);
+  }
+
+  static isDayEntirelyBlocked(date: string): boolean {
+    const slots = this.getTimeSlots();
+    if (slots.length === 0) return false;
+    const blocks = this.getBlockedSlots().filter(s => s.date === date);
+    return slots.every(slot => blocks.some(b => b.timeSlot === slot));
+  }
+
   // --- FIDELIZACIÓN VIP ---
   static getLoyaltyCards(): Record<string, LoyaltyCard> {
     return this.getStored<Record<string, LoyaltyCard>>(STORAGE_KEYS.LOYALTY, {});
@@ -187,6 +244,26 @@ export class AppStore {
     return cards[normalized] || null;
   }
 
+  static setLoyaltyStamps(phone: string, clientName: string, stamps: number): LoyaltyCard {
+    const cards = this.getLoyaltyCards();
+    const normalized = phone.replace(/\D/g, '');
+    const existing = cards[normalized] || {
+      phone: normalized,
+      clientName: clientName || 'Clienta',
+      stampsCount: 0,
+      lastVisit: new Date().toISOString().split('T')[0],
+      rewardsEarned: []
+    };
+    existing.clientName = clientName || existing.clientName;
+    existing.stampsCount = Math.max(0, Math.min(6, stamps));
+    if (existing.stampsCount === 6 && !existing.rewardsEarned.includes('¡7º Servicio 100% GRATIS!')) {
+      existing.rewardsEarned.push('¡7º Servicio 100% GRATIS!');
+    }
+    cards[normalized] = existing;
+    this.saveLoyaltyCards(cards);
+    return existing;
+  }
+
   static recordLoyaltyVisit(phone: string, clientName: string): LoyaltyCard {
     const cards = this.getLoyaltyCards();
     const normalized = phone.replace(/\D/g, '');
@@ -200,15 +277,29 @@ export class AppStore {
 
     existing.clientName = clientName;
     existing.lastVisit = new Date().toISOString().split('T')[0];
-    existing.stampsCount = Math.min(10, existing.stampsCount + 1);
+    existing.stampsCount = Math.min(6, existing.stampsCount + 1);
 
-    if (existing.stampsCount === 10 && !existing.rewardsEarned.includes('¡11º Servicio 100% GRATIS!')) {
-      existing.rewardsEarned.push('¡11º Servicio 100% GRATIS!');
+    if (existing.stampsCount === 6 && !existing.rewardsEarned.includes('¡7º Servicio 100% GRATIS!')) {
+      existing.rewardsEarned.push('¡7º Servicio 100% GRATIS!');
     }
 
     cards[normalized] = existing;
     this.saveLoyaltyCards(cards);
     return existing;
+  }
+
+  // --- CONFIGURACIÓN DE EMAIL / WEBMAIL ARSYS ---
+  static getEmailSettings(): StudioEmailSettings {
+    return this.getStored<StudioEmailSettings>(STORAGE_KEYS.EMAIL_SETTINGS, {
+      domain: 'andrealabrador.com',
+      webmailHost: 'mail.andrealabrador.com',
+      senderEmail: 'citas@andrealabrador.com',
+      port: '465'
+    });
+  }
+
+  static saveEmailSettings(settings: StudioEmailSettings): void {
+    this.setStored(STORAGE_KEYS.EMAIL_SETTINGS, settings);
   }
 
   // --- TASA DE CAMBIO (VES / USD) ---
@@ -251,7 +342,7 @@ export class AppStore {
     const firstVisitText = booking.isFirstVisit 
       ? `\n🎉 *Beneficio Primera Cita:* -$2.00 USD de descuento aplicado`
       : '';
-    const loyaltyText = `\n⭐ *Programa de Fidelización:* Suma a mis 10 servicios para el 11º GRATIS`;
+    const loyaltyText = `\n⭐ *Programa de Fidelización:* Suma a mis 6 servicios para el 7º GRATIS`;
     
     const rate = this.getExchangeRate();
     const approxVES = (booking.totalPriceUSD * rate).toFixed(0);

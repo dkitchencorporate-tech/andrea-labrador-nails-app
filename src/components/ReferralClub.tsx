@@ -92,16 +92,16 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
                   02
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
-                  Fidelidad 10+1
+                  Fidelidad 6+1
                 </span>
               </div>
               
               <h3 className="font-serif text-xl font-bold text-warm-900">
-                10 Servicios = Tu 11º GRATIS
+                6 Servicios = Tu 7º GRATIS
               </h3>
               
               <p className="text-xs sm:text-sm text-warm-700 leading-relaxed">
-                Por cada 10 servicios realizados en el estudio, tu <strong>11º servicio completo es 100% GRATIS</strong> como agradecimiento a tu preferencia y cuidado constante.
+                Por cada 6 servicios realizados en el estudio, tu <strong>7º servicio completo es 100% GRATIS</strong> como agradecimiento a tu preferencia y cuidado constante.
               </p>
             </div>
 
@@ -156,22 +156,22 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
               </p>
             </div>
 
-            {/* 10 STAMP SLOTS + 11th PRIZE SLOT */}
+            {/* 6 STAMP SLOTS + 7th PRIZE SLOT */}
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between text-xs text-sage-300">
                 <span>Progreso de visitas acumuladas:</span>
-                <span className="text-amber-200 font-bold">{simulatedStamps} de 10 servicios</span>
+                <span className="text-amber-200 font-bold">{Math.min(6, simulatedStamps)} de 6 servicios</span>
               </div>
 
-              <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 pt-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+              <div className="grid grid-cols-6 gap-2 pt-1">
+                {[1, 2, 3, 4, 5, 6].map((num) => {
                   const isFilled = num <= simulatedStamps;
                   return (
                     <button
                       key={num}
                       type="button"
                       onClick={() => setSimulatedStamps(num)}
-                      className={`h-11 rounded-xl flex flex-col items-center justify-center transition-all border ${
+                      className={`h-12 rounded-xl flex flex-col items-center justify-center transition-all border ${
                         isFilled
                           ? 'bg-amber-400 border-amber-300 text-sage-950 font-bold shadow-sm'
                           : 'bg-white/5 border-white/15 text-sage-300 hover:bg-white/10'
@@ -179,23 +179,23 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
                       title={`Clic para probar estado de ${num} visitas`}
                     >
                       {isFilled ? (
-                        <Check className="w-4 h-4 text-sage-950 stroke-[3]" />
+                        <Check className="w-5 h-5 text-sage-950 stroke-[3]" />
                       ) : (
-                        <span className="text-xs font-serif font-bold">{num}</span>
+                        <span className="text-sm font-serif font-bold">{num}</span>
                       )}
                     </button>
                   );
                 })}
               </div>
 
-              {/* 11th Reward Box */}
+              {/* 7th Reward Box */}
               <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-900/60 to-sage-900/60 border border-emerald-400/40 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm">
-                    11
+                    7
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-white block">Servicio #11: 100% GRATIS</span>
+                    <span className="text-xs font-bold text-white block">Servicio #7: 100% GRATIS</span>
                     <span className="text-[10px] text-emerald-200">Esmaltado Semipermanente o Mantenimiento</span>
                   </div>
                 </div>
@@ -239,7 +239,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
             <div className="flex items-center gap-1.5 text-xs text-warm-700">
               <ShieldCheck className="w-4 h-4 text-sage-600 shrink-0" />
               <span>
-                <strong>Condiciones claras:</strong> Tus visitas se acreditan automáticamente tras la realización de cada servicio. El 11º servicio gratuito aplica a esmaltado semipermanente o mantenimiento rubber.
+                <strong>Condiciones claras:</strong> Tus visitas se acreditan automáticamente tras la realización de cada servicio. El 7º servicio gratuito aplica a esmaltado semipermanente o mantenimiento rubber.
               </span>
             </div>
           </div>

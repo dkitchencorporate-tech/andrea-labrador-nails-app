@@ -78,7 +78,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
                   className="text-amber-300 hover:text-white transition-colors flex items-center gap-1.5 font-bold"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Fidelización: 10+1 &amp; $2 OFF</span>
+                  <span>Fidelización: 6+1 &amp; $2 OFF</span>
                 </a>
               </li>
               <li><a href="#politicas" className="hover:text-white transition-colors">Políticas del Estudio</a></li>
