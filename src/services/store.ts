@@ -62,7 +62,8 @@ export class AppStore {
       this.saveServices(INITIAL_SERVICES);
       return INITIAL_SERVICES;
     }
-    return list;
+    // Defensive: Neon may have cached string prices — ensure they are numbers
+    return list.map(s => ({ ...s, priceUSD: Number(s.priceUSD) || 0 }));
   }
 
   static saveServices(services: ServiceItem[]): void {
@@ -75,8 +76,13 @@ export class AppStore {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.services) && data.services.length > 0) {
-          this.saveServices(data.services);
-          return data.services;
+          // Neon returns numerics as strings — cast to number
+          const services: ServiceItem[] = data.services.map((s: any) => ({
+            ...s,
+            priceUSD: Number(s.priceUSD) || 0,
+          }));
+          this.saveServices(services);
+          return services;
         }
       }
     } catch (e) {

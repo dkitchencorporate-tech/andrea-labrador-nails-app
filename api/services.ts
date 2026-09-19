@@ -51,7 +51,7 @@ export default async function handler(req: any, res: any) {
       `;
 
       return res.status(200).json({
-        services: rows,
+        services: rows.map((r: any) => ({ ...r, priceUSD: Number(r.priceUSD) || 0 })),
         databaseConnected: true,
       });
     } catch (err: any) {
