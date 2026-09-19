@@ -69,10 +69,10 @@ export default async function handler(req: any, res: any) {
         try {
           // 1. Blindaje de Disponibilidad: validar que no esté ocupado ni bloqueado
           const existingSlot = await sql`
-            SELECT id FROM public.blocked_slots 
+            SELECT 1 FROM public.blocked_slots 
             WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime}
             UNION ALL
-            SELECT id FROM public.bookings 
+            SELECT 1 FROM public.bookings 
             WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime} AND status IN ('pendiente', 'confirmada');
           `;
 
