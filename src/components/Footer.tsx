@@ -25,13 +25,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
                   Andrea Labrador
                 </span>
                 <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300 font-semibold block">
-                  Estudio de Uñas &bull; Venezuela
+                  Estudio de Uñas &bull; Cordero &bull; San Cristóbal, Táchira
                 </span>
               </div>
             </div>
 
             <p className="text-xs sm:text-sm text-sage-200/90 leading-relaxed max-w-sm">
-              7 años dedicados al cuidado y embellecimiento de tus uñas en Venezuela. Especialista en nivelación con Base Rubber, Polygel y Jelly Tips, priorizando siempre la salud de tu uña natural.
+              7 años dedicados al cuidado y embellecimiento de tus uñas en Cordero y San Cristóbal, Táchira. Especialista en nivelación con Base Rubber, Polygel y Jelly Tips, priorizando siempre la salud de tu uña natural.
             </p>
             
             {/* Social Buttons */}
@@ -106,7 +106,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
                 <span className="text-rose-300 font-semibold">Cerrado (Descanso)</span>
               </div>
               <div className="border-t border-sage-700 pt-1.5 text-[11px] text-sage-300">
-                📍 Atención exclusiva bajo previa cita agendada en Venezuela.
+                📍 Atención exclusiva bajo previa cita en Cordero (Municipio Andrés Bello) y San Cristóbal, Estado Táchira.
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
             &copy; {new Date().getFullYear()} Andrea Labrador &bull; Todos los derechos reservados.
           </p>
           <p className="text-sage-400 text-xs">
-            Venezuela &bull; Cuidado Integral de Uñas
+            Cordero &bull; San Cristóbal, Estado Táchira, Venezuela
           </p>
         </div>
 

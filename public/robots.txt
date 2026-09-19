@@ -1,6 +1,8 @@
-# Robots.txt for Andrea Labrador Manicurista Profesional
+# Robots.txt for Andrea Labrador Nails Studio
+# Cordero & San Cristóbal, Estado Táchira, Venezuela
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /api/
 
 Sitemap: https://andrea-labrador-nails-app.vercel.app/sitemap.xml

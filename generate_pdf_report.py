@@ -526,49 +526,97 @@ def build_pdf(filename):
     story.append(Paragraph("&bull; <b>Optimización SEO Orgánica:</b> Se agregaron microdatos <code>Schema.org BeautySalon</code>, etiquetas de geolocalización regional para Venezuela (<code>geo.region: VE</code>) y etiquetas OpenGraph optimizadas para previsualización impecable en chats de WhatsApp.", bullet_style))
     story.append(Spacer(1, 10))
 
-    story.append(Paragraph("7. Etapa de Prueba Final &amp; Validación Pre-Producción", h1_style))
+    story.append(Paragraph("7. Motor de Indexación, SEO Local &amp; Proliferación (Táchira)", h1_style))
     story.append(Paragraph(
-        "La plataforma <b>Andrea Labrador Nails Studio</b> ha ingresado oficialmente en su <b>etapa de prueba "
-        "final en vivo (Prueba de Fuego)</b> antes del despliegue comercial definitivo bajo su dominio propio. "
-        "Esta fase tiene como propósito fundamental que la titular (Andrea Labrador) compruebe y experimente "
-        "cada flujo operativo en condiciones reales de uso antes de la apertura pública masiva.",
+        "Para garantizar que Andrea Labrador domine el posicionamiento orgánico en motores de búsqueda "
+        "frente a competidores locales, se programó un motor de indexación hiperlocal dirigido específicamente a "
+        "<b>Cordero (Municipio Andrés Bello)</b> y la zona metropolitana de <b>San Cristóbal, Estado Táchira</b>:",
         body_style
     ))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 4))
 
-    testing_stage_box = [
+    seo_matrix = [
+        [Paragraph("<b>Componente de Posicionamiento</b>", body_bold), Paragraph("<b>Implementación Técnica en Código</b>", body_bold), Paragraph("<b>Impacto Comercial</b>", body_bold)],
         [
-            Paragraph("<b>FASE ACTUAL DEL SISTEMA:</b>", body_bold),
-            Paragraph("<font color='#16291F'><b>ETAPA DE PRUEBA FINAL EN VIVO (PRE-PRODUCCIÓN)</b></font>", body_bold)
+            Paragraph("<b>Palabras Clave Hiperlocales</b>", body_style),
+            Paragraph("Microdatos con términos geo-específicos: <code>uñas cordero tachira</code>, <code>manicurista cordero tachira</code>, <code>uñas san cristobal tachira</code>, <code>base rubber tachira</code>, <code>polygel cordero</code>, <code>pedicura spa tachira</code>.", body_style),
+            Paragraph("Aparecer en las primeras posiciones cuando clientas de Cordero y San Cristóbal busquen servicios de uñas.", body_style)
         ],
         [
-            Paragraph("<b>Objetivo de Validación:</b>", body_style),
-            Paragraph("Permitir que la titular y clientas de confianza ejecuten reservas reales desde teléfonos móviles, comprueben la recepción inmediata de citas en WhatsApp (+58 424 1360937), gestionen turnos en el panel <code>/admin</code> y verifiquen el sellado de la tarjeta digital VIP en Neon DB.", body_style)
+            Paragraph("<b>Geolocalización Satelital (GeoTags)</b>", body_style),
+            Paragraph("Etiquetas ISO <code>geo.region: VE-T</code>, coordenadas geográficas de Cordero (<code>7.8633, -72.1833</code>) y coordenadas <code>ICBM</code>.", body_style),
+            Paragraph("Reconocimiento por algoritmos de Google Maps y búsquedas móviles de proximidad 'cerca de mí'.", body_style)
         ],
         [
-            Paragraph("<b>Seguridad &amp; Privacidad:</b>", body_style),
-            Paragraph("Protección hermética activa: PINs de fichas protegidos con hash SHA-256 + salt criptográfico, bloqueo por fuerza bruta tras 5 intentos fallidos y APIs con protección anti-enumeración de teléfonos.", body_style)
+            Paragraph("<b>Microdatos Schema.org (NailSalon)</b>", body_style),
+            Paragraph("Estructura JSON-LD <code>NailSalon</code> con área de servicio explícita (Cordero, San Cristóbal, Táriba, Palo Gordo y Municipio Andrés Bello).", body_style),
+            Paragraph("Rich snippets en Google con catálogo de técnicas, rango de precios ($10-$28 USD) y horarios de atención.", body_style)
         ],
         [
-            Paragraph("<b>Criterio de Lanzamiento:</b>", body_style),
-            Paragraph("Una vez que Andrea complete las comprobaciones manuales de la sección 5 y exprese su total satisfacción, se configurarán los registros DNS en Arsys y se lanzará el catálogo al público general.", body_style)
+            Paragraph("<b>Sitemap XML &amp; Robots.txt</b>", body_style),
+            Paragraph("Generación de <code>/sitemap.xml</code> y <code>/robots.txt</code> directos para Google Search Console y Bing Webmaster Tools.", body_style),
+            Paragraph("Indexación acelerada de rutas públicas (/ y /promociones) protegiendo el panel privado /admin.", body_style)
+        ],
+    ]
+    t_seo = Table(seo_matrix, colWidths=[120, 224, 160])
+    t_seo.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), C_DARK),
+        ('TEXTCOLOR', (0,0), (-1,0), C_WHITE),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, C_LINE),
+        ('BOX', (0,0), (-1,-1), 1, C_SAGE),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [C_WHITE, C_CREAM]),
+        ('PADDING', (0,0), (-1,-1), 4.5),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+    ]))
+    story.append(t_seo)
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph("8. Etapa de Prueba Final &amp; Protocolo de Notificación", h1_style))
+    story.append(Paragraph(
+        "La plataforma <b>Andrea Labrador Nails Studio</b> se encuentra en su <b>etapa de prueba final en vivo "
+        "(Prueba de Fuego)</b> previa a la apertura pública con dominio propio. A continuación se establece el protocolo "
+        "operativo para la validación y solicitud de modificaciones:",
+        body_style
+    ))
+    story.append(Spacer(1, 6))
+
+    testing_protocol_box = [
+        [
+            Paragraph("<b>PROTOCOLO DE REPORTE Y RETROALIMENTACIÓN (SIN SOLICITUD DE FIRMAS):</b>", body_bold),
+            Paragraph("<font color='#16291F'><b>INSTRUCCIÓN OPERATIVA PARA EL CLIENTE</b></font>", body_bold)
+        ],
+        [
+            Paragraph("<b>1. Notificación de Resultados del Test:</b>", body_style),
+            Paragraph("Una vez que Andrea complete las pruebas de la Sección 5 (reserva por catálogo, mensaje de WhatsApp, gestión en /admin y sellado en Neon DB), se debe <b>notificar formalmente si los flujos fueron comprobados y aprobados</b>.", body_style)
+        ],
+        [
+            Paragraph("<b>2. Formato para Cambios o Ajustes:</b>", body_style),
+            Paragraph("Si se requieren cambios estéticos, ajustes de diseño o modificaciones en las funciones comerciales, estos deben enviarse en un <b>formato documental enumerado (Punto 1, Punto 2, Punto 3...), detallado y acompañado de capturas de pantalla</b> para contar con guías visuales exactas de cada elemento a intervenir.", body_style)
+        ],
+        [
+            Paragraph("<b>3. Cero Requerimiento de Firmas:</b>", body_style),
+            Paragraph("Este informe técnico certifica la entrega del software para pruebas operativas. <b>No requiere firmas físicas, manuales ni líneas de firma de ningún tipo</b>; la conformidad técnica se convalida directamente con el reporte de pruebas.", body_style)
+        ],
+        [
+            Paragraph("<b>4. Transición a Producción Comercial:</b>", body_style),
+            Paragraph("Al recibir la conformidad del reporte de pruebas, se vincularán de inmediato los registros DNS de Arsys y se activará la plataforma en su dominio definitivo.", body_style)
         ]
     ]
-    t_stage = Table(testing_stage_box, colWidths=[140, 364])
-    t_stage.setStyle(TableStyle([
+    t_protocol = Table(testing_protocol_box, colWidths=[150, 354])
+    t_protocol.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), C_CREAM),
         ('BOX', (0,0), (-1,-1), 1, C_SAGE),
         ('INNERGRID', (0,0), (-1,-1), 0.5, C_LINE),
-        ('PADDING', (0,0), (-1,-1), 8),
+        ('PADDING', (0,0), (-1,-1), 6.5),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
     ]))
-    story.append(t_stage)
-    story.append(Spacer(1, 14))
+    story.append(t_protocol)
+    story.append(Spacer(1, 10))
 
-    # Pie explicativo formal sin requerir firmas manuales
+    # Pie explicativo formal
     story.append(Paragraph(
-        "<font color='#5A6B61'><i>Este documento certifica el estado técnico de la plataforma para la prueba final de usuario. "
-        "No se requieren firmas manuales: la conformidad se valida directamente mediante la comprobación satisfactoria de los flujos operativos en vivo.</i></font>",
+        "<font color='#5A6B61'><i>Documento técnico oficial de entrega pre-producción &bull; "
+        "Andrea Labrador Nails Studio &bull; Cordero, San Cristóbal, Estado Táchira. Sin firmas manuales requeridas.</i></font>",
         ParagraphStyle('Disclaimer', fontName='Helvetica-Oblique', fontSize=8, leading=11, textColor=C_MUTED, alignment=1)
     ))
 
@@ -583,7 +631,12 @@ if __name__ == "__main__":
         r"C:\Users\karc0\.gemini\antigravity-cli\brain\e9c6cec9-dd2c-481e-98ae-d1036c719df9",
         r"C:\Users\karc0\projects\andrea-labrador-nails-app\public"
     ]
+    filenames = [
+        "INFORME_TECNICO_Y_PRUEBA_DE_FUEGO_ANDREA_LABRADOR.pdf",
+        "INFORME_FINAL_ANDREA_LABRADOR_TACHIRA_SEO_V3.pdf"
+    ]
     for target_dir in targets:
         os.makedirs(target_dir, exist_ok=True)
-        target_file = os.path.join(target_dir, "INFORME_TECNICO_Y_PRUEBA_DE_FUEGO_ANDREA_LABRADOR.pdf")
-        build_pdf(target_file)
+        for fname in filenames:
+            target_file = os.path.join(target_dir, fname)
+            build_pdf(target_file)

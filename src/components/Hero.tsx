@@ -131,7 +131,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
                   Andrea Labrador
                 </h2>
                 <p className="text-xs sm:text-sm text-sage-700 font-semibold">
-                  Técnico Especialista en Uñas &bull; Venezuela
+                  Técnico Especialista en Uñas &bull; Cordero &amp; San Cristóbal, Táchira
                 </p>
               </div>
             </div>
