@@ -51,7 +51,6 @@ import {
   Shield,
   UserPlus,
   Lock,
-  ChevronRight,
   Briefcase
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
@@ -320,14 +319,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const finalPriceUSD = Math.max(0, selectedService.priceUSD - discountUSD);
     const bookingId = 'cita_manual_' + Date.now();
 
+    const rawInstagram = manualClientInstagram.replace('@', '').trim();
+
     const newBooking: AppointmentBooking = {
       id: bookingId,
       clientName: cleanName,
       clientPhone: cleanPhone,
-      clientInstagram: manualClientInstagram.replace('@', '').trim() || undefined,
+      clientInstagram: rawInstagram || undefined,
       serviceId: selectedService.id,
       serviceName: selectedService.name,
       servicePriceUSD: selectedService.priceUSD,
+      selectedAddons: [],
       totalPriceUSD: finalPriceUSD,
       date: manualDate,
       timeSlot: manualTimeSlot,
