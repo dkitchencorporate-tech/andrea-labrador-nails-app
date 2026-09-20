@@ -96,6 +96,7 @@ export default async function handler(req: any, res: any) {
           const finalPriceUSD = Math.max(0, cleanPrice - discountUSD);
           const allowedStatus = ['en_whatsapp', 'pendiente', 'confirmada'];
           const bookingStatus = allowedStatus.includes(req.body?.status) ? req.body.status : 'en_whatsapp';
+          const bookingId = req.body?.id || `booking_${Date.now()}_${cleanPhone.slice(-4)}`;
 
           // 3. Registrar Cita en estado especificado ('confirmada', 'en_whatsapp' o 'pendiente')
           await sql`
