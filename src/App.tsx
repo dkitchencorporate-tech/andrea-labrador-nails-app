@@ -11,6 +11,7 @@ import { PaymentMethods } from './components/PaymentMethods';
 import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
 import { AdminDashboard } from './components/AdminDashboard';
+import { AdminAuthGate } from './components/AdminAuthGate';
 import { SharePage } from './components/SharePage';
 import { ClubInviteSection } from './components/ClubInviteSection';
 import { PWAInstallModal } from './components/PWAInstallModal';
@@ -39,6 +40,9 @@ export const App: React.FC = () => {
     const search = new URLSearchParams(window.location.search);
     return path.startsWith('/admin') || hash === '#admin' || search.has('admin');
   });
+
+  // Super Admin session state with 2FA protection
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => AppStore.isAdminAuthenticated());
 
   // Routing state for Share / Referral Page
   const [isShareRoute, setIsShareRoute] = useState(() => {
@@ -178,8 +182,20 @@ export const App: React.FC = () => {
     setIsBookingOpen(true);
   };
 
-  // --- RENDER REAL STANDALONE SAAS ADMIN DASHBOARD PAGE ---
+  // --- RENDER PROTECTED SUPER ADMIN SAAS DASHBOARD (2FA GATE) ---
   if (isAdminRoute) {
+    if (!isAdminAuthenticated) {
+      return (
+        <AdminAuthGate
+          onAuthenticated={() => {
+            setIsAdminAuthenticated(true);
+            refreshData();
+          }}
+          onExit={handleExitToCatalog}
+        />
+      );
+    }
+
     return (
       <AdminDashboard
         services={services}
@@ -189,6 +205,10 @@ export const App: React.FC = () => {
         exchangeRate={exchangeRate}
         onRefreshData={refreshData}
         onExitToCatalog={handleExitToCatalog}
+        onLogout={() => {
+          AppStore.clearAdminSession();
+          setIsAdminAuthenticated(false);
+        }}
       />
     );
   }

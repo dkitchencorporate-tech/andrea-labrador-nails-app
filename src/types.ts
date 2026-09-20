@@ -55,7 +55,7 @@ export interface AppointmentBooking {
   timeSlot: string; // HH:MM AM/PM
   paymentMethod: PaymentMethodType;
   notes?: string;
-  status: 'pendiente' | 'confirmada' | 'completada' | 'cancelada';
+  status: 'en_whatsapp' | 'pendiente' | 'confirmada' | 'completada' | 'cancelada';
   isFirstVisit?: boolean;
   discountUSD?: number;
   createdAt: string;

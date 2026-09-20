@@ -259,7 +259,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       timeSlot: selectedTimeSlot,
       paymentMethod,
       notes: notes.trim() || undefined,
-      status: 'pendiente',
+      status: 'en_whatsapp',
       isFirstVisit: (!isExistingClient && isFirstVisit),
       discountUSD,
       createdAt: new Date().toISOString()

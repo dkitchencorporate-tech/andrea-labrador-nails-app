@@ -78,7 +78,7 @@ export default async function handler(req: any, res: any) {
             WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime}
             UNION ALL
             SELECT 1 FROM public.bookings 
-            WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime} AND status IN ('pendiente', 'confirmada');
+            WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime} AND status IN ('en_whatsapp', 'pendiente', 'confirmada');
           `;
 
           if (existingSlot.length > 0) {
@@ -95,8 +95,9 @@ export default async function handler(req: any, res: any) {
           const discountUSD = eligibleFirstVisit ? 2.00 : 0.00;
           const finalPriceUSD = Math.max(0, cleanPrice - discountUSD);
           const bookingId = 'cita_' + Date.now();
+          const bookingStatus = (req.body?.status === 'pendiente' || req.body?.status === 'en_whatsapp') ? req.body.status : 'en_whatsapp';
 
-          // 3. Registrar Cita en estado 'pendiente'
+          // 3. Registrar Cita en estado 'en_whatsapp' o 'pendiente'
           await sql`
             INSERT INTO public.bookings (
               id, client_name, client_phone, client_instagram, service_id,
@@ -105,7 +106,7 @@ export default async function handler(req: any, res: any) {
             ) VALUES (
               ${bookingId}, ${cleanName}, ${cleanPhone}, ${cleanInstagram}, ${String(serviceId || '')},
               ${String(serviceName)}, ${cleanPrice}, ${finalPriceUSD}, ${cleanDate}::date,
-              ${cleanTime}, ${validPayment}, ${cleanNotes}, 'pendiente', ${eligibleFirstVisit}, ${discountUSD}, NOW()
+              ${cleanTime}, ${validPayment}, ${cleanNotes}, ${bookingStatus}, ${eligibleFirstVisit}, ${discountUSD}, NOW()
             );
           `;
 
@@ -227,9 +228,48 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
-      const { id, status } = req.body || {};
-      if (!id || !status) {
-        return res.status(400).json({ error: 'id y status son requeridos.' });
+      const { id, status, action, date, timeSlot } = req.body || {};
+      if (!id) {
+        return res.status(400).json({ error: 'id de cita es requerido.' });
+      }
+
+      // Reprogramación de Cita (cambio de fecha y turno)
+      if (action === 'reschedule' && date && timeSlot) {
+        const cleanDate = String(date).trim().slice(0, 10);
+        const cleanTime = String(timeSlot).trim().slice(0, 10);
+
+        // Validar que el nuevo turno no esté ocupado por otra cita activa ni bloqueado
+        const occupied = await sql`
+          SELECT 1 FROM public.blocked_slots 
+          WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime}
+          UNION ALL
+          SELECT 1 FROM public.bookings 
+          WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime} 
+            AND id != ${id} 
+            AND status IN ('en_whatsapp', 'pendiente', 'confirmada');
+        `;
+
+        if (occupied.length > 0) {
+          return res.status(409).json({ error: 'El nuevo horario ya está ocupado o bloqueado en la agenda.' });
+        }
+
+        await sql`
+          UPDATE public.bookings 
+          SET date = ${cleanDate}::date, time_slot = ${cleanTime}, status = 'confirmada'
+          WHERE id = ${id};
+        `;
+
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Cita reprogramada y confirmada exitosamente.',
+          date: cleanDate,
+          timeSlot: cleanTime,
+          status: 'confirmada'
+        });
+      }
+
+      if (!status) {
+        return res.status(400).json({ error: 'status o acción de reprogramación requerida.' });
       }
 
       // Actualizar estado de la cita

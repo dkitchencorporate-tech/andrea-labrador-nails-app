@@ -22,6 +22,7 @@ const STORAGE_KEYS = {
   CLIENT_ACCOUNTS: 'andrea_labrador_client_accounts_v1',
   ACTIVE_CLIENT: 'andrea_labrador_active_client_v1',
   GALLERY: 'andrea_labrador_gallery_v1',
+  ADMIN_SESSION: 'andrea_labrador_admin_session_v1',
 };
 
 export interface StudioEmailSettings {
@@ -364,6 +365,36 @@ export class AppStore {
     }
   }
 
+  static rescheduleBooking(id: string, date: string, timeSlot: string): void {
+    const bookings = this.getBookings();
+    const booking = bookings.find(b => b.id === id);
+    if (booking) {
+      booking.date = date;
+      booking.timeSlot = timeSlot;
+      booking.status = 'confirmada';
+      this.saveBookings(bookings);
+    }
+  }
+
+  static async rescheduleBookingRemote(id: string, date: string, timeSlot: string): Promise<{ success: boolean; error?: string }> {
+    this.rescheduleBooking(id, date, timeSlot);
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'reschedule', date, timeSlot })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Error al reprogramar cita.' };
+      }
+      return { success: true };
+    } catch (e: any) {
+      console.error('Error reprogramando cita en Neon:', e);
+      return { success: true };
+    }
+  }
+
   static async deleteBookingRemote(id: string): Promise<void> {
     this.deleteBooking(id);
     try {
@@ -482,7 +513,7 @@ export class AppStore {
     if (blocked) return true;
 
     const booked = this.getBookings().some(
-      b => b.date === date && b.timeSlot === timeSlot && (b.status === 'confirmada' || b.status === 'pendiente')
+      b => b.date === date && b.timeSlot === timeSlot && (b.status === 'confirmada' || b.status === 'pendiente' || b.status === 'en_whatsapp')
     );
     return booked;
   }
@@ -1212,6 +1243,118 @@ Hola Andrea, ¿tienes este cupo disponible para confirmarme? ¡Muchas gracias! �
     } catch (e) {
       console.error('Error importing data:', e);
       return false;
+    }
+  }
+
+  // ─── SUPER ADMIN AUTENTICACIÓN & 2FA ───────────────────────────────────────
+  static getAdminSession(): { token: string; email: string } | null {
+    try {
+      const sessionStr = sessionStorage.getItem(STORAGE_KEYS.ADMIN_SESSION);
+      if (!sessionStr) return null;
+      const parsed = JSON.parse(sessionStr);
+      if (parsed?.token && parsed?.email) return parsed;
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  static setAdminSession(token: string, email: string): void {
+    try {
+      sessionStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, JSON.stringify({ token, email, timestamp: Date.now() }));
+    } catch (e) {
+      console.error('Error guardando sesión de Super Admin:', e);
+    }
+  }
+
+  static clearAdminSession(): void {
+    try {
+      sessionStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
+    } catch (e) {
+      console.error('Error cerrando sesión de Super Admin:', e);
+    }
+  }
+
+  static isAdminAuthenticated(): boolean {
+    const session = this.getAdminSession();
+    return Boolean(session && session.token);
+  }
+
+  static async loginAdminRemote(email: string, password: string): Promise<{
+    success: boolean;
+    requires2FA?: boolean;
+    maskedEmail?: string;
+    demo2FACode?: string;
+    error?: string;
+    message?: string;
+  }> {
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email, password })
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, error: 'Error de conexión con el servidor de autenticación.' };
+    }
+  }
+
+  static async verifyAdmin2FARemote(email: string, code: string): Promise<{
+    success: boolean;
+    token?: string;
+    superAdminEmail?: string;
+    error?: string;
+  }> {
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify_2fa', email, code })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.token) {
+        this.setAdminSession(data.token, data.superAdminEmail || email);
+      }
+      return data;
+    } catch (err: any) {
+      return { success: false, error: 'Error al verificar el código 2FA.' };
+    }
+  }
+
+  static async requestAdminResetRemote(email: string): Promise<{
+    success: boolean;
+    message?: string;
+    maskedEmail?: string;
+    demoResetCode?: string;
+    error?: string;
+  }> {
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request_reset', email })
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, error: 'Error al solicitar código de restablecimiento.' };
+    }
+  }
+
+  static async resetAdminPasswordRemote(email: string, code: string, newPassword: string): Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+  }> {
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset_password', email, code, newPassword })
+      });
+      return await res.json();
+    } catch (err: any) {
+      return { success: false, error: 'Error al actualizar contraseña.' };
     }
   }
 }

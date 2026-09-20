@@ -37,7 +37,8 @@ import {
   Copy,
   AlertTriangle,
   Globe,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
@@ -49,6 +50,7 @@ interface AdminDashboardProps {
   exchangeRate: number;
   onRefreshData: () => void;
   onExitToCatalog: () => void;
+  onLogout?: () => void;
 }
 
 type TabKey = 'bookings' | 'calendar' | 'services' | 'gallery' | 'crm' | 'settings';
@@ -136,15 +138,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // ─── DERIVED STATS ────────────────────────────────────────────────────────
   const totalBookingsCount = bookings.length;
-  const pendingCount   = bookings.filter(b => b.status === 'pendiente').length;
-  const confirmedCount = bookings.filter(b => b.status === 'confirmada' || b.status === 'completada').length;
+  const enWhatsAppCount = bookings.filter(b => b.status === 'en_whatsapp' || b.status === 'pendiente').length;
+  const confirmedCount = bookings.filter(b => b.status === 'confirmada').length;
+  const completedCount = bookings.filter(b => b.status === 'completada').length;
   const totalRevenueUSD = bookings
     .filter(b => b.status === 'completada' || b.status === 'confirmada')
     .reduce((acc, b) => acc + b.totalPriceUSD, 0);
 
-  const filteredBookings = bookings.filter(b =>
-    bookingFilterStatus === 'all' || b.status === bookingFilterStatus
-  );
+  const filteredBookings = bookings.filter(b => {
+    if (bookingFilterStatus === 'all') return true;
+    if (bookingFilterStatus === 'en_whatsapp') return b.status === 'en_whatsapp' || b.status === 'pendiente';
+    return b.status === bookingFilterStatus;
+  });
 
   // Consolidated client list derived from bookings and loyalty store
   const loyaltyCards = AppStore.getLoyaltyCards();
@@ -213,6 +218,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleUpdateStatus = (id: string, status: AppointmentBooking['status']) => { 
     AppStore.updateBookingStatusRemote(id, status); 
     onRefreshData(); 
+  };
+
+  const [rescheduleBookingTarget, setRescheduleBookingTarget] = useState<AppointmentBooking | null>(null);
+  const [rescheduleNewDate, setRescheduleNewDate] = useState('');
+  const [rescheduleNewTime, setRescheduleNewTime] = useState('');
+  const [rescheduleSubmitting, setRescheduleSubmitting] = useState(false);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+
+  const handleOpenReschedule = (b: AppointmentBooking) => {
+    setRescheduleBookingTarget(b);
+    setRescheduleNewDate(b.date);
+    setRescheduleNewTime(b.timeSlot);
+    setRescheduleError(null);
+  };
+
+  const handleConfirmReschedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rescheduleBookingTarget || !rescheduleNewDate || !rescheduleNewTime) return;
+    setRescheduleSubmitting(true);
+    setRescheduleError(null);
+
+    const res = await AppStore.rescheduleBookingRemote(
+      rescheduleBookingTarget.id,
+      rescheduleNewDate,
+      rescheduleNewTime
+    );
+    setRescheduleSubmitting(false);
+
+    if (!res.success) {
+      setRescheduleError(res.error || 'El horario seleccionado no está disponible en la agenda.');
+      return;
+    }
+
+    setRescheduleBookingTarget(null);
+    onRefreshData();
   };
 
   const handleDeleteBooking = (id: string) => { 
@@ -583,6 +623,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <span>Ver Catálogo</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </button>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 rounded-xl text-xs font-bold border border-rose-200 transition-all shadow-xs active:scale-95 cursor-pointer"
+              title="Cerrar Sesión Super Admin"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Cerrar Sesión</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -615,8 +666,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span className="text-[10px] font-bold uppercase tracking-wider text-warm-400 block">Citas Registradas</span>
                 <div className="flex items-baseline gap-1.5 mt-0.5">
                   <span className="font-serif text-2xl font-black text-warm-900">{totalBookingsCount}</span>
-                  {pendingCount > 0 && (
-                    <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-200 font-bold px-1.5 rounded-full">{pendingCount} pendientes</span>
+                  {enWhatsAppCount > 0 && (
+                    <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 font-bold px-1.5 rounded-full animate-pulse">{enWhatsAppCount} en WhatsApp</span>
                   )}
                 </div>
               </div>
@@ -633,8 +684,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <button key={key} onClick={() => navigate(key)} className={tabBtnCls(key)}>
                   <Icon className="w-4 h-4 shrink-0" />
                   <span className="flex-1 text-left">{label}</span>
-                  {key === 'bookings' && pendingCount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black">{pendingCount}</span>
+                  {key === 'bookings' && enWhatsAppCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">{enWhatsAppCount}</span>
                   )}
                   {key === 'crm' && clientsList.some(c => c.hasFreeService) && (
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Clientes con 7º gratis" />
@@ -665,12 +716,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <select
                     value={bookingFilterStatus}
                     onChange={e => setBookingFilterStatus(e.target.value)}
-                    className="px-3 py-1.5 rounded-xl bg-[#FBF9F6] border border-sage-200 text-xs text-warm-900 focus:outline-none focus:ring-2 focus:ring-sage-400"
+                    className="px-3 py-1.5 rounded-xl bg-[#FBF9F6] border border-sage-200 text-xs text-warm-900 focus:outline-none focus:ring-2 focus:ring-sage-400 font-bold"
                   >
                     <option value="all">Todas ({bookings.length})</option>
-                    <option value="pendiente">Pendientes ({pendingCount})</option>
-                    <option value="confirmada">Confirmadas ({confirmedCount})</option>
-                    <option value="completada">Completadas</option>
+                    <option value="en_whatsapp">🟡 En WhatsApp ({enWhatsAppCount})</option>
+                    <option value="confirmada">🟢 Confirmadas ({confirmedCount})</option>
+                    <option value="completada">Completadas ({completedCount})</option>
                     <option value="cancelada">Canceladas</option>
                   </select>
                 )}
@@ -688,13 +739,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-3 border-b border-sage-100">
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-warm-900">{b.clientName}</span>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                b.status === 'pendiente'  ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                                b.status === 'confirmada' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                                b.status === 'completada' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
-                                'bg-rose-100 text-rose-800 border border-rose-300'
-                              }`}>{b.status}</span>
+                              <span className="font-bold text-warm-900 text-sm">{b.clientName}</span>
+                              {b.status === 'en_whatsapp' || b.status === 'pendiente' ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                                  <span>🟡 En WhatsApp (Esperando confirmación)</span>
+                                </span>
+                              ) : b.status === 'confirmada' ? (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                  🟢 Confirmada
+                                </span>
+                              ) : b.status === 'completada' ? (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-800 border border-blue-300">
+                                  Completada
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-100 text-rose-800 border border-rose-300">
+                                  Cancelada
+                                </span>
+                              )}
                               {b.isFirstVisit && (
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300" title="Verificar presencialmente que sea clienta nueva para aplicar el descuento de bienvenida">
                                   1ª Cita (-$2 OFF) &bull; Validar en salón
@@ -729,18 +792,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                           <a
-                            href={`https://wa.me/${b.clientPhone.replace(/\D/g,'')}?text=¡Hola%20${encodeURIComponent(b.clientName)}%20bella!%20💕%20Confirmo%20tu%20cita%20de%20${encodeURIComponent(b.serviceName)}%20para%20el%20${b.date}%20a%20las%20${b.timeSlot}.%20¡Te%20espero!`}
+                            href={`https://wa.me/${b.clientPhone.replace(/\D/g,'')}?text=¡Hola%20${encodeURIComponent(b.clientName)}%20bella!%20💕%20Vi%20tu%20solicitud%20en%20la%20web%20para%20${encodeURIComponent(b.serviceName)}%20el%20${b.date}%20a%20las%20${b.timeSlot}.%20¡Confirmado!`}
                             target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs shadow-xs"
                           >
                             <MessageCircle className="w-3.5 h-3.5" /><span>Responder por WhatsApp</span>
                           </a>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <button onClick={() => handleUpdateStatus(b.id, 'confirmada')} className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold">Confirmar</button>
-                            <button onClick={() => handleUpdateStatus(b.id, 'completada')} className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-semibold">Completada</button>
+                            {b.status !== 'confirmada' && b.status !== 'completada' && (
+                              <button 
+                                onClick={() => handleUpdateStatus(b.id, 'confirmada')} 
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs flex items-center gap-1 cursor-pointer"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Confirmar Cita</span>
+                              </button>
+                            )}
+
+                            <button 
+                              onClick={() => handleOpenReschedule(b)} 
+                              className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                              title="Reprogramar fecha u hora acordada con la clienta en WhatsApp"
+                            >
+                              <Calendar className="w-3.5 h-3.5 text-amber-700" />
+                              <span>Reprogramar</span>
+                            </button>
+
+                            {b.status !== 'cancelada' && (
+                              <button 
+                                onClick={() => handleUpdateStatus(b.id, 'cancelada')} 
+                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-semibold cursor-pointer"
+                                title="Cancelar si la clienta no concretó en WhatsApp"
+                              >
+                                Cancelar
+                              </button>
+                            )}
+
+                            {b.status === 'confirmada' && (
+                              <button 
+                                onClick={() => handleUpdateStatus(b.id, 'completada')} 
+                                className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-semibold cursor-pointer"
+                              >
+                                Completada
+                              </button>
+                            )}
+
                             {b.status === 'completada' && (
                               <a
-                                href={`https://wa.me/${b.clientPhone.replace(/\D/g,'')}?text=¡Hola%20${encodeURIComponent(b.clientName)}%20bella!%20💅✨%20¡Muchas%20gracias%20por%20tu%20visita%20de%20hoy!%20Hemos%20registrado%20tu%20servicio%20y%20se%20ha%20sumado%20tu%20sello%20en%20tu%20Tarjeta%20VIP.%20Recuerda%20que%20al%20completar%206%20visitas,%20¡tu%207º%20servicio%20es%20100%25%20GRATIS!%20Nos%20vemos%20pronto%20💕`}
+                                href={`https://wa.me/${b.clientPhone.replace(/\D/g,'')}?text=¡Hola%20${encodeURIComponent(b.clientName)}%20bella!%20💅✨%20¡Muchas%20gracias%20por%20tu%20visita%20de%20hoy!%20Hemos%20registrado%20tu%20servicio%20y%20se%20ha%20sumado%20tu%20sello%20en%20tu%20Tarjeta%20VIP.%20Recuerda%20que%20al%20completar%205%20visitas,%20¡tu%20Depilación%20de%20Cejas%20es%20100%25%20GRATIS!%20Nos%20vemos%20pronto%20💕`}
                                 target="_blank" rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-xs"
                                 title="Enviar sello acreditado a la clienta por WhatsApp"
@@ -1638,6 +1737,103 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </main>
       </div>
+
+      {/* ── MODAL PARA REPROGRAMAR FECHA Y HORA ACORDADA CON LA CLIENTA ── */}
+      {rescheduleBookingTarget && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-warm-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-luxury border border-sage-200 p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-sage-100 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                  Acuerdo por WhatsApp
+                </span>
+                <h3 className="font-serif font-bold text-lg text-warm-900 mt-1">
+                  Reprogramar Cita
+                </h3>
+              </div>
+              <button
+                onClick={() => setRescheduleBookingTarget(null)}
+                className="p-1.5 rounded-full text-warm-400 hover:text-warm-900 hover:bg-sage-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-sage-50 border border-sage-200 text-xs space-y-1">
+              <p className="font-bold text-warm-900">{rescheduleBookingTarget.clientName}</p>
+              <p className="text-warm-600">{rescheduleBookingTarget.serviceName}</p>
+              <p className="text-warm-500 text-[11px]">
+                Horario actual: <span className="font-semibold">{rescheduleBookingTarget.date} a las {rescheduleBookingTarget.timeSlot}</span>
+              </p>
+            </div>
+
+            {rescheduleError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>{rescheduleError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleConfirmReschedule} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-warm-800 block mb-1">
+                  Nueva Fecha Acordada:
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={rescheduleNewDate}
+                  onChange={(e) => setRescheduleNewDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#FBF9F6] border border-sage-200 text-warm-900 text-xs focus:ring-2 focus:ring-sage-400"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-warm-800 block mb-1">
+                  Nuevo Horario / Turno:
+                </label>
+                <select
+                  required
+                  value={rescheduleNewTime}
+                  onChange={(e) => setRescheduleNewTime(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#FBF9F6] border border-sage-200 text-warm-900 text-xs focus:ring-2 focus:ring-sage-400"
+                >
+                  <option value="">Selecciona un horario</option>
+                  {allTimeSlots.map((slot) => (
+                    <option key={slot} value={slot}>
+                      {slot}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setRescheduleBookingTarget(null)}
+                  className="px-4 py-2 rounded-xl bg-sage-100 hover:bg-sage-200 text-warm-800 text-xs font-bold cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={rescheduleSubmitting || !rescheduleNewDate || !rescheduleNewTime}
+                  className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {rescheduleSubmitting ? (
+                    <span>Guardando...</span>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Guardar &amp; Confirmar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
