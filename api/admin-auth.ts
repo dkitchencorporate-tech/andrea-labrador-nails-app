@@ -5,7 +5,7 @@ import { neon } from '@neondatabase/serverless';
 import crypto from 'crypto';
 
 const AUTH_SECRET = process.env.ADMIN_AUTH_SECRET || process.env.DATABASE_URL || 'andrea_labrador_super_admin_secret_key_2026';
-const DEFAULT_SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || 'andrea.labrador.nails@gmail.com').toLowerCase().trim();
+const DEFAULT_SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || 'slenandreal@gmail.com').toLowerCase().trim();
 
 function getDb() {
   const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -108,17 +108,23 @@ export default async function handler(req: any, res: any) {
           );
         `;
 
-        // Si no hay ningún super admin registrado, sembrar el inicial
-        const adminCount = await sql`SELECT COUNT(*) as count FROM public.admin_users;`;
-        if (Number(adminCount[0]?.count || 0) === 0) {
-          const initialSalt = crypto.randomBytes(16).toString('hex');
-          const initialHash = hashPassword('AndreaStudio2026*', initialSalt);
-          await sql`
-            INSERT INTO public.admin_users (email, password_hash, salt, role)
-            VALUES (${DEFAULT_SUPER_ADMIN_EMAIL}, ${initialHash}, ${initialSalt}, 'super_admin')
-            ON CONFLICT (email) DO NOTHING;
-          `;
-        }
+        // Garantizar que el super admin slenandreal@gmail.com esté registrado y activo
+        const initialSalt = crypto.randomBytes(16).toString('hex');
+        const initialHash = hashPassword('Nails.studio_2026.', initialSalt);
+        await sql`
+          INSERT INTO public.admin_users (email, password_hash, salt, role)
+          VALUES (${DEFAULT_SUPER_ADMIN_EMAIL}, ${initialHash}, ${initialSalt}, 'super_admin')
+          ON CONFLICT (email) DO UPDATE SET
+            password_hash = CASE 
+              WHEN public.admin_users.password_hash IS NULL OR public.admin_users.password_hash = '' THEN ${initialHash}
+              ELSE public.admin_users.password_hash 
+            END,
+            salt = CASE 
+              WHEN public.admin_users.salt IS NULL OR public.admin_users.salt = '' THEN ${initialSalt}
+              ELSE public.admin_users.salt 
+            END,
+            updated_at = NOW();
+        `;
       } catch (tableErr) {
         console.warn('Error inicializando tabla admin_users:', tableErr);
       }

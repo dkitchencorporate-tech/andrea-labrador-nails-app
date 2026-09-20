@@ -38,7 +38,15 @@ import {
   AlertTriangle,
   Globe,
   Settings,
-  LogOut
+  LogOut,
+  BarChart3,
+  FileText,
+  Printer,
+  TrendingUp,
+  UserCheck,
+  UserX,
+  HelpCircle,
+  Filter
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
@@ -53,15 +61,16 @@ interface AdminDashboardProps {
   onLogout?: () => void;
 }
 
-type TabKey = 'bookings' | 'calendar' | 'services' | 'gallery' | 'crm' | 'settings';
+type TabKey = 'bookings' | 'analytics' | 'calendar' | 'services' | 'gallery' | 'crm' | 'settings';
 
 const NAV_ITEMS: { key: TabKey; label: string; Icon: React.FC<{ className?: string }> }[] = [
-  { key: 'bookings', label: 'Citas & Reservas',       Icon: LayoutDashboard },
-  { key: 'calendar', label: 'Horarios & Agenda',      Icon: Calendar },
-  { key: 'services', label: 'Catálogo de Servicios',  Icon: Sparkles },
-  { key: 'gallery',  label: 'Carrusel de Fotos',      Icon: ImageIcon },
-  { key: 'crm',      label: 'Clientela & CRM',        Icon: Users },
-  { key: 'settings', label: 'Tasa & Respaldos',       Icon: DollarSign },
+  { key: 'bookings',  label: 'Citas & Reservas',         Icon: LayoutDashboard },
+  { key: 'analytics', label: 'Analítica & Facturación',  Icon: BarChart3 },
+  { key: 'calendar',  label: 'Horarios & Agenda',        Icon: Calendar },
+  { key: 'services',  label: 'Catálogo de Servicios',    Icon: Sparkles },
+  { key: 'gallery',   label: 'Carrusel de Fotos',        Icon: ImageIcon },
+  { key: 'crm',       label: 'Clientela & CRM',          Icon: Users },
+  { key: 'settings',  label: 'Tasa & Respaldos',         Icon: DollarSign },
 ];
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -142,6 +151,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const enWhatsAppCount = bookings.filter(b => b.status === 'en_whatsapp' || b.status === 'pendiente').length;
   const confirmedCount = bookings.filter(b => b.status === 'confirmada').length;
   const completedCount = bookings.filter(b => b.status === 'completada').length;
+  const noShowCount = bookings.filter(b => b.status === 'no_asistio').length;
+  const cancelledCount = bookings.filter(b => b.status === 'cancelada').length;
   const totalRevenueUSD = bookings
     .filter(b => b.status === 'completada' || b.status === 'confirmada')
     .reduce((acc, b) => acc + b.totalPriceUSD, 0);
@@ -254,6 +265,251 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     setRescheduleBookingTarget(null);
     onRefreshData();
+  };
+
+  // ─── POST-SERVICIO & GESTIÓN DE CIERRE DE CITA ────────────────────────────
+  const [completeModalBooking, setCompleteModalBooking] = useState<AppointmentBooking | null>(null);
+  const [noShowModalBooking, setNoShowModalBooking] = useState<AppointmentBooking | null>(null);
+  const [cancellationModalBooking, setCancellationModalBooking] = useState<AppointmentBooking | null>(null);
+  const [cancellationReasonType, setCancellationReasonType] = useState('aviso_previo');
+  const [cancellationCustomNote, setCancellationCustomNote] = useState('');
+
+  const handleConfirmCompletion = async (notifyWhatsApp = false) => {
+    if (!completeModalBooking) return;
+    const b = completeModalBooking;
+    await AppStore.updateBookingStatusRemote(b.id, 'completada');
+    setCompleteModalBooking(null);
+    onRefreshData();
+
+    if (notifyWhatsApp) {
+      const cleanPhone = b.clientPhone.replace(/\D/g, '');
+      const waMsg = `¡Hola ${b.clientName} bella! 💕💅\n\nTu servicio de *${b.serviceName}* ha sido marcado como *Culminado con Éxito* hoy en Andrea Labrador Nails Studio.\n\n✨ Hemos acreditado tu sello VIP en tu Tarjeta Digital de Fidelización.\nRecuerda que al completar 5 visitas, ¡tu Depilación de Cejas es 100% de cortesía!\n\n¡Gracias por consentirte con nosotros, nos vemos pronto! 💕`;
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMsg)}`, '_blank');
+    }
+  };
+
+  const handleConfirmNoShow = async (notifyWhatsApp = true) => {
+    if (!noShowModalBooking) return;
+    const b = noShowModalBooking;
+    await AppStore.updateBookingStatusRemote(b.id, 'no_asistio', 'Clienta no asistió a su cita');
+    setNoShowModalBooking(null);
+    onRefreshData();
+
+    if (notifyWhatsApp) {
+      const cleanPhone = b.clientPhone.replace(/\D/g, '');
+      const waMsg = `¡Hola ${b.clientName} bella! 💕\n\nTe estuvimos esperando hoy para tu cita de *${b.serviceName}* en Andrea Labrador Nails Studio. Qué pena que se te haya complicado llegar ✨.\n\nAvísame cuando tengas disponibilidad y con todo el gusto te reagendamos para consentirte en tus uñas 💕.`;
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMsg)}`, '_blank');
+    }
+  };
+
+  const handleConfirmCancellation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cancellationModalBooking) return;
+    const reasonsMap: Record<string, string> = {
+      aviso_previo: 'Aviso previo de la clienta (reprogramación voluntaria)',
+      emergencia: 'Emergencia personal / médica',
+      no_respondio: 'No respondió en WhatsApp / Desistió',
+      fuerza_mayor: 'Fuerza mayor / Ajuste de agenda del salón',
+      otro: cancellationCustomNote.trim() || 'Cancelada por mutuo acuerdo',
+    };
+    const finalReason = reasonsMap[cancellationReasonType] || cancellationCustomNote || 'Cancelada';
+    await AppStore.updateBookingStatusRemote(cancellationModalBooking.id, 'cancelada', finalReason);
+    setCancellationModalBooking(null);
+    onRefreshData();
+  };
+
+  // ─── ANALÍTICA, FACTURACIÓN & REPORTES CONTABLES ──────────────────────────
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<'today' | 'yesterday' | '7days' | '15days' | 'month' | 'all' | 'custom'>('7days');
+  const [analyticsStartDate, setAnalyticsStartDate] = useState('');
+  const [analyticsEndDate, setAnalyticsEndDate] = useState('');
+
+  const analyticsBookings = useMemo(() => {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    return bookings.filter(b => {
+      if (!b.date) return false;
+      if (analyticsPeriod === 'today') return b.date === todayStr;
+      if (analyticsPeriod === 'yesterday') {
+        const y = new Date(now);
+        y.setDate(y.getDate() - 1);
+        return b.date === y.toISOString().split('T')[0];
+      }
+      if (analyticsPeriod === '7days') {
+        const limit = new Date(now);
+        limit.setDate(limit.getDate() - 7);
+        return b.date >= limit.toISOString().split('T')[0];
+      }
+      if (analyticsPeriod === '15days') {
+        const limit = new Date(now);
+        limit.setDate(limit.getDate() - 15);
+        return b.date >= limit.toISOString().split('T')[0];
+      }
+      if (analyticsPeriod === 'month') {
+        const limit = new Date(now);
+        limit.setDate(limit.getDate() - 30);
+        return b.date >= limit.toISOString().split('T')[0];
+      }
+      if (analyticsPeriod === 'custom') {
+        if (analyticsStartDate && b.date < analyticsStartDate) return false;
+        if (analyticsEndDate && b.date > analyticsEndDate) return false;
+        return true;
+      }
+      return true;
+    });
+  }, [bookings, analyticsPeriod, analyticsStartDate, analyticsEndDate]);
+
+  const analyticsCompleted = analyticsBookings.filter(b => b.status === 'completada');
+  const analyticsNoShow = analyticsBookings.filter(b => b.status === 'no_asistio');
+  const analyticsCancelled = analyticsBookings.filter(b => b.status === 'cancelada');
+  const analyticsTotalRevenueUSD = analyticsCompleted.reduce((acc, b) => acc + (Number(b.totalPriceUSD) || 0), 0);
+  const analyticsTotalRevenueVES = analyticsTotalRevenueUSD * exchangeRate;
+  const analyticsAvgTicketUSD = analyticsCompleted.length > 0 ? analyticsTotalRevenueUSD / analyticsCompleted.length : 0;
+  const analyticsTotalProcessed = analyticsCompleted.length + analyticsNoShow.length + analyticsCancelled.length;
+  const analyticsAttendanceRate = analyticsTotalProcessed > 0 ? Math.round((analyticsCompleted.length / analyticsTotalProcessed) * 100) : 100;
+
+  const handlePrintReportPDF = () => {
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+      alert('Por favor habilita las ventanas emergentes en tu navegador para generar el reporte contable PDF.');
+      return;
+    }
+
+    const periodLabels: Record<string, string> = {
+      today: 'Hoy',
+      yesterday: 'Ayer',
+      '7days': 'Últimos 7 Días (Semanal)',
+      '15days': 'Últimos 15 Días (Quincenal)',
+      month: 'Últimos 30 Días (Mensual)',
+      all: 'Histórico Completo',
+      custom: `Desde ${analyticsStartDate || 'Inicio'} hasta ${analyticsEndDate || 'Hoy'}`
+    };
+    const periodLabel = periodLabels[analyticsPeriod] || 'Período Contable';
+
+    const rowsHtml = analyticsBookings.map((b, i) => `
+      <tr style="border-bottom: 1px solid #e5e7eb; font-size: 11px;">
+        <td style="padding: 8px 6px;">${i + 1}</td>
+        <td style="padding: 8px 6px; font-weight: bold;">${b.date}</td>
+        <td style="padding: 8px 6px;">${b.timeSlot}</td>
+        <td style="padding: 8px 6px; font-weight: 600;">${b.clientName}<br/><span style="color: #6b7280; font-size: 10px;">${b.clientPhone}</span></td>
+        <td style="padding: 8px 6px;">${b.serviceName}</td>
+        <td style="padding: 8px 6px; text-transform: capitalize;">${b.paymentMethod.replace('_', ' ')}</td>
+        <td style="padding: 8px 6px; font-weight: bold; text-align: right; color: #166534;">$${b.totalPriceUSD.toFixed(2)}</td>
+        <td style="padding: 8px 6px; text-align: right; color: #4b5563;">Bs. ${(b.totalPriceUSD * exchangeRate).toFixed(0)}</td>
+        <td style="padding: 8px 6px; text-align: center;">
+          <span style="display: inline-block; padding: 2px 6px; border-radius: 9999px; font-size: 9px; font-weight: bold; text-transform: uppercase; ${
+            b.status === 'completada' ? 'background: #dcfce7; color: #166534;' :
+            b.status === 'confirmada' ? 'background: #e0f2fe; color: #075985;' :
+            b.status === 'no_asistio' ? 'background: #fef3c7; color: #92400e;' :
+            b.status === 'cancelada' ? 'background: #ffe4e6; color: #9f1239;' :
+            'background: #fef3c7; color: #78350f;'
+          }">${b.status === 'no_asistio' ? 'No Asistió' : b.status}</span>
+          ${b.notes && b.notes.includes('[Cancelación:') ? `<br/><span style="font-size: 9px; color: #9f1239;">${b.notes.split('[Cancelación:')[1].replace(']', '')}</span>` : ''}
+        </td>
+      </tr>
+    `).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>Reporte_Contable_${periodLabel.replace(/\\s+/g, '_')}_Andrea_Labrador</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm 15mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1f2937; margin: 0; padding: 10px; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #16291F; padding-bottom: 12px; margin-bottom: 16px; }
+          .logo { font-size: 20px; font-weight: 800; color: #16291F; letter-spacing: 0.5px; }
+          .subtitle { font-size: 11px; color: #4b5563; text-transform: uppercase; letter-spacing: 1px; }
+          .meta { text-align: right; font-size: 11px; color: #4b5563; }
+          .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+          .kpi-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #fafafa; }
+          .kpi-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6b7280; }
+          .kpi-val { font-size: 18px; font-weight: 800; color: #111827; margin-top: 4px; }
+          .kpi-sub { font-size: 10px; color: #059669; font-weight: 600; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th { background: #16291F; color: white; font-size: 10px; text-transform: uppercase; padding: 8px 6px; text-align: left; }
+          .footer { margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 10px; font-size: 10px; color: #9ca3af; display: flex; justify-content: space-between; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            button { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="logo">ANDREA LABRADOR NAILS STUDIO</div>
+            <div class="subtitle">Reporte Ejecutivo &amp; Balance Contable de Citas</div>
+            <div style="font-size: 12px; font-weight: 700; color: #b45309; margin-top: 4px;">Período Evaluado: ${periodLabel}</div>
+          </div>
+          <div class="meta">
+            <div><b>Fecha de Emisión:</b> ${new Date().toLocaleDateString('es-VE')}</div>
+            <div><b>Tasa del Día:</b> $1 USD = ${exchangeRate.toFixed(2)} Bs</div>
+            <div><b>Super Admin:</b> slenandreal@gmail.com</div>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-title">Facturación Total (USD)</div>
+            <div class="kpi-val" style="color: #15803d;">$${analyticsTotalRevenueUSD.toFixed(2)}</div>
+            <div class="kpi-sub">≈ ${analyticsTotalRevenueVES.toLocaleString('es-VE', { maximumFractionDigits: 0 })} Bs</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Citas Culminadas</div>
+            <div class="kpi-val">${analyticsCompleted.length}</div>
+            <div class="kpi-sub">${analyticsAttendanceRate}% Cumplimiento</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">No Asistieron (No-Show)</div>
+            <div class="kpi-val" style="color: #b45309;">${analyticsNoShow.length}</div>
+            <div style="font-size: 10px; color: #6b7280;">Cupos no aprovechados</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Canceladas con Motivo</div>
+            <div class="kpi-val" style="color: #be123c;">${analyticsCancelled.length}</div>
+            <div style="font-size: 10px; color: #6b7280;">Con registro de causa</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Clienta</th>
+              <th>Servicio</th>
+              <th>Pago</th>
+              <th style="text-align: right;">Total USD</th>
+              <th style="text-align: right;">Total Bs</th>
+              <th style="text-align: center;">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml || '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #6b7280;">No se registraron movimientos en este período.</td></tr>'}
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <div>Estudio Andrea Labrador &bull; Manicurista Profesional &bull; RIF &amp; Control Interno</div>
+          <div>Documento Administrativo Confidencial &bull; Página 1 de 1</div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWin.document.open();
+    printWin.document.write(htmlContent);
+    printWin.document.close();
   };
 
   const handleDeleteBooking = (id: string) => { 
@@ -722,8 +978,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <option value="all">Todas ({bookings.length})</option>
                     <option value="en_whatsapp">🟡 En WhatsApp ({enWhatsAppCount})</option>
                     <option value="confirmada">🟢 Confirmadas ({confirmedCount})</option>
-                    <option value="completada">Completadas ({completedCount})</option>
-                    <option value="cancelada">Canceladas</option>
+                    <option value="completada">🔵 Completadas ({completedCount})</option>
+                    <option value="no_asistio">🟠 No Asistió ({noShowCount})</option>
+                    <option value="cancelada">🔴 Canceladas ({cancelledCount})</option>
                   </select>
                 )}
 
@@ -752,11 +1009,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 </span>
                               ) : b.status === 'completada' ? (
                                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-800 border border-blue-300">
-                                  Completada
+                                  🔵 Completada &amp; Sello VIP
+                                </span>
+                              ) : b.status === 'no_asistio' ? (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                                  🟠 No Asistió
                                 </span>
                               ) : (
                                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-100 text-rose-800 border border-rose-300">
-                                  Cancelada
+                                  🔴 Cancelada {b.cancellationReason ? `• ${b.cancellationReason}` : ''}
                                 </span>
                               )}
                               {b.isFirstVisit && (
@@ -800,7 +1061,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <MessageCircle className="w-3.5 h-3.5" /><span>Responder por WhatsApp</span>
                           </a>
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            {b.status !== 'confirmada' && b.status !== 'completada' && (
+                            {b.status !== 'confirmada' && b.status !== 'completada' && b.status !== 'no_asistio' && (
                               <button 
                                 onClick={() => handleUpdateStatus(b.id, 'confirmada')} 
                                 className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs flex items-center gap-1 cursor-pointer"
@@ -810,31 +1071,50 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               </button>
                             )}
 
-                            <button 
-                              onClick={() => handleOpenReschedule(b)} 
-                              className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center gap-1 cursor-pointer"
-                              title="Reprogramar fecha u hora acordada con la clienta en WhatsApp"
-                            >
-                              <Calendar className="w-3.5 h-3.5 text-amber-700" />
-                              <span>Reprogramar</span>
-                            </button>
-
-                            {b.status !== 'cancelada' && (
+                            {b.status !== 'completada' && b.status !== 'cancelada' && (
                               <button 
-                                onClick={() => handleUpdateStatus(b.id, 'cancelada')} 
-                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-semibold cursor-pointer"
-                                title="Cancelar si la clienta no concretó en WhatsApp"
+                                onClick={() => handleOpenReschedule(b)} 
+                                className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                                title="Reprogramar fecha u hora acordada con la clienta en WhatsApp"
                               >
-                                Cancelar
+                                <Calendar className="w-3.5 h-3.5 text-amber-700" />
+                                <span>Reprogramar</span>
                               </button>
                             )}
 
                             {b.status === 'confirmada' && (
+                              <>
+                                <button 
+                                  onClick={() => setCompleteModalBooking(b)} 
+                                  className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1 cursor-pointer"
+                                  title="Marcar cita culminada con éxito y acreditar sello VIP"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                  <span>Culminar &amp; Sello</span>
+                                </button>
+
+                                <button 
+                                  onClick={() => setNoShowModalBooking(b)} 
+                                  className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                                  title="Clienta no llegó al estudio"
+                                >
+                                  <UserX className="w-3.5 h-3.5 text-amber-700" />
+                                  <span>No Asistió</span>
+                                </button>
+                              </>
+                            )}
+
+                            {b.status !== 'cancelada' && b.status !== 'completada' && (
                               <button 
-                                onClick={() => handleUpdateStatus(b.id, 'completada')} 
-                                className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-semibold cursor-pointer"
+                                onClick={() => {
+                                  setCancellationModalBooking(b);
+                                  setCancellationReasonType('aviso_previo');
+                                  setCancellationCustomNote('');
+                                }} 
+                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-semibold cursor-pointer"
+                                title="Cancelar cita registrando el motivo"
                               >
-                                Completada
+                                Cancelar
                               </button>
                             )}
 
@@ -843,7 +1123,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 href={`https://wa.me/${b.clientPhone.replace(/\D/g,'')}?text=¡Hola%20${encodeURIComponent(b.clientName)}%20bella!%20💅✨%20¡Muchas%20gracias%20por%20tu%20visita%20de%20hoy!%20Hemos%20registrado%20tu%20servicio%20y%20se%20ha%20sumado%20tu%20sello%20en%20tu%20Tarjeta%20VIP.%20Recuerda%20que%20al%20completar%205%20visitas,%20¡tu%20Depilación%20de%20Cejas%20es%20100%25%20GRATIS!%20Nos%20vemos%20pronto%20💕`}
                                 target="_blank" rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-xs"
-                                title="Enviar sello acreditado a la clienta por WhatsApp"
+                                title="Enviar confirmación de sello a la clienta por WhatsApp"
                               >
                                 <Sparkles className="w-3 h-3 text-amber-300" />
                                 <span>Notificar Sello</span>
@@ -856,6 +1136,211 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════════════════
+                TAB 1.5: ANALÍTICA & FACTURACIÓN CONTABLE
+            ══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'analytics' && (
+              <div className="space-y-6">
+                {sectionHead(
+                  'Analítica & Facturación Contable',
+                  'Control financiero detallado, tasa de asistencia, inasistencias (no-show) y exportación oficial de reportes en PDF.',
+                  <button
+                    onClick={handlePrintReportPDF}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#16291F] hover:bg-sage-900 text-amber-200 font-bold text-xs shadow-luxury transition-all cursor-pointer"
+                    title="Generar e imprimir balance contable en PDF formato A4"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Descargar Reporte Contable PDF</span>
+                  </button>
+                )}
+
+                {/* Filtros de período */}
+                <div className="p-4 rounded-2xl bg-[#FBF9F6] border border-sage-200 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-warm-800">
+                    <Filter className="w-4 h-4 text-warm-500" />
+                    <span>Seleccionar Período Contable:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { key: 'today', label: 'Hoy' },
+                      { key: 'yesterday', label: 'Ayer' },
+                      { key: '7days', label: 'Últimos 7 Días (Semanal)' },
+                      { key: '15days', label: 'Últimos 15 Días (Quincenal)' },
+                      { key: 'month', label: 'Últimos 30 Días (Mensual)' },
+                      { key: 'all', label: 'Histórico Completo' },
+                      { key: 'custom', label: 'Rango Personalizado' },
+                    ].map(p => (
+                      <button
+                        key={p.key}
+                        type="button"
+                        onClick={() => setAnalyticsPeriod(p.key as typeof analyticsPeriod)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                          analyticsPeriod === p.key
+                            ? 'bg-[#16291F] text-white shadow-xs'
+                            : 'bg-white border border-sage-200 text-warm-700 hover:bg-sage-100'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {analyticsPeriod === 'custom' && (
+                    <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-sage-200 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-warm-600 font-medium">Desde:</span>
+                        <input
+                          type="date"
+                          value={analyticsStartDate}
+                          onChange={e => setAnalyticsStartDate(e.target.value)}
+                          className="px-2.5 py-1.5 bg-white border border-sage-300 rounded-xl font-semibold text-warm-900"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-warm-600 font-medium">Hasta:</span>
+                        <input
+                          type="date"
+                          value={analyticsEndDate}
+                          onChange={e => setAnalyticsEndDate(e.target.value)}
+                          className="px-2.5 py-1.5 bg-white border border-sage-300 rounded-xl font-semibold text-warm-900"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tarjetas de Métricas Ejecutivas (KPIs) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="p-4 rounded-2xl bg-[#FBF9F6] border border-sage-200 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-warm-400 block">Facturación Total</span>
+                    <span className="font-serif text-2xl font-black text-emerald-700 block">
+                      ${analyticsTotalRevenueUSD.toFixed(2)} <span className="text-xs font-sans text-warm-500">USD</span>
+                    </span>
+                    <span className="text-xs font-bold text-warm-600 block">
+                      ≈ {analyticsTotalRevenueVES.toLocaleString('es-VE', { maximumFractionDigits: 0 })} Bs
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FBF9F6] border border-sage-200 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-warm-400 block">Citas Culminadas</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-serif text-2xl font-black text-warm-900">{analyticsCompleted.length}</span>
+                      <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        {analyticsAttendanceRate}% Cumplimiento
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-warm-500 block">De {analyticsTotalProcessed} citas procesadas</span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FBF9F6] border border-sage-200 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-warm-400 block">Inasistencias (No-Show)</span>
+                    <span className="font-serif text-2xl font-black text-amber-700 block">{analyticsNoShow.length}</span>
+                    <span className="text-[11px] text-amber-800 block">
+                      {analyticsTotalProcessed > 0 ? ((analyticsNoShow.length / analyticsTotalProcessed) * 100).toFixed(0) : 0}% de inasistencia
+                    </span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#FBF9F6] border border-sage-200 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-warm-400 block">Cancelaciones &amp; Ticket</span>
+                    <span className="font-serif text-2xl font-black text-rose-700 block">{analyticsCancelled.length} <span className="text-xs font-sans text-warm-500">canceladas</span></span>
+                    <span className="text-[11px] text-warm-600 block font-semibold">
+                      Ticket Promedio: ${analyticsAvgTicketUSD.toFixed(1)} USD
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tabla Contable Detallada */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-warm-800">
+                      Detalle Contable del Período ({analyticsBookings.length} registros)
+                    </h4>
+                    <span className="text-[11px] text-warm-500">
+                      Tasa activa: 1 USD = {exchangeRate.toFixed(2)} Bs
+                    </span>
+                  </div>
+
+                  {analyticsBookings.length === 0 ? (
+                    <div className="p-8 text-center rounded-2xl bg-[#FBF9F6] border border-sage-200 space-y-2">
+                      <BarChart3 className="w-8 h-8 text-warm-400 mx-auto" />
+                      <p className="text-xs font-bold text-warm-700">Sin movimientos en el período seleccionado.</p>
+                      <p className="text-[11px] text-warm-400">Prueba cambiando el filtro de período más arriba.</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto border border-sage-200 rounded-2xl bg-white shadow-xs">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-[#16291F] text-white font-bold text-[10px] uppercase tracking-wider">
+                            <th className="p-3">Fecha &amp; Hora</th>
+                            <th className="p-3">Clienta</th>
+                            <th className="p-3">Servicio</th>
+                            <th className="p-3">Método Pago</th>
+                            <th className="p-3 text-right">Monto USD</th>
+                            <th className="p-3 text-right">Monto Bs</th>
+                            <th className="p-3 text-center">Estado / Motivo</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-sage-100 text-warm-800">
+                          {analyticsBookings.map(b => (
+                            <tr key={b.id} className="hover:bg-[#FBF9F6] transition-colors">
+                              <td className="p-3 whitespace-nowrap font-bold">
+                                {b.date}<br/>
+                                <span className="text-[11px] font-normal text-warm-500">{b.timeSlot}</span>
+                              </td>
+                              <td className="p-3 whitespace-nowrap">
+                                <span className="font-bold text-warm-900">{b.clientName}</span><br/>
+                                <span className="text-[10px] text-warm-400">{b.clientPhone}</span>
+                              </td>
+                              <td className="p-3 font-semibold">{b.serviceName}</td>
+                              <td className="p-3 whitespace-nowrap capitalize text-warm-600">
+                                {b.paymentMethod.replace('_', ' ')}
+                              </td>
+                              <td className="p-3 whitespace-nowrap text-right font-bold text-emerald-700 font-serif">
+                                ${b.totalPriceUSD.toFixed(2)}
+                              </td>
+                              <td className="p-3 whitespace-nowrap text-right font-semibold text-warm-600">
+                                Bs. {(b.totalPriceUSD * exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 0 })}
+                              </td>
+                              <td className="p-3 whitespace-nowrap text-center">
+                                {b.status === 'completada' ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    Completada
+                                  </span>
+                                ) : b.status === 'confirmada' ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                                    Confirmada
+                                  </span>
+                                ) : b.status === 'no_asistio' ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                    No Asistió
+                                  </span>
+                                ) : b.status === 'cancelada' ? (
+                                  <div className="inline-block">
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 block">
+                                      Cancelada
+                                    </span>
+                                    {b.cancellationReason && (
+                                      <span className="text-[9px] text-rose-700 block max-w-[140px] truncate" title={b.cancellationReason}>
+                                        {b.cancellationReason}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                    En WhatsApp
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1829,6 +2314,223 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <span>Guardar &amp; Confirmar</span>
                     </>
                   )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CULMINACIÓN DE SERVICIO & ACREDITACIÓN DE SELLO VIP ── */}
+      {completeModalBooking && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-warm-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-luxury border border-sage-200 p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-sage-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Cierre de Servicio Exitoso
+                  </span>
+                  <h3 className="font-serif font-bold text-lg text-warm-900 mt-0.5">
+                    Culminar &amp; Acreditar Sello VIP
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setCompleteModalBooking(null)}
+                className="p-1.5 rounded-full text-warm-400 hover:text-warm-900 hover:bg-sage-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-sage-50 border border-sage-200 text-xs space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-warm-500">Clienta:</span>
+                <span className="font-bold text-warm-900">{completeModalBooking.clientName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-warm-500">Servicio:</span>
+                <span className="font-semibold text-warm-800">{completeModalBooking.serviceName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-warm-500">Monto del servicio:</span>
+                <span className="font-bold text-emerald-700 font-serif">
+                  ${completeModalBooking.totalPriceUSD.toFixed(2)} USD (≈ {(completeModalBooking.totalPriceUSD * exchangeRate).toFixed(0)} Bs)
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1">
+              <p className="font-bold flex items-center gap-1.5 text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                Acreditación Automática de Fidelidad
+              </p>
+              <p className="text-[11px] leading-relaxed text-emerald-800">
+                Al confirmar la culminación, se sumará 1 sello VIP a su cuenta en base de datos.
+                Recuerda: <strong>5 visitas acumuladas = Depilación de Cejas de cortesía 100% GRATIS</strong>.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => handleConfirmCompletion(true)}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Culminar &amp; Notificar por WhatsApp</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleConfirmCompletion(false)}
+                className="w-full py-2 px-4 rounded-xl bg-sage-100 hover:bg-sage-200 text-warm-800 font-bold text-xs cursor-pointer transition-colors"
+              >
+                Culminar solo en el sistema (sin WhatsApp)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: INASISTENCIA (NO-SHOW) ── */}
+      {noShowModalBooking && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-warm-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-luxury border border-sage-200 p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-sage-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+                  <UserX className="w-5 h-5 text-amber-700" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full">
+                    Inasistencia / No-Show
+                  </span>
+                  <h3 className="font-serif font-bold text-lg text-warm-900 mt-0.5">
+                    Registrar Clienta que No Llegó
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setNoShowModalBooking(null)}
+                className="p-1.5 rounded-full text-warm-400 hover:text-warm-900 hover:bg-sage-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-sage-50 border border-sage-200 text-xs space-y-1">
+              <p className="font-bold text-warm-900">{noShowModalBooking.clientName} ({noShowModalBooking.clientPhone})</p>
+              <p className="text-warm-600">{noShowModalBooking.serviceName} &bull; {noShowModalBooking.date} a las {noShowModalBooking.timeSlot}</p>
+              <p className="text-[11px] text-warm-500 pt-1">
+                El cupo quedará registrado en analítica como inasistencia y el horario se liberará en el calendario.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1.5">
+              <p className="font-bold">Mensaje sutil pre-redactado para WhatsApp:</p>
+              <p className="italic text-[11px] bg-white/90 p-2.5 rounded-xl border border-amber-200 text-warm-800 leading-relaxed">
+                &ldquo;¡Hola {noShowModalBooking.clientName} bella! 💕 Te estuvimos esperando hoy para tu cita de {noShowModalBooking.serviceName} en Andrea Labrador Nails Studio. Qué pena que se te haya complicado llegar ✨. Avísame cuando tengas disponibilidad y con todo el gusto te reagendamos para consentirte en tus uñas 💕.&rdquo;
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => handleConfirmNoShow(true)}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Liberar Cupo &amp; Enviar Mensaje Sutil</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleConfirmNoShow(false)}
+                className="w-full py-2 px-4 rounded-xl bg-sage-100 hover:bg-sage-200 text-warm-800 font-bold text-xs cursor-pointer transition-colors"
+              >
+                Registrar No-Show sin enviar mensaje
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CANCELACIÓN CON MOTIVO ── */}
+      {cancellationModalBooking && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-warm-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-luxury border border-sage-200 p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-sage-100 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800 bg-rose-50 px-2 py-0.5 rounded-full">
+                  Cancelación Formal
+                </span>
+                <h3 className="font-serif font-bold text-lg text-warm-900 mt-1">
+                  Cancelar Cita &amp; Registrar Motivo
+                </h3>
+              </div>
+              <button
+                onClick={() => setCancellationModalBooking(null)}
+                className="p-1.5 rounded-full text-warm-400 hover:text-warm-900 hover:bg-sage-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-sage-50 border border-sage-200 text-xs space-y-1">
+              <p className="font-bold text-warm-900">{cancellationModalBooking.clientName}</p>
+              <p className="text-warm-600">{cancellationModalBooking.serviceName} &bull; {cancellationModalBooking.date} a las {cancellationModalBooking.timeSlot}</p>
+            </div>
+
+            <form onSubmit={handleConfirmCancellation} className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-warm-800 block mb-1">
+                  Causa o Motivo de Cancelación:
+                </label>
+                <select
+                  value={cancellationReasonType}
+                  onChange={e => setCancellationReasonType(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#FBF9F6] border border-sage-200 text-warm-900 text-xs font-semibold focus:ring-2 focus:ring-sage-400"
+                >
+                  <option value="aviso_previo">Aviso previo de la clienta (reprogramación voluntaria)</option>
+                  <option value="emergencia">Emergencia personal / salud de la clienta</option>
+                  <option value="no_respondio">Clienta no respondió más en WhatsApp / Desistió</option>
+                  <option value="fuerza_mayor">Ajuste de agenda / Causa del salón</option>
+                  <option value="otro">Otro motivo personalizado...</option>
+                </select>
+              </div>
+
+              {cancellationReasonType === 'otro' && (
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Escribe el motivo detallado:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={cancellationCustomNote}
+                    onChange={e => setCancellationCustomNote(e.target.value)}
+                    placeholder="Ej. Se le presentó un viaje imprevisto..."
+                    className="w-full px-3 py-2 rounded-xl bg-[#FBF9F6] border border-sage-200 text-warm-900 text-xs focus:ring-2 focus:ring-sage-400"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCancellationModalBooking(null)}
+                  className="px-4 py-2 rounded-xl bg-sage-100 hover:bg-sage-200 text-warm-800 text-xs font-bold cursor-pointer"
+                >
+                  Regresar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold shadow-sm cursor-pointer"
+                >
+                  Confirmar Cancelación
                 </button>
               </div>
             </form>

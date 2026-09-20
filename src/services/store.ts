@@ -343,24 +343,27 @@ export class AppStore {
     });
   }
 
-  static async updateBookingStatusRemote(id: string, status: AppointmentBooking['status']): Promise<void> {
-    this.updateBookingStatus(id, status);
+  static async updateBookingStatusRemote(id: string, status: AppointmentBooking['status'], cancellationReason?: string): Promise<void> {
+    this.updateBookingStatus(id, status, cancellationReason);
     try {
       await fetch('/api/bookings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status })
+        body: JSON.stringify({ id, status, cancellationReason })
       });
     } catch (e) {
       console.error('Error actualizando estado en Neon:', e);
     }
   }
 
-  static updateBookingStatus(id: string, status: AppointmentBooking['status']): void {
+  static updateBookingStatus(id: string, status: AppointmentBooking['status'], cancellationReason?: string): void {
     const bookings = this.getBookings();
     const booking = bookings.find(b => b.id === id);
     if (booking) {
       booking.status = status;
+      if (cancellationReason) {
+        booking.cancellationReason = cancellationReason;
+      }
       this.saveBookings(bookings);
     }
   }

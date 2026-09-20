@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppStore } from '../services/store';
 import { ClientAccount, AppointmentBooking } from '../types';
-import { GoogleIcon, AppleIcon } from './Icons';
+import { GoogleIcon } from './Icons';
 import { 
   X, 
   User, 
@@ -505,16 +505,6 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
                     <GoogleIcon className="w-4 h-4 shrink-0" />
                     <span>Continuar con Google</span>
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleOAuthTrigger('apple')}
-                    disabled={isSubmitting}
-                    className="w-full py-2.5 px-4 bg-warm-950 hover:bg-black text-white rounded-2xl border border-warm-950 text-xs font-bold flex items-center justify-center gap-2.5 shadow-xs transition-all"
-                  >
-                    <AppleIcon className="w-4 h-4 shrink-0 fill-current" />
-                    <span>Continuar con Apple</span>
-                  </button>
                 </div>
               </div>
 
@@ -855,12 +845,12 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
               </div>
             </form>
           ) : (
-            /* ══════ VISTA 5: COMPLETAR FICHA POST-OAUTH (GOOGLE / APPLE) ══════ */
+            /* ══════ VISTA 5: COMPLETAR FICHA POST-OAUTH (GOOGLE) ══════ */
             <form onSubmit={handleOAuthComplete} className="space-y-4">
               <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-950 space-y-1 text-left">
                 <div className="flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
                   <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                  <span>Autenticación Exitosa con {oauthProvider === 'google' ? 'Google' : 'Apple'}</span>
+                  <span>Autenticación Exitosa con Google</span>
                 </div>
                 <p className="text-xs leading-relaxed">
                   Tu correo <b>{oauthEmail}</b> ha sido verificado. Ahora asigna tu número de WhatsApp y una contraseña para blindar tu ficha en la base de datos de Neon.

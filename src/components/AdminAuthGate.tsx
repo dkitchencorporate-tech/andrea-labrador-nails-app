@@ -22,7 +22,7 @@ type GateView = 'login' | 'two_factor' | 'request_reset' | 'confirm_reset';
 
 export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, onExit }) => {
   const [view, setView] = useState<GateView>('login');
-  const [email, setEmail] = useState('andrea.labrador.nails@gmail.com');
+  const [email, setEmail] = useState('slenandreal@gmail.com');
   const [password, setPassword] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [resetCode, setResetCode] = useState('');

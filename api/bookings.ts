@@ -228,7 +228,7 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
-      const { id, status, action, date, timeSlot } = req.body || {};
+      const { id, status, action, date, timeSlot, cancellationReason } = req.body || {};
       if (!id) {
         return res.status(400).json({ error: 'id de cita es requerido.' });
       }
@@ -272,14 +272,27 @@ export default async function handler(req: any, res: any) {
         return res.status(400).json({ error: 'status o acción de reprogramación requerida.' });
       }
 
-      // Actualizar estado de la cita
-      await sql`
-        UPDATE public.bookings 
-        SET status = ${status}
-        WHERE id = ${id};
-      `;
+      // Actualizar estado de la cita y motivo si aplica
+      const reasonTag = cancellationReason ? `[Cancelación: ${String(cancellationReason).slice(0, 140)}]` : '';
+      if (reasonTag) {
+        await sql`
+          UPDATE public.bookings 
+          SET status = ${status},
+              notes = CASE 
+                WHEN notes IS NULL OR notes = '' THEN ${reasonTag}
+                ELSE notes || ' ' || ${reasonTag}
+              END
+          WHERE id = ${id};
+        `;
+      } else {
+        await sql`
+          UPDATE public.bookings 
+          SET status = ${status}
+          WHERE id = ${id};
+        `;
+      }
 
-      // Si la cita pasa a 'completada', acreditar oficialmente el sello a la clienta
+      // Si la cita pasa a 'completada', acreditar oficialmente el sello a la clienta (Regla 5 visitas = Cejas gratis)
       if (status === 'completada') {
         const bookingRows = await sql`
           SELECT client_phone, client_name FROM public.bookings WHERE id = ${id};
@@ -295,9 +308,9 @@ export default async function handler(req: any, res: any) {
             WHERE client_phone = ${clientPhone} AND status = 'completada';
           `;
           const totalCompleted = Number(countRows[0]?.count || 1);
-          // Ciclo de 6 sellos para el 7mo gratis
-          const cycleStamps = totalCompleted % 7 === 0 ? 6 : Math.min(6, totalCompleted % 7);
-          const rewards = totalCompleted >= 6 ? ['¡7º Servicio 100% GRATIS!'] : [];
+          // Regla Andrea Labrador: 5 visitas completadas para ganar Depilación de Cejas de cortesía
+          const cycleStamps = totalCompleted % 6 === 0 ? 5 : Math.min(5, totalCompleted % 6);
+          const rewards = totalCompleted >= 5 ? ['¡5ª Visita: Depilación de Cejas 100% GRATIS!'] : [];
 
           await sql`
             INSERT INTO public.loyalty_cards (phone, client_name, stamps_count, last_visit, rewards_earned, updated_at)
@@ -319,7 +332,7 @@ export default async function handler(req: any, res: any) {
               clientName,
               stampsCount: cycleStamps,
               totalCompleted,
-              hasFreeReward: cycleStamps >= 6
+              hasFreeReward: cycleStamps >= 5
             }
           });
         }
