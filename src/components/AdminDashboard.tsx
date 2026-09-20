@@ -71,6 +71,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   exchangeRate,
   onRefreshData,
   onExitToCatalog,
+  onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('bookings');
   const [sidebarOpen, setSidebarOpen] = useState(false);
