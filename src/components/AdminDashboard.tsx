@@ -46,7 +46,13 @@ import {
   UserCheck,
   UserX,
   HelpCircle,
-  Filter
+  Filter,
+  ShieldCheck,
+  Shield,
+  UserPlus,
+  Lock,
+  ChevronRight,
+  Briefcase
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
@@ -61,7 +67,7 @@ interface AdminDashboardProps {
   onLogout?: () => void;
 }
 
-type TabKey = 'bookings' | 'analytics' | 'calendar' | 'services' | 'gallery' | 'crm' | 'settings';
+type TabKey = 'bookings' | 'analytics' | 'calendar' | 'services' | 'gallery' | 'crm' | 'team' | 'settings';
 
 const NAV_ITEMS: { key: TabKey; label: string; Icon: React.FC<{ className?: string }> }[] = [
   { key: 'bookings',  label: 'Citas & Reservas',         Icon: LayoutDashboard },
@@ -70,6 +76,7 @@ const NAV_ITEMS: { key: TabKey; label: string; Icon: React.FC<{ className?: stri
   { key: 'services',  label: 'Catálogo de Servicios',    Icon: Sparkles },
   { key: 'gallery',   label: 'Carrusel de Fotos',        Icon: ImageIcon },
   { key: 'crm',       label: 'Clientela & CRM',          Icon: Users },
+  { key: 'team',      label: 'Equipo & Roles (Pro)',     Icon: ShieldCheck },
   { key: 'settings',  label: 'Tasa & Respaldos',         Icon: DollarSign },
 ];
 
@@ -140,6 +147,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // ─── ARSYS WEBMAIL CONFIG ─────────────────────────────────────────────────
   const [emailSettings, setEmailSettings] = useState<StudioEmailSettings>(() => AppStore.getEmailSettings());
   const [emailSettingsSaved, setEmailSettingsSaved] = useState(false);
+
+  // ─── AGENDAMIENTO MANUAL DE CITAS ─────────────────────────────────────────
+  const [isManualBookingOpen, setIsManualBookingOpen] = useState(false);
+  const [manualClientName, setManualClientName] = useState('');
+  const [manualClientPhone, setManualClientPhone] = useState('');
+  const [manualClientInstagram, setManualClientInstagram] = useState('');
+  const [manualServiceId, setManualServiceId] = useState<string>(services[0]?.id || '');
+  const [manualDate, setManualDate] = useState<string>(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
+  const [manualTimeSlot, setManualTimeSlot] = useState<string>('10:00 AM');
+  const [manualPaymentMethod, setManualPaymentMethod] = useState<'pago_movil' | 'efectivo' | 'binance'>('pago_movil');
+  const [manualIsFirstVisit, setManualIsFirstVisit] = useState(false);
+  const [manualNotes, setManualNotes] = useState('');
+  const [manualStatus, setManualStatus] = useState<'confirmada' | 'en_whatsapp'>('confirmada');
+  const [manualBookingSubmitting, setManualBookingSubmitting] = useState(false);
+  const [manualBookingError, setManualBookingError] = useState<string | null>(null);
+  const [manualBookingSuccess, setManualBookingSuccess] = useState<string | null>(null);
+
+  // ─── EQUIPO & ROLES (PLAN PRO) ────────────────────────────────────────────
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteProNotice, setInviteProNotice] = useState(false);
+  const [collaboratorForm, setCollaboratorForm] = useState({
+    name: '',
+    phone: '',
+    role: 'colaboradora',
+    specialty: 'Manicura Rusa & Rubber',
+    commissionPercent: '50',
+    schedule: 'Lunes a Sábado · Turno Mañana',
+  });
 
   // ─── SETTINGS & EXCHANGE RATE ─────────────────────────────────────────────
   const [currentRate, setCurrentRate] = useState(exchangeRate.toString());
@@ -230,6 +268,109 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleUpdateStatus = (id: string, status: AppointmentBooking['status']) => { 
     AppStore.updateBookingStatusRemote(id, status); 
     onRefreshData(); 
+  };
+
+  // ─── AGENDAMIENTO MANUAL HANDLERS ─────────────────────────────────────────
+  const handleOpenManualBooking = (date?: string, slot?: string) => {
+    if (date) setManualDate(date);
+    if (slot) setManualTimeSlot(slot);
+    setManualBookingError(null);
+    setManualBookingSuccess(null);
+    setIsManualBookingOpen(true);
+  };
+
+  const handleCreateManualBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setManualBookingError(null);
+    setManualBookingSuccess(null);
+
+    const cleanName = manualClientName.trim();
+    const cleanPhone = manualClientPhone.trim().replace(/\D/g, '');
+
+    if (!cleanName) {
+      setManualBookingError('Por favor ingresa el nombre de la clienta.');
+      return;
+    }
+    if (cleanPhone.length < 7) {
+      setManualBookingError('Por favor ingresa un número de teléfono válido (mínimo 7 dígitos).');
+      return;
+    }
+    if (!manualDate || !manualTimeSlot) {
+      setManualBookingError('Por favor selecciona fecha y horario.');
+      return;
+    }
+
+    const selectedService = services.find(s => s.id === manualServiceId) || services[0];
+    if (!selectedService) {
+      setManualBookingError('Servicio no encontrado.');
+      return;
+    }
+
+    const isOccupied = AppStore.isSlotOccupied(manualDate, manualTimeSlot);
+    if (isOccupied) {
+      const confirmForce = window.confirm(
+        `El turno de las ${manualTimeSlot} del día ${manualDate} ya se encuentra ocupado o bloqueado. ¿Deseas forzar el agendamiento manual de todas formas?`
+      );
+      if (!confirmForce) return;
+    }
+
+    setManualBookingSubmitting(true);
+
+    const discountUSD = manualIsFirstVisit ? 2.00 : 0.00;
+    const finalPriceUSD = Math.max(0, selectedService.priceUSD - discountUSD);
+    const bookingId = 'cita_manual_' + Date.now();
+
+    const newBooking: AppointmentBooking = {
+      id: bookingId,
+      clientName: cleanName,
+      clientPhone: cleanPhone,
+      clientInstagram: manualClientInstagram.replace('@', '').trim() || undefined,
+      serviceId: selectedService.id,
+      serviceName: selectedService.name,
+      servicePriceUSD: selectedService.priceUSD,
+      totalPriceUSD: finalPriceUSD,
+      date: manualDate,
+      timeSlot: manualTimeSlot,
+      paymentMethod: manualPaymentMethod,
+      isFirstVisit: manualIsFirstVisit,
+      notes: manualNotes ? `[Cita Manual / Recepción] ${manualNotes}` : '[Cita Manual / Recepción]',
+      status: manualStatus,
+      createdAt: new Date().toISOString(),
+      discountUSD,
+    };
+
+    try {
+      const res = await AppStore.createBookingRemote(newBooking);
+      if (res.success) {
+        setManualBookingSuccess(`¡Cita agendada con éxito para ${cleanName}!`);
+        onRefreshData();
+        setTimeout(() => {
+          setManualClientName('');
+          setManualClientPhone('');
+          setManualClientInstagram('');
+          setManualNotes('');
+          setIsManualBookingOpen(false);
+          setManualBookingSuccess(null);
+        }, 1200);
+      } else {
+        setManualBookingError(res.error || 'Error al agendar la cita.');
+      }
+    } catch (err: any) {
+      setManualBookingError('Guardado en modo local.');
+      onRefreshData();
+    } finally {
+      setManualBookingSubmitting(false);
+    }
+  };
+
+  const handleOpenInviteModal = () => {
+    setInviteProNotice(false);
+    setIsInviteModalOpen(true);
+  };
+
+  const handleSaveCollaboratorMock = (e: React.FormEvent) => {
+    e.preventDefault();
+    setInviteProNotice(true);
   };
 
   const [rescheduleBookingTarget, setRescheduleBookingTarget] = useState<AppointmentBooking | null>(null);
@@ -970,18 +1111,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {sectionHead(
                   'Historial de Citas & Reservas',
                   'Las solicitudes de tus clientas se reflejan aquí de forma atómica y conectadas directo a WhatsApp.',
-                  <select
-                    value={bookingFilterStatus}
-                    onChange={e => setBookingFilterStatus(e.target.value)}
-                    className="px-3 py-1.5 rounded-xl bg-[#FBF9F6] border border-sage-200 text-xs text-warm-900 focus:outline-none focus:ring-2 focus:ring-sage-400 font-bold"
-                  >
-                    <option value="all">Todas ({bookings.length})</option>
-                    <option value="en_whatsapp">🟡 En WhatsApp ({enWhatsAppCount})</option>
-                    <option value="confirmada">🟢 Confirmadas ({confirmedCount})</option>
-                    <option value="completada">🔵 Completadas ({completedCount})</option>
-                    <option value="no_asistio">🟠 No Asistió ({noShowCount})</option>
-                    <option value="cancelada">🔴 Canceladas ({cancelledCount})</option>
-                  </select>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenManualBooking()}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+                      title="Registrar cita presencial o telefónica directamente en el salón"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Agendar Cita Presencial</span>
+                    </button>
+
+                    <select
+                      value={bookingFilterStatus}
+                      onChange={e => setBookingFilterStatus(e.target.value)}
+                      className="px-3 py-2 rounded-xl bg-[#FBF9F6] border border-sage-200 text-xs text-warm-900 focus:outline-none focus:ring-2 focus:ring-sage-400 font-bold"
+                    >
+                      <option value="all">Todas ({bookings.length})</option>
+                      <option value="en_whatsapp">🟡 En WhatsApp ({enWhatsAppCount})</option>
+                      <option value="confirmada">🟢 Confirmadas ({confirmedCount})</option>
+                      <option value="completada">🔵 Completadas ({completedCount})</option>
+                      <option value="no_asistio">🟠 No Asistió ({noShowCount})</option>
+                      <option value="cancelada">🔴 Canceladas ({cancelledCount})</option>
+                    </select>
+                  </div>
                 )}
 
                 {filteredBookings.length === 0 ? (
@@ -1367,27 +1520,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       />
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleToggleBlockEntireDay}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs ${
-                        isSelectedDayBlocked
-                          ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
-                          : 'bg-rose-700 hover:bg-rose-800 text-white'
-                      }`}
-                    >
-                      {isSelectedDayBlocked ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>Desbloquear Día Completo</span>
-                        </>
-                      ) : (
-                        <>
-                          <XCircle className="w-4 h-4" />
-                          <span>🚫 Bloquear Día Completo (Día Libre / Cerrado)</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenManualBooking(calendarDate)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
+                        title="Agendar cita manual para esta fecha"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>+ Agendar en este día</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleToggleBlockEntireDay}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                          isSelectedDayBlocked
+                            ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                            : 'bg-rose-700 hover:bg-rose-800 text-white'
+                        }`}
+                      >
+                        {isSelectedDayBlocked ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Desbloquear Día Completo</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="w-4 h-4" />
+                            <span>🚫 Bloquear Día Completo (Día Libre / Cerrado)</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {isSelectedDayBlocked && (
@@ -2165,6 +2330,358 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             )}
 
             {/* ══════════════════════════════════════════════════════════════════
+                TAB: EQUIPO & ROLES MULTI-COLABORADOR (PLAN PRO)
+            ══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'team' && (
+              <div className="space-y-6">
+                {sectionHead(
+                  'Gestión de Equipo & Control de Roles',
+                  'Administra el acceso de manicuristas, colaboradoras y recepción con permisos personalizados.',
+                  <button
+                    type="button"
+                    onClick={handleOpenInviteModal}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-900 hover:bg-indigo-950 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+                  >
+                    <UserPlus className="w-4 h-4 text-amber-300" />
+                    <span>+ Asignar Rol a Colaboradora</span>
+                  </button>
+                )}
+
+                {/* Banner de Licencia Pro (Architect Commerce) */}
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-[#0B132B] via-[#1C2541] to-[#1E3A8A] text-white border border-indigo-900 shadow-md space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                      <Lock className="w-3 h-3 text-amber-400" />
+                      Módulo Pre-habilitado · Disponible en Plan Salón Pro ($220 Setup / $40 mes)
+                    </span>
+                    <span className="text-xs text-indigo-200">
+                      Licencia Actual: <strong className="text-white">Boutique Unipersonal</strong>
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="font-serif font-bold text-xl text-white">
+                      Escala a Estudio Multi-Personal con Control de Accesos
+                    </h4>
+                    <p className="text-xs text-indigo-100/90 mt-1.5 leading-relaxed max-w-3xl">
+                      Permite que cada manicurista, estilista o recepcionista acceda desde su propio teléfono móvil para consultar su agenda del día, tomar citas y culminar servicios para otorgar sellos VIP, <strong>manteniendo totalmente protegida la caja general, facturación en dólares y balance contable confidencial del estudio</strong>.
+                    </p>
+                  </div>
+
+                  {/* Highlights */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Hasta 5 Colaboradoras
+                      </span>
+                      <p className="text-xs text-slate-200">
+                        Credenciales móviles individuales y agendas separadas en base de datos.
+                      </p>
+                    </div>
+                    <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1">
+                        <Lock className="w-3.5 h-3.5" />
+                        Privacidad Financiera
+                      </span>
+                      <p className="text-xs text-slate-200">
+                        Solo la Super Administradora (dueña) visualiza la analítica y facturación en USD/Bs.
+                      </p>
+                    </div>
+                    <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1">
+                        <Briefcase className="w-3.5 h-3.5" />
+                        Cálculo de Comisiones
+                      </span>
+                      <p className="text-xs text-slate-200">
+                        Liquidación automatizada por porcentaje pactado (50%, 60% o pago fijo por turno).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleOpenInviteModal}
+                      className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0B132B] font-bold text-xs shadow-soft transition-all cursor-pointer active:scale-95"
+                    >
+                      Pre-configurar Colaboradora &amp; Ver Simulación
+                    </button>
+                    <a
+                      href="https://wa.me/584241360937?text=¡Hola!%20Me%20interesa%20activar%20el%20Módulo%20Multi-Personal%20(Plan%20Salón%20Pro)%20para%20habilitar%20accesos%20a%20mis%20colaboradoras."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition-all border border-white/20"
+                    >
+                      Solicitar Activación de Módulo Pro
+                    </a>
+                  </div>
+                </div>
+
+                {/* Matriz de Roles y Permisos */}
+                <div className="space-y-3">
+                  <h4 className="font-serif font-bold text-base text-warm-900">
+                    Estructura de Roles &amp; Permisos del Sistema
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                    {/* Rol 1: Super Admin */}
+                    <div className="p-4 rounded-2xl bg-[#FBF9F6] border-2 border-emerald-500/40 space-y-2.5 relative">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300">
+                          🟢 Activo en este Salón
+                        </span>
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      <h5 className="font-serif font-bold text-sm text-warm-900">
+                        Super Administradora (Dueña)
+                      </h5>
+                      <p className="text-[11px] text-warm-500 leading-snug">
+                        Titular de la empresa con control total sobre el negocio, precios y finanzas.
+                      </p>
+                      <ul className="text-[11px] text-warm-700 space-y-1 pt-1 border-t border-sage-200">
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Analítica y Facturación en USD / Bs</li>
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Exportar Balances Contables en PDF A4</li>
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Ajuste diario de Tasa de Cambio</li>
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Crear, editar y eliminar servicios</li>
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Borrado de citas y auditoría maestra</li>
+                      </ul>
+                    </div>
+
+                    {/* Rol 2: Colaboradora */}
+                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-2.5 relative">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                          <Lock className="w-2.5 h-2.5" /> Plan Pro
+                        </span>
+                        <Briefcase className="w-4 h-4 text-amber-700" />
+                      </div>
+                      <h5 className="font-serif font-bold text-sm text-warm-900">
+                        Colaboradora / Manicurista
+                      </h5>
+                      <p className="text-[11px] text-warm-500 leading-snug">
+                        Acceso operativo limitado exclusivamente a sus clientas y sillón asignado.
+                      </p>
+                      <ul className="text-[11px] text-warm-700 space-y-1 pt-1 border-t border-sage-100">
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Ver sólo su agenda de turnos del día</li>
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Culminar citas y otorgar sello VIP</li>
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Reportar No-Show con aviso automático</li>
+                        <li className="flex items-center gap-1.5 text-rose-700 font-semibold"><X className="w-3 h-3 text-rose-600 shrink-0" /> Sin acceso a facturación ni caja</li>
+                        <li className="flex items-center gap-1.5 text-rose-700 font-semibold"><X className="w-3 h-3 text-rose-600 shrink-0" /> Sin acceso a cambiar precios o tasas</li>
+                      </ul>
+                    </div>
+
+                    {/* Rol 3: Recepción */}
+                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-2.5 relative">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                          <Lock className="w-2.5 h-2.5" /> Plan Pro
+                        </span>
+                        <Users className="w-4 h-4 text-amber-700" />
+                      </div>
+                      <h5 className="font-serif font-bold text-sm text-warm-900">
+                        Recepción / Front-Desk
+                      </h5>
+                      <p className="text-[11px] text-warm-500 leading-snug">
+                        Gestión de flujo de clientas presenciales, llamadas y WhatsApp del estudio.
+                      </p>
+                      <ul className="text-[11px] text-warm-700 space-y-1 pt-1 border-t border-sage-100">
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Agendamiento manual en recepción</li>
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Confirmar reservas por WhatsApp</li>
+                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Reprogramar citas acordadas</li>
+                        <li className="flex items-center gap-1.5 text-rose-700 font-semibold"><X className="w-3 h-3 text-rose-600 shrink-0" /> Sin reportes de ingresos ni balances</li>
+                        <li className="flex items-center gap-1.5 text-rose-700 font-semibold"><X className="w-3 h-3 text-rose-600 shrink-0" /> Sin acceso a modificar catálogo</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Directorio de Personal & Colaboradoras */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-serif font-bold text-base text-warm-900">
+                        Directorio de Personal &amp; Perfiles del Estudio (4)
+                      </h4>
+                      <p className="text-xs text-warm-500">
+                        La cuenta de Andrea Labrador es la administradora activa. Las demás colaboradoras se activan al migrar al Plan Pro.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleOpenInviteModal}
+                      className="text-xs font-bold text-indigo-900 hover:text-indigo-950 flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Agregar colaboradora</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {/* Colaboradora 1: Andrea (Titular) */}
+                    <div className="p-4 rounded-2xl bg-[#FBF9F6] border-2 border-emerald-500/30 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#16291F] text-amber-300 font-serif font-bold flex items-center justify-center text-sm">
+                            AL
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="font-bold text-warm-900 text-sm">Andrea Labrador</h5>
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                Dueña / Super Admin
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
+                              <Phone className="w-3 h-3" /> +58 424 1360937 &bull; slenandreal@gmail.com
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded-xl border border-sage-100">
+                        <div>
+                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Especialidad</span>
+                          <span className="text-warm-800 font-medium">Rubber, Semipermanente &amp; Arte</span>
+                        </div>
+                        <div>
+                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Horario &amp; Turno</span>
+                          <span className="text-warm-800 font-medium">Jornada Completa (100%)</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
+                        <span className="text-emerald-700 font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Cuenta Maestra Activa
+                        </span>
+                        <span className="text-warm-500 font-semibold">Comisión: 100% (Titular)</span>
+                      </div>
+                    </div>
+
+                    {/* Colaboradora 2: Valentina Mendoza (Pre-configurada) */}
+                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-3 relative group">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-sage-100 text-sage-800 font-serif font-bold flex items-center justify-center text-sm">
+                            VM
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="font-bold text-warm-900 text-sm">Valentina Mendoza</h5>
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                                <Lock className="w-2.5 h-2.5" /> Colaboradora Pro
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
+                              <Phone className="w-3 h-3" /> +58 412 8839201
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-sage-50 p-2.5 rounded-xl border border-sage-200">
+                        <div>
+                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Especialidad</span>
+                          <span className="text-warm-800 font-medium">Manicura Rusa &amp; Nivelación</span>
+                        </div>
+                        <div>
+                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Horario Asignado</span>
+                          <span className="text-warm-800 font-medium">Lun a Sáb · Mañanas (9am-2pm)</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
+                        <span className="text-amber-700 font-bold flex items-center gap-1">
+                          <Lock className="w-3.5 h-3.5 text-amber-600" /> Pre-configurada en Base de Datos
+                        </span>
+                        <span className="text-warm-600 font-semibold">Comisión: 50%</span>
+                      </div>
+                    </div>
+
+                    {/* Colaboradora 3: Camila Briceño (Pre-configurada) */}
+                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-3 relative group">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-sage-100 text-sage-800 font-serif font-bold flex items-center justify-center text-sm">
+                            CB
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="font-bold text-warm-900 text-sm">Camila Briceño</h5>
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                                <Lock className="w-2.5 h-2.5" /> Colaboradora Pro
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
+                              <Phone className="w-3 h-3" /> +58 414 7721094
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-sage-50 p-2.5 rounded-xl border border-sage-200">
+                        <div>
+                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Especialidad</span>
+                          <span className="text-warm-800 font-medium">Polygel &amp; Esculpidas</span>
+                        </div>
+                        <div>
+                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Horario Asignado</span>
+                          <span className="text-warm-800 font-medium">Lun a Sáb · Tardes (2pm-7pm)</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
+                        <span className="text-amber-700 font-bold flex items-center gap-1">
+                          <Lock className="w-3.5 h-3.5 text-amber-600" /> Pre-configurada en Base de Datos
+                        </span>
+                        <span className="text-warm-600 font-semibold">Comisión: 50%</span>
+                      </div>
+                    </div>
+
+                    {/* Colaboradora 4: Sofía Rivas (Recepción) */}
+                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-3 relative group">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-sage-100 text-sage-800 font-serif font-bold flex items-center justify-center text-sm">
+                            SR
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="font-bold text-warm-900 text-sm">Sofía Rivas</h5>
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                                <Lock className="w-2.5 h-2.5" /> Recepción Pro
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
+                              <Phone className="w-3 h-3" /> +58 424 9912048
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-sage-50 p-2.5 rounded-xl border border-sage-200">
+                        <div>
+                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Función Principal</span>
+                          <span className="text-warm-800 font-medium">Front-Desk, Citas &amp; WhatsApp</span>
+                        </div>
+                        <div>
+                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Horario Asignado</span>
+                          <span className="text-warm-800 font-medium">Jornada Continua Estudio</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
+                        <span className="text-amber-700 font-bold flex items-center gap-1">
+                          <Lock className="w-3.5 h-3.5 text-amber-600" /> Pre-configurada en Base de Datos
+                        </span>
+                        <span className="text-warm-600 font-semibold">Modalidad: Fijo por Turno</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════════════════
                 TAB 5: TASA & RESPALDOS
             ══════════════════════════════════════════════════════════════════ */}
             {activeTab === 'settings' && (
@@ -2534,6 +3051,434 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: AGENDAMIENTO MANUAL DE CITA EN RECEPCIÓN O LLAMADA ── */}
+      {isManualBookingOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-warm-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-luxury border border-sage-200 p-6 sm:p-7 space-y-4 animate-in fade-in zoom-in-95 my-6">
+            
+            <div className="flex items-center justify-between border-b border-sage-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <Calendar className="w-5 h-5 text-emerald-700" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Recepción &amp; Llamadas
+                  </span>
+                  <h3 className="font-serif font-bold text-lg text-warm-900 mt-0.5">
+                    Agendar Nueva Cita Manual
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsManualBookingOpen(false);
+                  setManualBookingError(null);
+                  setManualBookingSuccess(null);
+                }}
+                className="p-1.5 rounded-full text-warm-400 hover:text-warm-900 hover:bg-sage-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {manualBookingError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>{manualBookingError}</span>
+              </div>
+            )}
+
+            {manualBookingSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{manualBookingSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateManualBooking} className="space-y-3.5 text-xs">
+              
+              {/* Client Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Nombre Completo de la Clienta: *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={manualClientName}
+                    onChange={e => setManualClientName(e.target.value)}
+                    placeholder="Ej. Valeria Rodríguez"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    WhatsApp / Teléfono: *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={manualClientPhone}
+                    onChange={e => setManualClientPhone(e.target.value)}
+                    placeholder="Ej. 04241234567"
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Instagram de la Clienta (opcional):
+                  </label>
+                  <input
+                    type="text"
+                    value={manualClientInstagram}
+                    onChange={e => setManualClientInstagram(e.target.value)}
+                    placeholder="@usuario"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Servicio Solicitado: *
+                  </label>
+                  <select
+                    value={manualServiceId}
+                    onChange={e => setManualServiceId(e.target.value)}
+                    className={inputCls}
+                  >
+                    {services.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} (${s.priceUSD} USD / ≈ {(s.priceUSD * exchangeRate).toFixed(0)} Bs)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Date & Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Fecha de la Cita: *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={manualDate}
+                    onChange={e => setManualDate(e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Horario / Turno: *
+                  </label>
+                  <select
+                    value={manualTimeSlot}
+                    onChange={e => setManualTimeSlot(e.target.value)}
+                    className={inputCls}
+                  >
+                    {allTimeSlots.map(slot => {
+                      const isOccupied = AppStore.isSlotOccupied(manualDate, slot);
+                      return (
+                        <option key={slot} value={slot}>
+                          {slot} {isOccupied ? '(Ocupado / Bloqueado)' : '(Libre)'}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+
+              {/* Payment Method & First Visit */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Forma de Pago Prevista:
+                  </label>
+                  <select
+                    value={manualPaymentMethod}
+                    onChange={e => setManualPaymentMethod(e.target.value as any)}
+                    className={inputCls}
+                  >
+                    <option value="pago_movil">Pago Móvil (Bs)</option>
+                    <option value="efectivo">Efectivo ($ USD o Bs)</option>
+                    <option value="binance">Binance Pay (USDT)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Estado Inicial:
+                  </label>
+                  <select
+                    value={manualStatus}
+                    onChange={e => setManualStatus(e.target.value as any)}
+                    className={inputCls}
+                  >
+                    <option value="confirmada">🟢 Confirmada Directamente</option>
+                    <option value="en_whatsapp">🟡 En WhatsApp / Por Coordinar</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Descuento primera visita */}
+              <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-warm-900 block text-xs">
+                    ¿Aplica Descuento de Bienvenida?
+                  </span>
+                  <span className="text-[11px] text-warm-600">
+                    Aplica -$2.00 USD de descuento si es la primera vez que asiste al estudio.
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={manualIsFirstVisit}
+                  onChange={e => setManualIsFirstVisit(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 rounded border-sage-300 focus:ring-emerald-500 cursor-pointer"
+                />
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="text-xs font-bold text-warm-800 block mb-1">
+                  Notas u Observaciones (opcional):
+                </label>
+                <textarea
+                  rows={2}
+                  value={manualNotes}
+                  onChange={e => setManualNotes(e.target.value)}
+                  placeholder="Ej. Trae diseño en foto de Instagram, clienta prefiere tono nude..."
+                  className={inputCls}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-sage-100">
+                <button
+                  type="button"
+                  onClick={() => setIsManualBookingOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-sage-100 hover:bg-sage-200 text-warm-800 font-bold cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={manualBookingSubmitting}
+                  className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {manualBookingSubmitting ? (
+                    <span>Guardando...</span>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Guardar y Bloquear Turno</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: PRE-CONFIGURAR COLABORADORA & ASIGNAR ROL (PLAN PRO) ── */}
+      {isInviteModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-warm-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-luxury border border-sage-200 p-6 sm:p-7 space-y-4 animate-in fade-in zoom-in-95 my-6">
+            
+            <div className="flex items-center justify-between border-b border-sage-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-900 flex items-center justify-center font-bold">
+                  <UserPlus className="w-5 h-5 text-indigo-900" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-900 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                    Control Multi-Usuario
+                  </span>
+                  <h3 className="font-serif font-bold text-lg text-warm-900 mt-0.5">
+                    Asignar Rol a Nueva Colaboradora
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInviteModalOpen(false);
+                  setInviteProNotice(false);
+                }}
+                className="p-1.5 rounded-full text-warm-400 hover:text-warm-900 hover:bg-sage-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {inviteProNotice ? (
+              <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-3">
+                <div className="flex items-center gap-2 text-amber-900">
+                  <Lock className="w-5 h-5 text-amber-600 shrink-0" />
+                  <span className="font-serif font-bold text-sm">
+                    Pre-configuración Guardada · Activación Requerida
+                  </span>
+                </div>
+                <p className="text-xs text-amber-950 leading-relaxed">
+                  Has definido los datos de <strong>{collaboratorForm.name || 'la colaboradora'}</strong> con el rol de <strong>{collaboratorForm.role === 'colaboradora' ? 'Manicurista' : collaboratorForm.role}</strong>.
+                  Para aprovisionar su base de datos independiente, emitir sus credenciales seguras de acceso móvil y habilitar su calendario propio sin acceso a tu balance contable, se requiere la licencia <strong>Plan Salón Pro ($220 Setup / $40 mes)</strong>.
+                </p>
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsInviteModalOpen(false);
+                      setInviteProNotice(false);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-white border border-amber-300 text-warm-800 text-xs font-bold"
+                  >
+                    Cerrar Simulación
+                  </button>
+                  <a
+                    href={`https://wa.me/584241360937?text=¡Hola!%20Deseo%20activar%20el%20Plan%20Salón%20Pro%20para%20habilitar%20el%20acceso%20de%20mi%20colaboradora%20${encodeURIComponent(collaboratorForm.name || 'de mi equipo')}.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs flex items-center gap-1"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>Contactar Asesor por WhatsApp</span>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveCollaboratorMock} className="space-y-3.5 text-xs">
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Nombre y Apellido de la Colaboradora: *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={collaboratorForm.name}
+                    onChange={e => setCollaboratorForm({ ...collaboratorForm, name: e.target.value })}
+                    placeholder="Ej. Gabriela Pérez"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-warm-800 block mb-1">
+                      Teléfono / WhatsApp Móvil: *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={collaboratorForm.phone}
+                      onChange={e => setCollaboratorForm({ ...collaboratorForm, phone: e.target.value })}
+                      placeholder="Ej. 04141234567"
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-warm-800 block mb-1">
+                      Rol Asignado: *
+                    </label>
+                    <select
+                      value={collaboratorForm.role}
+                      onChange={e => setCollaboratorForm({ ...collaboratorForm, role: e.target.value })}
+                      className={inputCls}
+                    >
+                      <option value="colaboradora">Colaboradora / Manicurista (Agenda propia)</option>
+                      <option value="recepcion">Recepción / Front-Desk (Agendamiento)</option>
+                      <option value="super_admin">Super Administradora (Acceso Total)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-warm-800 block mb-1">
+                      Especialidad Técnica:
+                    </label>
+                    <input
+                      type="text"
+                      value={collaboratorForm.specialty}
+                      onChange={e => setCollaboratorForm({ ...collaboratorForm, specialty: e.target.value })}
+                      placeholder="Ej. Rubber, Polygel, Manicura Rusa"
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-warm-800 block mb-1">
+                      Comisión Pactada (%):
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={collaboratorForm.commissionPercent}
+                      onChange={e => setCollaboratorForm({ ...collaboratorForm, commissionPercent: e.target.value })}
+                      placeholder="50"
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-warm-800 block mb-1">
+                    Horario / Turno Asignado:
+                  </label>
+                  <input
+                    type="text"
+                    value={collaboratorForm.schedule}
+                    onChange={e => setCollaboratorForm({ ...collaboratorForm, schedule: e.target.value })}
+                    placeholder="Ej. Lunes a Sábado · Turno Tarde (2pm a 7pm)"
+                    className={inputCls}
+                  />
+                </div>
+
+                <div className="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-200 text-[11px] text-indigo-950 space-y-1">
+                  <span className="font-bold block flex items-center gap-1 text-indigo-900">
+                    <Shield className="w-3.5 h-3.5 text-indigo-700" />
+                    Protección de Datos Financieros
+                  </span>
+                  <p className="leading-relaxed">
+                    Al asignar el rol de Colaboradora o Recepción, el sistema restringe automáticamente los menús de Facturación, Analítica y Balances Contables en PDF, garantizando absoluta confidencialidad en los números de tu negocio.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-sage-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsInviteModalOpen(false)}
+                    className="px-4 py-2 rounded-xl bg-sage-100 hover:bg-sage-200 text-warm-800 font-bold cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-indigo-900 hover:bg-indigo-950 text-white font-bold shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4 text-amber-300" />
+                    <span>Guardar y Pre-configurar</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
           </div>
         </div>
       )}

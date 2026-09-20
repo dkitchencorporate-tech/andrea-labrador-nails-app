@@ -307,6 +307,7 @@ export class AppStore {
           paymentMethod: booking.paymentMethod,
           isFirstVisit: booking.isFirstVisit,
           notes: booking.notes,
+          status: booking.status,
         })
       });
 

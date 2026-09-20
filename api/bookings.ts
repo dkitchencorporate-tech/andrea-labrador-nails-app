@@ -94,10 +94,10 @@ export default async function handler(req: any, res: any) {
           const eligibleFirstVisit = (prevCount === 0) && claimedFirst;
           const discountUSD = eligibleFirstVisit ? 2.00 : 0.00;
           const finalPriceUSD = Math.max(0, cleanPrice - discountUSD);
-          const bookingId = 'cita_' + Date.now();
-          const bookingStatus = (req.body?.status === 'pendiente' || req.body?.status === 'en_whatsapp') ? req.body.status : 'en_whatsapp';
+          const allowedStatus = ['en_whatsapp', 'pendiente', 'confirmada'];
+          const bookingStatus = allowedStatus.includes(req.body?.status) ? req.body.status : 'en_whatsapp';
 
-          // 3. Registrar Cita en estado 'en_whatsapp' o 'pendiente'
+          // 3. Registrar Cita en estado especificado ('confirmada', 'en_whatsapp' o 'pendiente')
           await sql`
             INSERT INTO public.bookings (
               id, client_name, client_phone, client_instagram, service_id,
