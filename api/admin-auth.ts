@@ -4,7 +4,7 @@
 import { neon } from '@neondatabase/serverless';
 import crypto from 'crypto';
 
-const AUTH_SECRET = process.env.ADMIN_AUTH_SECRET || process.env.DATABASE_URL || 'andrea_labrador_super_admin_secret_key_2026';
+const AUTH_SECRET = process.env.ADMIN_AUTH_SECRET || 'andrea_labrador_super_admin_secret_key_2026';
 const DEFAULT_SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || 'slenandreal@gmail.com').toLowerCase().trim();
 
 function getDb() {
@@ -53,6 +53,10 @@ export function verifyAdminToken(token: string): { valid: boolean; email?: strin
 }
 
 export default async function handler(req: any, res: any) {
+  // Security Headers (HSTS, No-Sniff, Frame-Options)
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');

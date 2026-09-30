@@ -48,13 +48,13 @@ export const ReferralClub: React.FC<ReferralClubProps> = ({
         setStampsCount(card.stampsCount);
         if (card.clientName) setClientName(card.clientName);
         setSearchFeedback(
-          card.stampsCount >= 6 
-            ? '🎉 ¡Felicidades! Tienes acumulados los 6 sellos. Tu 7º servicio es 100% GRATIS.' 
-            : `Tienes ${card.stampsCount} de 6 sellos acumulados. ¡Te faltan solo ${6 - card.stampsCount} para tu servicio gratis!`
+          card.stampsCount >= 5 
+            ? '🎉 ¡Felicidades! Tienes acumulados tus 5 sellos. ¡Tu Depilación de Cejas es 100% de cortesía!' 
+            : `Tienes ${card.stampsCount} de 5 sellos acumulados. ¡Te faltan solo ${5 - card.stampsCount} para tu Depilación de Cejas de cortesía!`
         );
       } else {
         setStampsCount(0);
-        setSearchFeedback('👋 ¡Bienvenida! Aún no tienes sellos registrados. Agenda tu primera cita para recibir $2 USD de descuento directo y activar tu primer sello.');
+        setSearchFeedback('👋 ¡Bienvenida! Aún no tienes sellos registrados. Agenda tu cita para activar tu primer sello.');
       }
     } catch (err) {
       console.warn('Error consultando fidelización:', err);
@@ -122,7 +122,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
             </div>
           </div>
 
-          {/* Card 2: 6 + 1 Gratis */}
+          {/* Card 2: 5 Visitas = Cejas Gratis */}
           <div className="bg-white p-6 rounded-3xl border border-emerald-300 shadow-soft hover:shadow-luxury transition-all flex flex-col justify-between group bg-gradient-to-br from-white to-emerald-50/40">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -130,16 +130,16 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
                   02
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
-                  Fidelidad 6+1
+                  Fidelidad 5 Visitas
                 </span>
               </div>
               
               <h3 className="font-serif text-xl font-bold text-warm-900">
-                6 Servicios = Tu 7º GRATIS
+                5 Servicios = Cejas de Cortesía
               </h3>
               
               <p className="text-xs sm:text-sm text-warm-700 leading-relaxed">
-                Cada servicio completado suma 1 sello a tu tarjeta digital. Al acumular <strong>6 visitas</strong>, tu <strong>7º servicio es 100% GRATIS</strong> (Esmaltado Semipermanente o Mantenimiento Rubber).
+                Cada servicio completado suma 1 sello a tu tarjeta digital. Al acumular <strong>5 visitas</strong>, obtienes tu <strong>Depilación de Cejas 100% de cortesía</strong>.
               </p>
             </div>
 
@@ -215,15 +215,15 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
               </p>
             </div>
 
-            {/* 6 STAMP SLOTS + 7th PRIZE SLOT */}
+            {/* 5 STAMP SLOTS + PRIZE SLOT */}
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between text-xs text-sage-300">
                 <span>Progreso de visitas acumuladas:</span>
-                <span className="text-amber-200 font-bold">{Math.min(6, stampsCount)} de 6 servicios</span>
+                <span className="text-amber-200 font-bold">{Math.min(5, stampsCount)} de 5 servicios</span>
               </div>
 
-              <div className="grid grid-cols-6 gap-2 pt-1">
-                {[1, 2, 3, 4, 5, 6].map((num) => {
+              <div className="grid grid-cols-5 gap-2 pt-1">
+                {[1, 2, 3, 4, 5].map((num) => {
                   const isFilled = num <= stampsCount;
                   return (
                     <div
@@ -244,15 +244,15 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
                 })}
               </div>
 
-              {/* 7th Reward Box */}
+              {/* 5th Reward Box */}
               <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-900/60 to-sage-900/60 border border-emerald-400/40 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm">
-                    7
+                    🎁
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-white block">Servicio #7: 100% GRATIS</span>
-                    <span className="text-[10px] text-emerald-200">Esmaltado Semipermanente o Mantenimiento Rubber</span>
+                    <span className="text-xs font-bold text-white block">Visita #5: Depilación de Cejas de Cortesía</span>
+                    <span className="text-[10px] text-emerald-200">100% de cortesía para clientas del Club</span>
                   </div>
                 </div>
                 <Award className="w-5 h-5 text-amber-300" />
@@ -275,7 +275,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
                 className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-sage-800 hover:bg-sage-900 text-white font-bold text-xs sm:text-sm shadow-soft transition-all active:scale-98"
               >
                 <Calendar className="w-4 h-4 text-amber-300" />
-                <span>Agendar Cita con Descuento</span>
+                <span>Agendar mis cejas de cortesía</span>
               </button>
 
               <a
@@ -295,7 +295,7 @@ Deseo consultar mis sellos acumulados en el *Programa de Fidelización* o agenda
             <div className="flex items-center gap-1.5 text-xs text-warm-700">
               <ShieldCheck className="w-4 h-4 text-sage-600 shrink-0" />
               <span>
-                <strong>Condiciones claras:</strong> Tus visitas se acreditan automáticamente tras la realización de cada servicio. El 7º servicio gratuito aplica a esmaltado semipermanente o mantenimiento rubber.
+                <strong>Condiciones claras:</strong> Tus visitas se acreditan automáticamente tras la realización de cada servicio. Con 5 visitas acumuladas disfrutas de tu depilación de cejas de cortesía.
               </span>
             </div>
           </div>

@@ -366,10 +366,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <span className="text-sage-800 font-bold">Total a Pagar:</span>
                   <span className="font-bold text-sage-900 font-serif text-base">${lastCreatedBooking.totalPriceUSD.toFixed(2)} USD</span>
                 </div>
-                <div className="flex justify-between text-xs text-sage-700 font-semibold">
-                  <span>En Bolívares:</span>
-                  <span>≈ {(lastCreatedBooking.totalPriceUSD * exchangeRate).toFixed(0)} Bs</span>
-                </div>
               </div>
 
               {/* Action button to re-trigger WhatsApp */}
@@ -412,7 +408,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       <span>Programa de Fidelización</span>
                     </span>
                     <p className="text-xs font-bold text-warm-900">
-                      ¡6 Servicios = Tu 7º Servicio 100% GRATIS!
+                      ¡5 Visitas = Depilación de Cejas 100% GRATIS!
                     </p>
                     <p className="text-[11px] text-warm-600">
                       Esta visita sumará automáticamente a tu tarjeta digital.
@@ -825,7 +821,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType)}
                       className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-sage-400 focus:outline-none"
                     >
-                      <option value="pago_movil">Pago Móvil (Bolívares)</option>
+                      <option value="pago_movil">Pago Móvil</option>
                       <option value="efectivo">Efectivo en Dólares ($)</option>
                       <option value="binance">Binance Pay (USDT)</option>
                     </select>
@@ -956,7 +952,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                     <div className="pt-1 text-[11px] text-sage-700 font-medium flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                      <span>Suma 1 servicio en tu Tarjeta de Fidelización (el 7º servicio es 100% GRATIS).</span>
+                      <span>Suma 1 servicio en tu Tarjeta de Fidelización (5 visitas = Depilación de Cejas GRATIS).</span>
                     </div>
                   </div>
 

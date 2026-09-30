@@ -114,7 +114,7 @@ export const PromoPage: React.FC<PromoPageProps> = ({
                 </div>
                 <div>
                   <span className="text-xs font-bold text-warm-950 block">Acumula Sellos</span>
-                  <span className="text-[11px] text-warm-800 block">Suma para tu 7º servicio gratis</span>
+                  <span className="text-[11px] text-warm-800 block">Suma para tu depilación de cejas gratis</span>
                 </div>
               </div>
 

@@ -314,7 +314,7 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
     setViewMode('login');
   };
 
-  const stampsTotal = 6;
+  const stampsTotal = 5;
   const currentStamps = activeAccount ? activeAccount.stampsCount : 0;
 
   return (
@@ -399,14 +399,14 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] uppercase tracking-widest text-amber-300 font-bold block">Tarjeta Digital VIP</span>
-                    <h4 className="font-serif text-lg font-bold">Programa 6+1 de Fidelización</h4>
+                    <h4 className="font-serif text-lg font-bold">Programa de Fidelización</h4>
                   </div>
                   <span className="text-xs font-bold text-amber-300 bg-white/10 px-3 py-1 rounded-full border border-amber-400/30">
                     {currentStamps} de {stampsTotal} Sellos
                   </span>
                 </div>
 
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   {Array.from({ length: stampsTotal }).map((_, i) => {
                     const isStamped = i < currentStamps;
                     return (
@@ -420,13 +420,13 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
                       >
                         {isStamped ? (
                           <CheckCircle2 className="w-5 h-5 text-amber-300" />
-                        ) : i === 5 ? (
+                        ) : i === 4 ? (
                           <Gift className="w-5 h-5 text-amber-300 animate-pulse" />
                         ) : (
                           <span className="text-xs font-bold">#{i + 1}</span>
                         )}
                         <span className="text-[8px] font-bold mt-0.5">
-                          {i === 5 ? '¡GRATIS!' : `Sello ${i + 1}`}
+                          {i === 4 ? '¡CORTESÍA!' : `Sello ${i + 1}`}
                         </span>
                       </div>
                     );
@@ -434,7 +434,7 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
                 </div>
 
                 <div className="pt-2 border-t border-white/10 text-xs text-white/90 flex items-center justify-between">
-                  <span>{currentStamps >= 6 ? '🎉 ¡Felicidades! Tienes tu 7º servicio 100% GRATIS.' : `Te faltan ${stampsTotal - currentStamps} visitas para tu servicio gratis.`}</span>
+                  <span>{currentStamps >= 5 ? '🎉 ¡Felicidades! Tienes tu Depilación de Cejas de cortesía.' : `Te faltan ${stampsTotal - currentStamps} visitas para tu cortesía.`}</span>
                 </div>
               </div>
 
@@ -613,7 +613,7 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
               <div className="text-center space-y-1 pb-1">
                 <h4 className="font-serif text-lg font-bold text-warm-950">Crear Nueva Ficha de Clienta</h4>
                 <p className="text-xs text-warm-600">
-                  Registra tus datos una sola vez para acumular tus 6 sellos y disfrutar de tu 7º servicio gratis.
+                  Registra tus datos una sola vez para acumular tus 5 sellos y disfrutar de tu depilación de cejas de cortesía.
                 </p>
               </div>
 

@@ -145,10 +145,7 @@ export const INITIAL_SERVICES: ServiceItem[] = [
 ];
 
 export const INITIAL_ADDONS: ServiceAddon[] = [
-  { id: 'nailart-express', name: 'Nail Art Express (Líneas / Glitter)', priceUSD: 2.00, durationMinutes: 15 },
-  { id: 'nailart-deluxe', name: 'Nail Art Diseños Especiales', priceUSD: 5.00, durationMinutes: 30 },
-  { id: 'francesa', name: 'Diseño Francés / Baby Boomer', priceUSD: 3.00, durationMinutes: 15 },
-  { id: 'retirada', name: 'Retiro de Sistema Anterior', priceUSD: 3.00, durationMinutes: 20 },
+  { id: 'retirada', name: 'Retiro de Sistema Anterior (solo se cobra si el sistema fue hecho en otro lugar)', priceUSD: 3.00, durationMinutes: 20 },
 ];
 
 export const INITIAL_PROMOS: PromoOffer[] = [

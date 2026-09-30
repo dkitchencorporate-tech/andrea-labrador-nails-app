@@ -117,15 +117,15 @@ export const PaymentMethods: React.FC = () => {
                   Binance Pay
                 </h4>
                 <p className="text-[11px] text-warm-700 leading-relaxed">
-                  USDT instantáneo sin comisiones interbancarias.
+                  ID: <strong className="font-mono text-sage-900">777809666</strong> (USDT instantáneo sin comisiones).
                 </p>
               </div>
               <button
-                onClick={() => handleCopy('andrealabrador.binance@gmail.com', 'binance')}
+                onClick={() => handleCopy('777809666', 'binance')}
                 className="w-full py-2 px-3 bg-sage-50 hover:bg-sage-100 text-sage-800 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors border border-sage-200"
               >
                 {copiedKey === 'binance' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedKey === 'binance' ? 'Copiado' : 'Copiar Pay ID'}</span>
+                <span>{copiedKey === 'binance' ? 'Copiado (777809666)' : 'Copiar Binance ID: 777809666'}</span>
               </button>
             </div>
 

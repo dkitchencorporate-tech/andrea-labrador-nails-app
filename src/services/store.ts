@@ -650,9 +650,9 @@ export class AppStore {
       rewardsEarned: []
     };
     existing.clientName = clientName || existing.clientName;
-    existing.stampsCount = Math.max(0, Math.min(6, stamps));
-    if (existing.stampsCount === 6 && !existing.rewardsEarned.includes('¡7º Servicio 100% GRATIS!')) {
-      existing.rewardsEarned.push('¡7º Servicio 100% GRATIS!');
+    existing.stampsCount = Math.max(0, Math.min(5, stamps));
+    if (existing.stampsCount === 5 && !existing.rewardsEarned.includes('¡Depilación de Cejas 100% GRATIS!')) {
+      existing.rewardsEarned.push('¡Depilación de Cejas 100% GRATIS!');
     }
     cards[normalized] = existing;
     this.saveLoyaltyCards(cards);
@@ -672,10 +672,10 @@ export class AppStore {
 
     existing.clientName = clientName;
     existing.lastVisit = new Date().toISOString().split('T')[0];
-    existing.stampsCount = Math.min(6, existing.stampsCount + 1);
+    existing.stampsCount = Math.min(5, existing.stampsCount + 1);
 
-    if (existing.stampsCount === 6 && !existing.rewardsEarned.includes('¡7º Servicio 100% GRATIS!')) {
-      existing.rewardsEarned.push('¡7º Servicio 100% GRATIS!');
+    if (existing.stampsCount === 5 && !existing.rewardsEarned.includes('¡Depilación de Cejas 100% GRATIS!')) {
+      existing.rewardsEarned.push('¡Depilación de Cejas 100% GRATIS!');
     }
 
     cards[normalized] = existing;
@@ -1172,9 +1172,9 @@ export class AppStore {
     referralCode?: string;
   }): string {
     const paymentLabel = {
-      pago_movil: 'Pago Móvil (Bolívares)',
+      pago_movil: 'Pago Móvil',
       efectivo: 'Efectivo en Dólares ($)',
-      binance: 'Binance (USDT)'
+      binance: 'Binance Pay (USDT)'
     }[booking.paymentMethod];
 
     const addonsText = booking.addons && booking.addons.length > 0
@@ -1193,13 +1193,10 @@ export class AppStore {
     const loyaltyText = booking.isExistingClient
       ? `\n⭐ *Clienta VIP Registrada:* Sumando a mi Tarjeta de Fidelización (5 visitas = Depilación de Cejas GRATIS)`
       : `\n⭐ *Programa de Fidelización:* Sumando a mi 5ª visita para Depilación de Cejas de cortesía`;
-    
-    const rate = this.getExchangeRate();
-    const approxVES = (booking.totalPriceUSD * rate).toFixed(0);
 
     const totalText = (!booking.isExistingClient && booking.isFirstVisit)
-      ? `💰 *Total Estimado con Descuento:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)\n📌 _Nota: La bonificación de $2 USD la aplica Andrea directamente en el salón tras corroborar que sea tu primera visita._`
-      : `💰 *Total del Servicio:* $${booking.totalPriceUSD.toFixed(2)} USD (≈ ${approxVES} Bs)`;
+      ? `💰 *Total Estimado con Descuento:* $${booking.totalPriceUSD.toFixed(2)} USD\n📌 _Nota: La bonificación de $2 USD la aplica Andrea directamente en el salón tras corroborar que sea tu primera visita._`
+      : `💰 *Total del Servicio:* $${booking.totalPriceUSD.toFixed(2)} USD`;
 
     const message = `💅 *SOLICITUD DE CITA — ANDREA LABRADOR NAILS STUDIO*
 

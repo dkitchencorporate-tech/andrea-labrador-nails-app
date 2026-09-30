@@ -30,7 +30,7 @@ export const LoyaltyClub: React.FC = () => {
         clientName: remote.clientName || 'Clienta VIP',
         stampsCount: remote.stampsCount,
         lastVisit: remote.lastVisit || new Date().toISOString().split('T')[0],
-        rewardsEarned: remote.stampsCount >= 6 ? ['¡7º Servicio 100% GRATIS!'] : [],
+        rewardsEarned: remote.stampsCount >= 5 ? ['¡Depilación de Cejas 100% GRATIS!'] : [],
       });
     } else {
       setSearchedCard(null);
@@ -38,7 +38,7 @@ export const LoyaltyClub: React.FC = () => {
     setIsSearching(false);
   };
 
-  const stampsTotal = 6;
+  const stampsTotal = 5;
   const currentStamps = searchedCard ? searchedCard.stampsCount : 0;
 
   return (
@@ -96,10 +96,10 @@ export const LoyaltyClub: React.FC = () => {
               <span>{currentStamps} de {stampsTotal} completados</span>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4">
+            <div className="grid grid-cols-5 gap-2 sm:gap-4">
               {Array.from({ length: stampsTotal }).map((_, index) => {
                 const isStamped = index < currentStamps;
-                const isSpecial = index === 5;
+                const isSpecial = index === 4;
 
                 return (
                   <div
@@ -123,7 +123,7 @@ export const LoyaltyClub: React.FC = () => {
                     )}
 
                     <span className="text-[10px] font-bold uppercase tracking-wider leading-tight">
-                      {index === 5 ? 'Depilación de Cejas' : `Sello ${index + 1}`}
+                      {index === 4 ? 'Depilación de Cejas' : `Sello ${index + 1}`}
                     </span>
                   </div>
                 );

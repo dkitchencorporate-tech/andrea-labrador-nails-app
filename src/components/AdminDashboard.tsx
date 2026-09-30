@@ -901,8 +901,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
 
     return {
-      subject: `🎉 ¡Felicitaciones ${name}! Tu próximo servicio es 100% GRATIS`,
-      body: `¡Hola ${name}!\n\n¡Tenemos una excelente noticia para ti! Con tus visitas continuas has completado 6 servicios en el estudio de Andrea Labrador Nails.\n\n⭐ Tu 7º servicio (Esmaltado Semipermanente o Mantenimiento Rubber) es 100% GRATIS por cuenta de la casa.\n\nPara canjear tu servicio de cortesía, responde a este correo o escríbenos directamente a WhatsApp (0424-1360937) para agendar tu cupo especial.\n\n¡Gracias por tu confianza y preferencia!\nAndrea Labrador Studio`
+      subject: `🎉 ¡Felicitaciones ${name}! Tu Depilación de Cejas es 100% de Cortesía`,
+      body: `¡Hola ${name}!\n\n¡Tenemos una excelente noticia para ti! Con tus visitas continuas has acumulado 5 servicios en el estudio de Andrea Labrador Nails.\n\n⭐ Tu Depilación de Cejas es 100% de CORTESÍA por cuenta de la casa.\n\nPara canjear tu cortesía, responde a este correo o escríbenos directamente a WhatsApp (0424-1360937) para agendar tu cupo especial.\n\n¡Gracias por tu confianza y preferencia!\nAndrea Labrador Studio`
     };
   };
 
@@ -1934,7 +1934,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       {clientsList.length} clientas registradas
                     </span>
                     <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
-                      {clientsList.filter(c => c.hasFreeService).length} con 7º GRATIS
+                      {clientsList.filter(c => c.hasFreeService).length} con Cejas GRATIS
                     </span>
                   </div>
                 </div>
@@ -1957,11 +1957,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <span className="font-bold text-warm-900 text-sm">{client.name}</span>
                             {client.hasFreeService ? (
                               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-xs">
-                                🏆 ¡7º Servicio GRATIS!
+                                🏆 ¡Cejas de Cortesía!
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
-                                {client.stampsCount}/6 sellos
+                                {client.stampsCount}/5 sellos
                               </span>
                             )}
                           </div>
@@ -2081,7 +2081,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       {[
                         { key: 'confirmation', label: '1. Confirmación de Cita' },
                         { key: 'reminder', label: '2. Recordatorio 24h' },
-                        { key: 'loyalty_prize', label: '3. Premio 7º Servicio GRATIS' },
+                        { key: 'loyalty_prize', label: '3. Premio Depilación de Cejas de Cortesía' },
                       ].map(t => (
                         <button
                           key={t.key}
