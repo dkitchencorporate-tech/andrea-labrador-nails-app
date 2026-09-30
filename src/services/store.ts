@@ -1284,6 +1284,8 @@ Hola Andrea, ¿tienes este cupo disponible para confirmarme? ¡Muchas gracias! �
   static async loginAdminRemote(email: string, password: string): Promise<{
     success: boolean;
     requires2FA?: boolean;
+    token?: string;
+    superAdminEmail?: string;
     maskedEmail?: string;
     demo2FACode?: string;
     error?: string;
@@ -1295,7 +1297,11 @@ Hola Andrea, ¿tienes este cupo disponible para confirmarme? ¡Muchas gracias! �
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'login', email, password })
       });
-      return await res.json();
+      const data = await res.json();
+      if (res.ok && data.success && data.token) {
+        this.setAdminSession(data.token, data.superAdminEmail || email);
+      }
+      return data;
     } catch (err: any) {
       return { success: false, error: 'Error de conexión con el servidor de autenticación.' };
     }

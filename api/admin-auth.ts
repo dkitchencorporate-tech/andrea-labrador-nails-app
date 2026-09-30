@@ -197,15 +197,12 @@ export default async function handler(req: any, res: any) {
           });
         }
 
-        // Contraseña correcta: Generar código de 6 dígitos para 2FA
-        const twoFactorCode = String(Math.floor(100000 + Math.random() * 900000));
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
+        // Contraseña correcta: Generar token de sesión directo (Fase de Edición / Acceso Directo)
+        const token = generateAdminToken(cleanEmail);
 
         await sql`
           UPDATE public.admin_users 
-          SET two_factor_code = ${twoFactorCode}, 
-              two_factor_expires = ${expiresAt}, 
-              failed_attempts = 0,
+          SET failed_attempts = 0,
               locked_until = NULL,
               updated_at = NOW()
           WHERE email = ${cleanEmail};
@@ -213,10 +210,10 @@ export default async function handler(req: any, res: any) {
 
         return res.status(200).json({
           success: true,
-          requires2FA: true,
-          maskedEmail: maskEmail(cleanEmail),
-          demo2FACode: twoFactorCode, // Para visualización inmediata y verificación sin depender de SMTP
-          message: `Código 2FA generado y enviado a ${maskEmail(cleanEmail)}.`
+          requires2FA: false,
+          token,
+          superAdminEmail: cleanEmail,
+          message: 'Acceso directo de Super Admin concedido.'
         });
       } catch (err: any) {
         console.error('[Admin Login Error]:', err);

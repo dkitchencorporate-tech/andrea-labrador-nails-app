@@ -49,6 +49,12 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
       return;
     }
 
+    // Acceso directo con token
+    if (res.token) {
+      onAuthenticated(res.superAdminEmail || email);
+      return;
+    }
+
     if (res.requires2FA) {
       setMaskedEmail(res.maskedEmail || email);
       if (res.demo2FACode) setDemoCode(res.demo2FACode);
@@ -136,7 +142,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
             Andrea Labrador Nails
           </h2>
           <p className="text-xs text-sage-200/80">
-            Portal administrativo protegido con Autenticación en Dos Pasos (2FA)
+            Portal administrativo y panel de control
           </p>
         </div>
 
@@ -220,7 +226,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({ onAuthenticated, o
               ) : (
                 <>
                   <KeyRound className="w-4 h-4 stroke-[2.5]" />
-                  <span>Continuar al Paso 2 (2FA)</span>
+                  <span>Ingresar al Panel de Control</span>
                 </>
               )}
             </button>
