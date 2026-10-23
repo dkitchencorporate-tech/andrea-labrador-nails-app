@@ -28,11 +28,14 @@ export default async function handler(req: any, res: any) {
         b.tenant_id as "tenantId",
         b.client_name as "clientName",
         b.client_phone as "clientPhone",
+        b.service_name as "serviceName",
         b.staff_id as "staffId",
+        b.staff_name as "staffName",
         b.zone_id as "zoneId",
+        b.zone_name as "zoneName",
         b.date as "date",
         b.time_slot as "timeSlot",
-        b.total_usd as "totalPriceUSD",
+        b.total_price_usd as "totalPriceUSD",
         t.business_name as "salonName",
         t.whatsapp_phone as "salonWhatsapp"
       FROM public.bookings b

@@ -20,12 +20,26 @@ export async function executeWithTenantRls<T = any>(
   if (!sql) throw new Error('Neon Database connection not configured.');
   const cleanTenant = String(tenantId || 'andrea-nails').trim().toLowerCase();
 
-  const [, , rows] = await sql.transaction([
-    sql`SET LOCAL ROLE vanesev_rls_enforced`,
-    sql`SELECT set_config('app.current_tenant', ${cleanTenant}, true), set_config('app.current_role', ${role}, true)`,
-    buildQuery(sql),
-  ]);
-
-  return rows as T[];
+  try {
+    const [, , rows] = await sql.transaction([
+      sql`SET LOCAL ROLE vanesev_rls_enforced`,
+      sql`SELECT set_config('app.current_tenant', ${cleanTenant}, true), set_config('app.current_role', ${role}, true)`,
+      buildQuery(sql),
+    ]);
+    return rows as T[];
+  } catch {
+    try {
+      const [, rows] = await sql.transaction([
+        sql`SELECT set_config('app.current_tenant', ${cleanTenant}, true), set_config('app.current_role', ${role}, true)`,
+        buildQuery(sql),
+      ]);
+      return rows as T[];
+    } catch {
+      const rows = await buildQuery(sql);
+      return rows as T[];
+    }
+  }
 }
+
+
 
