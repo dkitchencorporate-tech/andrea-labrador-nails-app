@@ -28,15 +28,15 @@ export default async function handler(req: any, res: any) {
   if (sql) {
     try {
       const rows = await sql`
-        SELECT name, slug, primary_color, secondary_color, slogan
+        SELECT business_name, custom_subdomain, primary_color, secondary_color, slogan
         FROM public.tenants
-        WHERE id = ${tenantSlug} OR slug = ${tenantSlug}
+        WHERE id = ${tenantSlug} OR custom_subdomain = ${tenantSlug}
         LIMIT 1;
       `;
       if (rows.length > 0) {
         const t = rows[0];
-        name = t.name || name;
-        shortName = String(t.name || shortName).slice(0, 18);
+        name = t.business_name || name;
+        shortName = String(t.business_name || shortName).slice(0, 18);
         themeColor = t.primary_color || themeColor;
         bgColor = t.secondary_color || bgColor;
         if (t.slogan) description = t.slogan;

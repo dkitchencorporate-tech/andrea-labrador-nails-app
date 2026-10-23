@@ -1,6 +1,6 @@
 // Vercel Serverless Function: /api/services
 // Manages catalog services in Neon Serverless Postgres with PostgreSQL 18 RLS enforcement
-import { getDb, executeWithTenantRls } from './_db';
+import { getDb, executeWithTenantRls } from './_db.js';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');

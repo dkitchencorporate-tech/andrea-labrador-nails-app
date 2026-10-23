@@ -28,18 +28,17 @@ export default async function handler(req: any, res: any) {
         b.tenant_id as "tenantId",
         b.client_name as "clientName",
         b.client_phone as "clientPhone",
-        b.service_name as "serviceName",
-        b.staff_name as "staffName",
-        b.zone_name as "zoneName",
-        TO_CHAR(b.date, 'YYYY-MM-DD') as "date",
+        b.staff_id as "staffId",
+        b.zone_id as "zoneId",
+        b.date as "date",
         b.time_slot as "timeSlot",
-        b.total_price_usd as "totalPriceUSD",
-        t.name as "salonName",
+        b.total_usd as "totalPriceUSD",
+        t.business_name as "salonName",
         t.whatsapp_phone as "salonWhatsapp"
       FROM public.bookings b
       LEFT JOIN public.tenants t ON t.id = b.tenant_id
-      WHERE b.date = ${tomorrowStr}::date
-        AND b.status IN ('confirmada', 'en_whatsapp', 'pendiente')
+      WHERE b.date = ${tomorrowStr}
+        AND b.status IN ('confirmada', 'en_whatsapp', 'pendiente', 'confirmed', 'pending')
       ORDER BY b.time_slot ASC;
     `;
 
@@ -53,12 +52,11 @@ export default async function handler(req: any, res: any) {
       salonName: b.salonName || b.tenantId,
       clientName: b.clientName,
       clientPhone: b.clientPhone,
-      serviceName: b.serviceName,
       date: b.date,
       timeSlot: b.timeSlot,
       channels: {
         whatsappDeepLink: `https://wa.me/${String(b.clientPhone).replace(/\D/g, '')}?text=${encodeURIComponent(
-          `¡Hola ${b.clientName}! ✨ Te recordamos tu cita de mañana (${b.date} a las ${b.timeSlot}) en ${b.salonName || 'nuestro estudio'} para ${b.serviceName}. ¡Te esperamos!`
+          `¡Hola ${b.clientName}! ✨ Te recordamos tu cita de mañana (${b.date} a las ${b.timeSlot}) en ${b.salonName || 'nuestro estudio'}. ¡Te esperamos!`
         )}`,
         metaCloudApiReady: Boolean(metaWaToken && metaPhoneId),
         resendEmailReady: Boolean(resendApiKey),
@@ -66,7 +64,9 @@ export default async function handler(req: any, res: any) {
     }));
 
     return res.status(200).json({
+      ok: true,
       success: true,
+      window: '24h',
       targetDate: tomorrowStr,
       totalUpcoming: dispatches.length,
       providersConfigured: {
