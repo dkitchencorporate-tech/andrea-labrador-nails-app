@@ -33,6 +33,7 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'POST') {
     try {
       const {
+        tenantId,
         clientName,
         clientPhone,
         clientEmail,
@@ -41,6 +42,10 @@ export default async function handler(req: any, res: any) {
         serviceId,
         serviceName,
         servicePriceUSD,
+        staffId,
+        staffName,
+        zoneId,
+        zoneName,
         date,
         timeSlot,
         paymentMethod,
@@ -54,6 +59,7 @@ export default async function handler(req: any, res: any) {
         });
       }
 
+      const cleanTenant = String(tenantId || 'andrea-nails').trim().toLowerCase();
       const cleanPhone = String(clientPhone).replace(/\D/g, '');
       const cleanName = String(clientName).trim().slice(0, 80);
       const cleanEmail = clientEmail ? String(clientEmail).trim().toLowerCase().slice(0, 80) : '';
@@ -75,13 +81,13 @@ export default async function handler(req: any, res: any) {
 
       if (sql) {
         try {
-          // 1. Blindaje de Disponibilidad: validar que no esté ocupado ni bloqueado
+          // 1. Blindaje de Disponibilidad por Salón/Tenant
           const existingSlot = await sql`
             SELECT 1 FROM public.blocked_slots 
-            WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime}
+            WHERE tenant_id = ${cleanTenant} AND date = ${cleanDate}::date AND time_slot = ${cleanTime}
             UNION ALL
             SELECT 1 FROM public.bookings 
-            WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime} AND status IN ('en_whatsapp', 'pendiente', 'confirmada');
+            WHERE tenant_id = ${cleanTenant} AND date = ${cleanDate}::date AND time_slot = ${cleanTime} AND status IN ('en_whatsapp', 'pendiente', 'confirmada');
           `;
 
           if (existingSlot.length > 0) {
@@ -91,7 +97,7 @@ export default async function handler(req: any, res: any) {
           // 2. Blindaje Anti-Fraude: verificación estricta de primera visita
           const previousBookings = await sql`
             SELECT COUNT(*) as count FROM public.bookings 
-            WHERE client_phone = ${cleanPhone} AND status != 'cancelada';
+            WHERE tenant_id = ${cleanTenant} AND client_phone = ${cleanPhone} AND status != 'cancelada';
           `;
           const prevCount = Number(previousBookings[0]?.count || 0);
           const eligibleFirstVisit = (prevCount === 0) && claimedFirst;
@@ -101,20 +107,22 @@ export default async function handler(req: any, res: any) {
           const bookingStatus = allowedStatus.includes(req.body?.status) ? req.body.status : 'en_whatsapp';
           const bookingId = req.body?.id || `booking_${Date.now()}_${cleanPhone.slice(-4)}`;
 
-          // 3. Registrar Cita en estado especificado ('confirmada', 'en_whatsapp' o 'pendiente')
+          // 3. Registrar Cita con soporte de Especialista (staff) y Zona (studio_zone)
           await sql`
             INSERT INTO public.bookings (
-              id, client_name, client_phone, client_instagram, service_id,
-              service_name, service_price_usd, total_price_usd, date,
-              time_slot, payment_method, notes, status, is_first_visit, discount_usd, created_at
+              id, tenant_id, client_name, client_phone, client_instagram, service_id,
+              service_name, service_price_usd, total_price_usd, staff_id, staff_name,
+              zone_id, zone_name, date, time_slot, payment_method, notes, status,
+              is_first_visit, discount_usd, created_at
             ) VALUES (
-              ${bookingId}, ${cleanName}, ${cleanPhone}, ${cleanInstagram}, ${String(serviceId || '')},
-              ${String(serviceName)}, ${cleanPrice}, ${finalPriceUSD}, ${cleanDate}::date,
-              ${cleanTime}, ${validPayment}, ${cleanNotes}, ${bookingStatus}, ${eligibleFirstVisit}, ${discountUSD}, NOW()
+              ${bookingId}, ${cleanTenant}, ${cleanName}, ${cleanPhone}, ${cleanInstagram}, ${String(serviceId || '')},
+              ${String(serviceName)}, ${cleanPrice}, ${finalPriceUSD}, ${staffId || null}, ${staffName || null},
+              ${zoneId || null}, ${zoneName || null}, ${cleanDate}::date, ${cleanTime}, ${validPayment},
+              ${cleanNotes}, ${bookingStatus}, ${eligibleFirstVisit}, ${discountUSD}, NOW()
             );
           `;
 
-          // 4. Inicializar ficha en loyalty_cards si no existe (sellos = 0 hasta confirmarse el servicio)
+          // 4. Inicializar ficha en loyalty_cards si no existe (target_stamps = 5)
           const loyaltyCardRows = await sql`
             SELECT stamps_count FROM public.loyalty_cards WHERE phone = ${cleanPhone};
           `;
@@ -122,8 +130,8 @@ export default async function handler(req: any, res: any) {
           let verifiedStamps = 0;
           if (loyaltyCardRows.length === 0) {
             await sql`
-              INSERT INTO public.loyalty_cards (phone, client_name, stamps_count, last_visit, rewards_earned, updated_at)
-              VALUES (${cleanPhone}, ${cleanName}, 0, ${cleanDate}::date, ARRAY[]::TEXT[], NOW())
+              INSERT INTO public.loyalty_cards (phone, tenant_id, client_name, stamps_count, target_stamps, last_visit, rewards_earned, updated_at)
+              VALUES (${cleanPhone}, ${cleanTenant}, ${cleanName}, 0, 5, ${cleanDate}::date, ARRAY[]::TEXT[], NOW())
               ON CONFLICT (phone) DO NOTHING;
             `;
           } else {
@@ -134,6 +142,7 @@ export default async function handler(req: any, res: any) {
             success: true,
             booking: {
               id: bookingId,
+              tenantId: cleanTenant,
               clientName: cleanName,
               clientPhone: cleanPhone,
               clientEmail: cleanEmail || undefined,
@@ -142,6 +151,10 @@ export default async function handler(req: any, res: any) {
               serviceName,
               servicePriceUSD: cleanPrice,
               totalPriceUSD: finalPriceUSD,
+              staffId: staffId || undefined,
+              staffName: staffName || undefined,
+              zoneId: zoneId || undefined,
+              zoneName: zoneName || undefined,
               date: cleanDate,
               timeSlot: cleanTime,
               paymentMethod: validPayment,
@@ -180,35 +193,105 @@ export default async function handler(req: any, res: any) {
     }
   }
 
-  // ─── GET: Obtener reservas para el Admin ─────────────────────────────────────
+  // ─── GET: Obtener reservas para el Admin o para la Ficha VIP de la Clienta ──
   if (req.method === 'GET') {
     if (!sql) {
       return res.status(200).json({ bookings: [], databaseConnected: false });
     }
 
     try {
-      const rows = await sql`
-        SELECT 
-          id,
-          client_name as "clientName",
-          client_phone as "clientPhone",
-          client_instagram as "clientInstagram",
-          service_id as "serviceId",
-          service_name as "serviceName",
-          service_price_usd as "servicePriceUSD",
-          total_price_usd as "totalPriceUSD",
-          TO_CHAR(date, 'YYYY-MM-DD') as "date",
-          time_slot as "timeSlot",
-          payment_method as "paymentMethod",
-          notes,
-          status,
-          is_first_visit as "isFirstVisit",
-          discount_usd as "discountUSD",
-          created_at as "createdAt"
-        FROM public.bookings
-        ORDER BY created_at DESC
-        LIMIT 200;
-      `;
+      const clientPhoneFilter = req.query?.clientPhone ? String(req.query.clientPhone).replace(/\D/g, '') : '';
+      const tenantFilter = req.query?.tenant ? String(req.query.tenant).trim().toLowerCase() : '';
+
+      let rows: any[] = [];
+      if (clientPhoneFilter && clientPhoneFilter.length >= 7) {
+        const suffix = clientPhoneFilter.slice(-9);
+        rows = await sql`
+          SELECT 
+            id,
+            tenant_id as "tenantId",
+            client_name as "clientName",
+            client_phone as "clientPhone",
+            client_instagram as "clientInstagram",
+            service_id as "serviceId",
+            service_name as "serviceName",
+            service_price_usd as "servicePriceUSD",
+            total_price_usd as "totalPriceUSD",
+            staff_id as "staffId",
+            staff_name as "staffName",
+            zone_id as "zoneId",
+            zone_name as "zoneName",
+            TO_CHAR(date, 'YYYY-MM-DD') as "date",
+            time_slot as "timeSlot",
+            payment_method as "paymentMethod",
+            notes,
+            status,
+            is_first_visit as "isFirstVisit",
+            discount_usd as "discountUSD",
+            created_at as "createdAt"
+          FROM public.bookings
+          WHERE RIGHT(REGEXP_REPLACE(client_phone, '\D', '', 'g'), 9) = ${suffix}
+          ORDER BY date DESC, created_at DESC
+          LIMIT 50;
+        `;
+      } else if (tenantFilter) {
+        rows = await sql`
+          SELECT 
+            id,
+            tenant_id as "tenantId",
+            client_name as "clientName",
+            client_phone as "clientPhone",
+            client_instagram as "clientInstagram",
+            service_id as "serviceId",
+            service_name as "serviceName",
+            service_price_usd as "servicePriceUSD",
+            total_price_usd as "totalPriceUSD",
+            staff_id as "staffId",
+            staff_name as "staffName",
+            zone_id as "zoneId",
+            zone_name as "zoneName",
+            TO_CHAR(date, 'YYYY-MM-DD') as "date",
+            time_slot as "timeSlot",
+            payment_method as "paymentMethod",
+            notes,
+            status,
+            is_first_visit as "isFirstVisit",
+            discount_usd as "discountUSD",
+            created_at as "createdAt"
+          FROM public.bookings
+          WHERE tenant_id = ${tenantFilter}
+          ORDER BY created_at DESC
+          LIMIT 200;
+        `;
+      } else {
+        rows = await sql`
+          SELECT 
+            id,
+            tenant_id as "tenantId",
+            client_name as "clientName",
+            client_phone as "clientPhone",
+            client_instagram as "clientInstagram",
+            service_id as "serviceId",
+            service_name as "serviceName",
+            service_price_usd as "servicePriceUSD",
+            total_price_usd as "totalPriceUSD",
+            staff_id as "staffId",
+            staff_name as "staffName",
+            zone_id as "zoneId",
+            zone_name as "zoneName",
+            TO_CHAR(date, 'YYYY-MM-DD') as "date",
+            time_slot as "timeSlot",
+            payment_method as "paymentMethod",
+            notes,
+            status,
+            is_first_visit as "isFirstVisit",
+            discount_usd as "discountUSD",
+            created_at as "createdAt"
+          FROM public.bookings
+          ORDER BY created_at DESC
+          LIMIT 200;
+        `;
+      }
 
       return res.status(200).json({
         bookings: rows.map((r: any) => ({

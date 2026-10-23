@@ -84,11 +84,48 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
     }
   }, [isOpen]);
 
-  const loadClientBookings = (phone: string) => {
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false);
+
+  const loadClientBookings = async (phone: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
-    const all = AppStore.getBookings();
-    const mine = all.filter(b => (b.clientPhone || '').replace(/\D/g, '') === cleanPhone);
-    setClientBookings(mine);
+    const allLocal = AppStore.getBookings();
+    const localMine = allLocal.filter(b => (b.clientPhone || '').replace(/\D/g, '') === cleanPhone);
+    setClientBookings(localMine);
+
+    if (!cleanPhone) return;
+    setIsLoadingBookings(true);
+    try {
+      const res = await fetch(`/api/bookings?clientPhone=${encodeURIComponent(cleanPhone)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const remoteMapped: AppointmentBooking[] = json.data.map((r: any) => ({
+            id: r.id,
+            clientName: r.client_name,
+            clientPhone: r.client_phone,
+            serviceId: r.service_id,
+            serviceName: r.service_name,
+            date: r.appointment_date,
+            timeSlot: r.time_slot,
+            status: r.status || 'pendiente',
+            notes: r.notes || '',
+            paymentMethod: r.payment_method || 'Pago Móvil',
+            totalPriceUSD: Number(r.price_usd || 0),
+            createdAt: r.created_at || new Date().toISOString(),
+          }));
+          const mergedMap = new Map<string, AppointmentBooking>();
+          remoteMapped.forEach(b => mergedMap.set(b.id, b));
+          localMine.forEach(b => {
+            if (!mergedMap.has(b.id)) mergedMap.set(b.id, b);
+          });
+          setClientBookings(Array.from(mergedMap.values()));
+        }
+      }
+    } catch {
+      // Fallback silencioso a localMine
+    } finally {
+      setIsLoadingBookings(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -434,7 +471,29 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
                 </div>
 
                 <div className="pt-2 border-t border-white/10 text-xs text-white/90 flex items-center justify-between">
-                  <span>{currentStamps >= 5 ? '🎉 ¡Felicidades! Tienes tu Depilación de Cejas de cortesía.' : `Te faltan ${stampsTotal - currentStamps} visitas para tu cortesía.`}</span>
+                  <span>{currentStamps >= 5 ? '🎉 ¡Felicidades! Tienes tu Servicio de Cortesía desbloqueado.' : `Te faltan ${stampsTotal - currentStamps} visitas verificadas para tu cortesía.`}</span>
+                </div>
+              </div>
+
+              {/* Guía rápida: ¿Cómo funciona tu Tarjeta VIP? */}
+              <div className="p-4 rounded-2xl bg-warm-50 border border-sage-200/90 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-sage-900 uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>¿Cómo funciona tu Ficha & Tarjeta VIP?</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-warm-700">
+                  <div className="p-2.5 rounded-xl bg-white border border-sage-200/60">
+                    <span className="font-bold text-sage-900 block">1. Agenda en 1 Toque</span>
+                    Tus datos quedan guardados para reservar sin volver a escribir tu teléfono.
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white border border-sage-200/60">
+                    <span className="font-bold text-sage-900 block">2. Suma Sellos en Nube</span>
+                    Cada cita marcada como Completada en el salón suma +1 sello automático.
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white border border-sage-200/60">
+                    <span className="font-bold text-sage-900 block">3. 5to Sello = Cortesía</span>
+                    Al acumular 5 sellos desbloqueas tu Depilación de Cejas o Cortesía VIP 100% Gratis.
+                  </div>
                 </div>
               </div>
 
@@ -453,10 +512,15 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
 
               {/* History of Bookings */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-sage-800 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-sage-600" />
-                  <span>Tus Citas Registradas ({clientBookings.length})</span>
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-sage-800 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-sage-600" />
+                    <span>Tus Citas Sincronizadas en Nube ({clientBookings.length})</span>
+                  </h4>
+                  {isLoadingBookings && (
+                    <span className="text-[10px] font-bold text-emerald-700 animate-pulse">Sincronizando Neon DB...</span>
+                  )}
+                </div>
 
                 {clientBookings.length === 0 ? (
                   <p className="text-xs text-warm-600 p-4 bg-warm-50 rounded-2xl border border-sage-200 text-center">

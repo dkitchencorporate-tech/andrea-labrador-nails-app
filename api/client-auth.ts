@@ -222,7 +222,7 @@ export default async function handler(req: any, res: any) {
           hasPin: Boolean(record?.hasPin),
           requiresReset: Boolean(record?.requiresReset),
           stampsCount: Number(record?.stampsCount || 0),
-          rewardEligible: Number(record?.stampsCount || 0) >= 6,
+          rewardEligible: Number(record?.stampsCount || 0) >= 5,
         });
       } catch (checkErr) {
         console.error('[Neon Auth Check Error]:', checkErr);

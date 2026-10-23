@@ -1,9 +1,31 @@
-export type ServiceCategory = 'all' | 'natural' | 'extensions' | 'pedicure' | 'combos';
+export type ServiceCategory =
+  | 'all'
+  | 'natural'
+  | 'extensions'
+  | 'pedicure'
+  | 'combos'
+  | 'cejas_pestanas'
+  | 'estilismo'
+  | 'maquillaje'
+  | 'nails'
+  | 'depilacion'
+  | 'cursos'
+  | string;
 
 export interface ServiceItem {
   id: string;
   name: string;
-  category: 'natural' | 'extensions' | 'pedicure';
+  category:
+    | 'natural'
+    | 'extensions'
+    | 'pedicure'
+    | 'cejas_pestanas'
+    | 'estilismo'
+    | 'maquillaje'
+    | 'nails'
+    | 'depilacion'
+    | 'cursos'
+    | string;
   priceUSD: number;
   durationMinutes: number;
   shortDescription: string;
@@ -37,7 +59,7 @@ export interface PromoOffer {
   imageUrl: string;
 }
 
-export type PaymentMethodType = 'pago_movil' | 'efectivo' | 'binance';
+export type PaymentMethodType = 'pago_movil' | 'efectivo' | 'binance' | string;
 
 export interface AppointmentBooking {
   id: string;
@@ -48,8 +70,8 @@ export interface AppointmentBooking {
   clientInstagram?: string;
   serviceId: string;
   serviceName: string;
-  servicePriceUSD: number;
-  selectedAddons: ServiceAddon[];
+  servicePriceUSD?: number;
+  selectedAddons?: ServiceAddon[];
   totalPriceUSD: number;
   date: string; // YYYY-MM-DD
   timeSlot: string; // HH:MM AM/PM

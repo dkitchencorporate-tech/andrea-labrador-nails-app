@@ -6,17 +6,21 @@ interface ServiceCatalogProps {
   services: ServiceItem[];
   exchangeRate: number;
   onSelectServiceForBooking: (service: ServiceItem) => void;
+  customCategories?: { id: string; label: string }[];
+  studioSubtitle?: string;
 }
 
 export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
   services,
   exchangeRate,
   onSelectServiceForBooking,
+  customCategories,
+  studioSubtitle,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = [
+  const categories = customCategories || [
     { id: 'all', label: 'Todos los Servicios' },
     { id: 'natural', label: 'Uña Natural & Salud' },
     { id: 'extensions', label: 'Extensiones & Esculpido' },
@@ -47,7 +51,7 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
           </h2>
           <div className="w-16 h-0.5 bg-sage-400 mx-auto"></div>
           <p className="text-sm sm:text-base text-warm-900 font-normal">
-            Cada cliente tiene necesidades distintas, así que te ofrezco distintas opciones para que elijamos juntas la técnica perfecta para ti:
+            {studioSubtitle || 'Cada cliente tiene necesidades distintas, así que te ofrezco distintas opciones para que elijamos juntas la técnica perfecta para ti:'}
           </p>
         </div>
 
@@ -58,7 +62,7 @@ export const ServiceCatalog: React.FC<ServiceCatalogProps> = ({
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.id as ServiceCategory)}
+                onClick={() => setSelectedCategory(cat.id)}
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                   selectedCategory === cat.id
                     ? 'bg-sage-800 text-white shadow-sm'

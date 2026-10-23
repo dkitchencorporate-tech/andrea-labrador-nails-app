@@ -61,6 +61,8 @@ interface AdminDashboardProps {
   bookings: AppointmentBooking[];
   blockedSlots: BlockedTimeSlot[];
   exchangeRate: number;
+  tenantSlug?: string;
+  tenantName?: string;
   onRefreshData: () => void;
   onExitToCatalog: () => void;
   onLogout?: () => void;
@@ -75,7 +77,7 @@ const NAV_ITEMS: { key: TabKey; label: string; Icon: React.FC<{ className?: stri
   { key: 'services',  label: 'Catálogo de Servicios',    Icon: Sparkles },
   { key: 'gallery',   label: 'Carrusel de Fotos',        Icon: ImageIcon },
   { key: 'crm',       label: 'Clientela & CRM',          Icon: Users },
-  { key: 'team',      label: 'Equipo & Roles (Pro)',     Icon: ShieldCheck },
+  { key: 'team',      label: 'Equipo & Zonas (DB)',      Icon: ShieldCheck },
   { key: 'settings',  label: 'Tasa & Respaldos',         Icon: DollarSign },
 ];
 
@@ -84,12 +86,130 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   bookings,
   blockedSlots,
   exchangeRate,
+  tenantSlug = 'andrea-nails',
+  tenantName = 'Andrea Labrador Nails Studio',
   onRefreshData,
   onExitToCatalog,
   onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('bookings');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // ─── LIVE STAFF & STUDIO ZONES (NEON DB) ──────────────────────────────────
+  const [dbStaff, setDbStaff] = useState<any[]>([]);
+  const [dbZones, setDbZones] = useState<any[]>([]);
+  const [isLoadingTeamDb, setIsLoadingTeamDb] = useState(false);
+  const [newZoneName, setNewZoneName] = useState('');
+  const [newZoneCapacity, setNewZoneCapacity] = useState('1');
+  const [newZoneColor, setNewZoneColor] = useState('#C5A059');
+
+  const fetchTenantTeamAndZones = async () => {
+    setIsLoadingTeamDb(true);
+    try {
+      const res = await fetch(`/api/central?mode=tenant_context&tenant=${encodeURIComponent(tenantSlug)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          setDbStaff(json.staff || []);
+          setDbZones(json.zones || []);
+        }
+      }
+    } catch {
+      // Fallback silencioso
+    } finally {
+      setIsLoadingTeamDb(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchTenantTeamAndZones();
+  }, [tenantSlug]);
+
+  const handleSaveStaffToDb = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!collaboratorForm.name.trim()) return;
+    setIsLoadingTeamDb(true);
+    try {
+      await fetch('/api/central', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'upsert_staff',
+          tenantId: tenantSlug,
+          fullName: collaboratorForm.name,
+          roleTitle: collaboratorForm.role === 'admin' ? 'Directora / Master' : collaboratorForm.role === 'recepcion' ? 'Recepción & Front-Desk' : 'Especialista Senior',
+          specialties: collaboratorForm.specialty.split(',').map(s => s.trim()),
+          phone: collaboratorForm.phone,
+          commissionPct: Number(collaboratorForm.commissionPercent || 50),
+          avatarColor: '#C5A059',
+        }),
+      });
+      setCollaboratorForm({
+        name: '',
+        phone: '',
+        role: 'colaboradora',
+        specialty: 'Manicura Rusa & Rubber',
+        commissionPercent: '50',
+        schedule: 'Lunes a Sábado · Turno Completo',
+      });
+      setIsInviteModalOpen(false);
+      await fetchTenantTeamAndZones();
+    } finally {
+      setIsLoadingTeamDb(false);
+    }
+  };
+
+  const handleDeleteStaffFromDb = async (id: string) => {
+    setIsLoadingTeamDb(true);
+    try {
+      await fetch('/api/central', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_staff', id }),
+      });
+      await fetchTenantTeamAndZones();
+    } finally {
+      setIsLoadingTeamDb(false);
+    }
+  };
+
+  const handleSaveZoneToDb = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newZoneName.trim()) return;
+    setIsLoadingTeamDb(true);
+    try {
+      await fetch('/api/central', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'upsert_zone',
+          tenantId: tenantSlug,
+          name: newZoneName,
+          capacity: Number(newZoneCapacity || 1),
+          colorTag: newZoneColor,
+        }),
+      });
+      setNewZoneName('');
+      setNewZoneCapacity('1');
+      await fetchTenantTeamAndZones();
+    } finally {
+      setIsLoadingTeamDb(false);
+    }
+  };
+
+  const handleDeleteZoneFromDb = async (id: string) => {
+    setIsLoadingTeamDb(true);
+    try {
+      await fetch('/api/central', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_zone', id }),
+      });
+      await fetchTenantTeamAndZones();
+    } finally {
+      setIsLoadingTeamDb(false);
+    }
+  };
 
   // ─── CALENDAR STATE ───────────────────────────────────────────────────────
   const [calendarDate, setCalendarDate] = useState<string>(() => {
@@ -222,7 +342,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         bookingsCount: 0,
         lastVisit: card.lastVisit || 'Sin fecha',
         stampsCount: card.stampsCount,
-        hasFreeService: card.stampsCount >= 6,
+        hasFreeService: card.stampsCount >= 5,
       });
     });
 
@@ -241,7 +361,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           instagram: b.clientInstagram,
           bookingsCount: 1,
           lastVisit: b.date,
-          stampsCount: Math.min(6, 1),
+          stampsCount: Math.min(5, 1),
           hasFreeService: false,
           lastBooking: b,
         });
@@ -1976,9 +2096,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <span>&bull; Última visita: {client.lastVisit}</span>
                           </div>
 
-                          {/* 6 Stamps Visual Indicator */}
+                          {/* 5 Stamps Visual Indicator */}
                           <div className="flex items-center gap-1.5 pt-1">
-                            {[1, 2, 3, 4, 5, 6].map(num => (
+                            {[1, 2, 3, 4, 5].map(num => (
                               <div
                                 key={num}
                                 className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold border transition-all ${
@@ -1991,7 +2111,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               </div>
                             ))}
                             <span className="text-[10px] text-warm-500 font-medium ml-1">
-                              {client.stampsCount >= 6 ? '¡Completó ciclo!' : `Faltan ${6 - client.stampsCount} para gratis`}
+                              {client.stampsCount >= 5 ? '¡Completó ciclo (5/5)!' : `Faltan ${Math.max(0, 5 - client.stampsCount)} para gratis`}
                             </span>
                           </div>
                         </div>
@@ -2021,10 +2141,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                           {/* Direct WhatsApp Message with CRM template */}
                           <a
-                            href={`https://wa.me/${client.phone}?text=¡Hola%20${encodeURIComponent(client.name)}%20bella!%20💕%20Te%20saluda%20Andrea%20Labrador.%20${
+                            href={`https://wa.me/${client.phone}?text=¡Hola%20${encodeURIComponent(client.name)}%20bella!%20💕%20Te%20saludamos%20de%20${encodeURIComponent(tenantName)}.%20${
                               client.hasFreeService
-                                ? '¡Queremos%20felicitarte%20porque%20has%20completado%20tus%206%20visitas%20y%20tu%20próximo%20servicio%20es%20100%25%20GRATIS!%20¿Cuándo%20deseas%20agendarlo?'
-                                : `Tienes%20${client.stampsCount}%20de%206%20sellos%20en%20tu%20tarjeta%20de%20fidelización.%20¡Te%20esperamos%20para%20consentir%20tus%20uñas!`
+                                ? '¡Queremos%20felicitarte%20porque%20has%20completado%20tus%205%20visitas%20y%20tu%20servicio%20de%20cortesía%20es%20100%25%20GRATIS!%20¿Cuándo%20deseas%20agendarlo?'
+                                : `Tienes%20${client.stampsCount}%20de%205%20sellos%20en%20tu%20tarjeta%20VIP.%20¡Te%20esperamos%20pronto!`
                             }`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -2332,352 +2452,185 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             )}
 
             {/* ══════════════════════════════════════════════════════════════════
-                TAB: EQUIPO & ROLES MULTI-COLABORADOR (PLAN PRO)
+                TAB: EQUIPO & ZONAS DEL SALÓN (100% CONECTADO A NEON DB)
             ══════════════════════════════════════════════════════════════════ */}
             {activeTab === 'team' && (
               <div className="space-y-6">
                 {sectionHead(
-                  'Gestión de Equipo & Control de Roles',
-                  'Administra el acceso de manicuristas, colaboradoras y recepción con permisos personalizados.',
-                  <button
-                    type="button"
-                    onClick={handleOpenInviteModal}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-900 hover:bg-indigo-950 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
-                  >
-                    <UserPlus className="w-4 h-4 text-amber-300" />
-                    <span>+ Asignar Rol a Colaboradora</span>
-                  </button>
-                )}
-
-                {/* Banner de Licencia Pro (Architect Commerce) */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-[#0B132B] via-[#1C2541] to-[#1E3A8A] text-white border border-indigo-900 shadow-md space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                      <Lock className="w-3 h-3 text-amber-400" />
-                      Módulo Pre-habilitado · Disponible en Plan Salón Pro ($220 Setup / $40 mes)
-                    </span>
-                    <span className="text-xs text-indigo-200">
-                      Licencia Actual: <strong className="text-white">Boutique Unipersonal</strong>
-                    </span>
-                  </div>
-
-                  <div>
-                    <h4 className="font-serif font-bold text-xl text-white">
-                      Escala a Estudio Multi-Personal con Control de Accesos
-                    </h4>
-                    <p className="text-xs text-indigo-100/90 mt-1.5 leading-relaxed max-w-3xl">
-                      Permite que cada manicurista, estilista o recepcionista acceda desde su propio teléfono móvil para consultar su agenda del día, tomar citas y culminar servicios para otorgar sellos VIP, <strong>manteniendo totalmente protegida la caja general, facturación en dólares y balance contable confidencial del estudio</strong>.
-                    </p>
-                  </div>
-
-                  {/* Highlights */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                    <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        Hasta 5 Colaboradoras
-                      </span>
-                      <p className="text-xs text-slate-200">
-                        Credenciales móviles individuales y agendas separadas en base de datos.
-                      </p>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1">
-                        <Lock className="w-3.5 h-3.5" />
-                        Privacidad Financiera
-                      </span>
-                      <p className="text-xs text-slate-200">
-                        Solo la Super Administradora (dueña) visualiza la analítica y facturación en USD/Bs.
-                      </p>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5" />
-                        Cálculo de Comisiones
-                      </span>
-                      <p className="text-xs text-slate-200">
-                        Liquidación automatizada por porcentaje pactado (50%, 60% o pago fijo por turno).
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 flex flex-wrap items-center gap-3">
+                  `Equipo de Especialistas & Zonas del Salón — ${tenantName}`,
+                  'Módulo Pro V2 conectado en vivo a Neon Postgres (tablas staff_members y studio_zones). Agrega o edita especialistas, comisiones y estaciones de trabajo reales.',
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={handleOpenInviteModal}
-                      className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#0B132B] font-bold text-xs shadow-soft transition-all cursor-pointer active:scale-95"
+                      onClick={fetchTenantTeamAndZones}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-sage-100 hover:bg-sage-200 text-warm-900 rounded-xl text-xs font-bold transition-all cursor-pointer"
                     >
-                      Pre-configurar Colaboradora &amp; Ver Simulación
+                      <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTeamDb ? 'animate-spin' : ''}`} />
+                      <span>Sincronizar DB</span>
                     </button>
-                    <a
-                      href="https://wa.me/584241360937?text=¡Hola!%20Me%20interesa%20activar%20el%20Módulo%20Multi-Personal%20(Plan%20Salón%20Pro)%20para%20habilitar%20accesos%20a%20mis%20colaboradoras."
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition-all border border-white/20"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInviteProNotice(false);
+                        setIsInviteModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#16291F] hover:bg-sage-900 text-amber-300 rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
                     >
-                      Solicitar Activación de Módulo Pro
-                    </a>
+                      <UserPlus className="w-4 h-4" />
+                      <span>+ Nueva Especialista en DB</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* ZONAS / ESTACIONES DEL LOCAL (studio_zones en Neon DB) */}
+                <div className="p-5 rounded-3xl bg-[#FBF9F6] border border-sage-200 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sage-200 pb-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                        Tabla Neon: studio_zones ({dbZones.length} activas)
+                      </span>
+                      <h4 className="font-serif font-bold text-base text-warm-900 mt-1">
+                        Zonas, Cabinas y Estaciones del Salón
+                      </h4>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSaveZoneToDb} className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 items-end bg-white p-3.5 rounded-2xl border border-sage-200">
+                    <div className="sm:col-span-2">
+                      <label className="text-[11px] font-bold text-warm-700 block mb-1">Nombre de la Zona / Cabina / Mesa *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newZoneName}
+                        onChange={e => setNewZoneName(e.target.value)}
+                        placeholder="Ej: Cabina de Cejas & Pestañas, Estación Nails #2..."
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-warm-700 block mb-1">Capacidad Simultánea</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={newZoneCapacity}
+                        onChange={e => setNewZoneCapacity(e.target.value)}
+                        className={inputCls}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isLoadingTeamDb}
+                      className="px-4 py-2.5 rounded-xl bg-[#16291F] hover:bg-sage-900 text-white font-bold text-xs shadow-xs cursor-pointer"
+                    >
+                      + Crear Zona en DB
+                    </button>
+                  </form>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {dbZones.map((z: any) => (
+                      <div key={z.id} className="p-3.5 rounded-2xl bg-white border border-sage-200 flex items-center justify-between gap-2 shadow-2xs">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/10"
+                            style={{ backgroundColor: z.color_tag || '#C5A059' }}
+                          />
+                          <div>
+                            <p className="font-bold text-xs text-warm-900">{z.name}</p>
+                            <span className="text-[10px] text-warm-500">
+                              Capacidad: {z.capacity || 1} estación(es) &bull; Activa
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteZoneFromDb(z.id)}
+                          className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
+                          title="Eliminar zona de Neon DB"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Matriz de Roles y Permisos */}
-                <div className="space-y-3">
-                  <h4 className="font-serif font-bold text-base text-warm-900">
-                    Estructura de Roles &amp; Permisos del Sistema
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                    {/* Rol 1: Super Admin */}
-                    <div className="p-4 rounded-2xl bg-[#FBF9F6] border-2 border-emerald-500/40 space-y-2.5 relative">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300">
-                          🟢 Activo en este Salón
-                        </span>
-                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                      </div>
-                      <h5 className="font-serif font-bold text-sm text-warm-900">
-                        Super Administradora (Dueña)
-                      </h5>
-                      <p className="text-[11px] text-warm-500 leading-snug">
-                        Titular de la empresa con control total sobre el negocio, precios y finanzas.
-                      </p>
-                      <ul className="text-[11px] text-warm-700 space-y-1 pt-1 border-t border-sage-200">
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Analítica y Facturación en USD / Bs</li>
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Exportar Balances Contables en PDF A4</li>
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Ajuste diario de Tasa de Cambio</li>
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Crear, editar y eliminar servicios</li>
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Borrado de citas y auditoría maestra</li>
-                      </ul>
-                    </div>
-
-                    {/* Rol 2: Colaboradora */}
-                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-2.5 relative">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                          <Lock className="w-2.5 h-2.5" /> Plan Pro
-                        </span>
-                        <Briefcase className="w-4 h-4 text-amber-700" />
-                      </div>
-                      <h5 className="font-serif font-bold text-sm text-warm-900">
-                        Colaboradora / Manicurista
-                      </h5>
-                      <p className="text-[11px] text-warm-500 leading-snug">
-                        Acceso operativo limitado exclusivamente a sus clientas y sillón asignado.
-                      </p>
-                      <ul className="text-[11px] text-warm-700 space-y-1 pt-1 border-t border-sage-100">
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Ver sólo su agenda de turnos del día</li>
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Culminar citas y otorgar sello VIP</li>
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Reportar No-Show con aviso automático</li>
-                        <li className="flex items-center gap-1.5 text-rose-700 font-semibold"><X className="w-3 h-3 text-rose-600 shrink-0" /> Sin acceso a facturación ni caja</li>
-                        <li className="flex items-center gap-1.5 text-rose-700 font-semibold"><X className="w-3 h-3 text-rose-600 shrink-0" /> Sin acceso a cambiar precios o tasas</li>
-                      </ul>
-                    </div>
-
-                    {/* Rol 3: Recepción */}
-                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-2.5 relative">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                          <Lock className="w-2.5 h-2.5" /> Plan Pro
-                        </span>
-                        <Users className="w-4 h-4 text-amber-700" />
-                      </div>
-                      <h5 className="font-serif font-bold text-sm text-warm-900">
-                        Recepción / Front-Desk
-                      </h5>
-                      <p className="text-[11px] text-warm-500 leading-snug">
-                        Gestión de flujo de clientas presenciales, llamadas y WhatsApp del estudio.
-                      </p>
-                      <ul className="text-[11px] text-warm-700 space-y-1 pt-1 border-t border-sage-100">
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Agendamiento manual en recepción</li>
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Confirmar reservas por WhatsApp</li>
-                        <li className="flex items-center gap-1.5"><Check className="w-3 h-3 text-emerald-600 shrink-0" /> Reprogramar citas acordadas</li>
-                        <li className="flex items-center gap-1.5 text-rose-700 font-semibold"><X className="w-3 h-3 text-rose-600 shrink-0" /> Sin reportes de ingresos ni balances</li>
-                        <li className="flex items-center gap-1.5 text-rose-700 font-semibold"><X className="w-3 h-3 text-rose-600 shrink-0" /> Sin acceso a modificar catálogo</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Directorio de Personal & Colaboradoras */}
+                {/* DIRECTORIO DE PERSONAL Y ESPECIALISTAS (staff_members en Neon DB) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-serif font-bold text-base text-warm-900">
-                        Directorio de Personal &amp; Perfiles del Estudio (4)
+                        Especialistas &amp; Personal en Base de Datos ({dbStaff.length})
                       </h4>
                       <p className="text-xs text-warm-500">
-                        La cuenta de Andrea Labrador es la administradora activa. Las demás colaboradoras se activan al migrar al Plan Pro.
+                        Sincronizado en tiempo real con la tabla <code className="text-warm-800 font-bold">staff_members</code> para el salón <strong className="text-warm-900">{tenantSlug}</strong>.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleOpenInviteModal}
-                      className="text-xs font-bold text-indigo-900 hover:text-indigo-950 flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Agregar colaboradora</span>
-                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                    {/* Colaboradora 1: Andrea (Titular) */}
-                    <div className="p-4 rounded-2xl bg-[#FBF9F6] border-2 border-emerald-500/30 space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#16291F] text-amber-300 font-serif font-bold flex items-center justify-center text-sm">
-                            AL
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h5 className="font-bold text-warm-900 text-sm">Andrea Labrador</h5>
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300">
-                                Dueña / Super Admin
-                              </span>
+                    {dbStaff.map((member: any) => {
+                      const initials = (member.full_name || 'ES')
+                        .split(' ')
+                        .map((n: string) => n[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase();
+                      const specs = Array.isArray(member.specialties) ? member.specialties.join(', ') : 'Especialista Integral';
+                      return (
+                        <div key={member.id} className="p-4 rounded-2xl bg-white border border-sage-200 space-y-3 shadow-2xs">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="w-10 h-10 rounded-xl text-white font-serif font-bold flex items-center justify-center text-sm shadow-xs"
+                                style={{ backgroundColor: member.avatar_color || '#16291F' }}
+                              >
+                                {initials}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h5 className="font-bold text-warm-900 text-sm">{member.full_name}</h5>
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                    {member.role_title || 'Especialista'}
+                                  </span>
+                                </div>
+                                {member.phone && (
+                                  <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
+                                    <Phone className="w-3 h-3" /> {member.phone}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
-                              <Phone className="w-3 h-3" /> +58 424 1360937 &bull; slenandreal@gmail.com
-                            </p>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteStaffFromDb(member.id)}
+                              className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
+                              title="Eliminar especialista de Neon DB"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded-xl border border-sage-100">
-                        <div>
-                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Especialidad</span>
-                          <span className="text-warm-800 font-medium">Rubber, Semipermanente &amp; Arte</span>
-                        </div>
-                        <div>
-                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Horario &amp; Turno</span>
-                          <span className="text-warm-800 font-medium">Jornada Completa (100%)</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
-                        <span className="text-emerald-700 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Cuenta Maestra Activa
-                        </span>
-                        <span className="text-warm-500 font-semibold">Comisión: 100% (Titular)</span>
-                      </div>
-                    </div>
-
-                    {/* Colaboradora 2: Valentina Mendoza (Pre-configurada) */}
-                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-3 relative group">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-sage-100 text-sage-800 font-serif font-bold flex items-center justify-center text-sm">
-                            VM
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h5 className="font-bold text-warm-900 text-sm">Valentina Mendoza</h5>
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                                <Lock className="w-2.5 h-2.5" /> Colaboradora Pro
-                              </span>
+                          <div className="grid grid-cols-2 gap-2 text-[11px] bg-[#FBF9F6] p-2.5 rounded-xl border border-sage-100">
+                            <div>
+                              <span className="text-warm-400 font-bold uppercase text-[9px] block">Especialidades</span>
+                              <span className="text-warm-800 font-medium">{specs}</span>
                             </div>
-                            <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
-                              <Phone className="w-3 h-3" /> +58 412 8839201
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-sage-50 p-2.5 rounded-xl border border-sage-200">
-                        <div>
-                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Especialidad</span>
-                          <span className="text-warm-800 font-medium">Manicura Rusa &amp; Nivelación</span>
-                        </div>
-                        <div>
-                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Horario Asignado</span>
-                          <span className="text-warm-800 font-medium">Lun a Sáb · Mañanas (9am-2pm)</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
-                        <span className="text-amber-700 font-bold flex items-center gap-1">
-                          <Lock className="w-3.5 h-3.5 text-amber-600" /> Pre-configurada en Base de Datos
-                        </span>
-                        <span className="text-warm-600 font-semibold">Comisión: 50%</span>
-                      </div>
-                    </div>
-
-                    {/* Colaboradora 3: Camila Briceño (Pre-configurada) */}
-                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-3 relative group">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-sage-100 text-sage-800 font-serif font-bold flex items-center justify-center text-sm">
-                            CB
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h5 className="font-bold text-warm-900 text-sm">Camila Briceño</h5>
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                                <Lock className="w-2.5 h-2.5" /> Colaboradora Pro
-                              </span>
+                            <div>
+                              <span className="text-warm-400 font-bold uppercase text-[9px] block">Comisión Pactada</span>
+                              <span className="text-emerald-800 font-bold">{Number(member.commission_pct || 50)}% por servicio</span>
                             </div>
-                            <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
-                              <Phone className="w-3 h-3" /> +58 414 7721094
-                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
+                            <span className="text-emerald-700 font-bold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Activa en Neon Postgres
+                            </span>
+                            <span className="text-warm-400 text-[10px]">ID: {member.id}</span>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-sage-50 p-2.5 rounded-xl border border-sage-200">
-                        <div>
-                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Especialidad</span>
-                          <span className="text-warm-800 font-medium">Polygel &amp; Esculpidas</span>
-                        </div>
-                        <div>
-                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Horario Asignado</span>
-                          <span className="text-warm-800 font-medium">Lun a Sáb · Tardes (2pm-7pm)</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
-                        <span className="text-amber-700 font-bold flex items-center gap-1">
-                          <Lock className="w-3.5 h-3.5 text-amber-600" /> Pre-configurada en Base de Datos
-                        </span>
-                        <span className="text-warm-600 font-semibold">Comisión: 50%</span>
-                      </div>
-                    </div>
-
-                    {/* Colaboradora 4: Sofía Rivas (Recepción) */}
-                    <div className="p-4 rounded-2xl bg-white border border-sage-200 space-y-3 relative group">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-sage-100 text-sage-800 font-serif font-bold flex items-center justify-center text-sm">
-                            SR
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h5 className="font-bold text-warm-900 text-sm">Sofía Rivas</h5>
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                                <Lock className="w-2.5 h-2.5" /> Recepción Pro
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-warm-500 flex items-center gap-1 mt-0.5">
-                              <Phone className="w-3 h-3" /> +58 424 9912048
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-sage-50 p-2.5 rounded-xl border border-sage-200">
-                        <div>
-                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Función Principal</span>
-                          <span className="text-warm-800 font-medium">Front-Desk, Citas &amp; WhatsApp</span>
-                        </div>
-                        <div>
-                          <span className="text-warm-400 font-bold uppercase text-[9px] block">Horario Asignado</span>
-                          <span className="text-warm-800 font-medium">Jornada Continua Estudio</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
-                        <span className="text-amber-700 font-bold flex items-center gap-1">
-                          <Lock className="w-3.5 h-3.5 text-amber-600" /> Pre-configurada en Base de Datos
-                        </span>
-                        <span className="text-warm-600 font-semibold">Modalidad: Fijo por Turno</span>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -3363,7 +3316,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSaveCollaboratorMock} className="space-y-3.5 text-xs">
+              <form onSubmit={handleSaveStaffToDb} className="space-y-3.5 text-xs">
                 <div>
                   <label className="text-xs font-bold text-warm-800 block mb-1">
                     Nombre y Apellido de la Colaboradora: *
