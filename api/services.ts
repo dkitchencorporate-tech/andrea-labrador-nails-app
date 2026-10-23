@@ -1,12 +1,6 @@
 // Vercel Serverless Function: /api/services
-// Manages catalog services in Neon Serverless Postgres
-import { neon } from '@neondatabase/serverless';
-
-function getDb() {
-  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-  if (!connectionString) return null;
-  return neon(connectionString);
-}
+// Manages catalog services in Neon Serverless Postgres with PostgreSQL 18 RLS enforcement
+import { getDb, executeWithTenantRls } from './_db';
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -24,63 +18,41 @@ export default async function handler(req: any, res: any) {
 
   const sql = getDb();
 
-  // ─── GET: Listar servicios del catálogo ─────────────────────────────────────
+  // ─── GET: Listar servicios del catálogo (Con Aislamiento RLS en Postgres 18) ─
   if (req.method === 'GET') {
     if (!sql) {
       return res.status(200).json({ services: [], databaseConnected: false });
     }
 
     try {
-      const tenantSlug = req.query?.tenant ? String(req.query.tenant).trim().toLowerCase() : '';
-      const rows = tenantSlug
-        ? await sql`
-            SELECT 
-              id,
-              tenant_id as "tenantId",
-              name,
-              category,
-              price_usd as "priceUSD",
-              duration_minutes as "durationMinutes",
-              short_description as "shortDescription",
-              full_description as "fullDescription",
-              ideal_for as "idealFor",
-              image_url as "imageUrl",
-              badge_text as "badgeText",
-              badge_color as "badgeColor",
-              zone_id as "zoneId",
-              default_staff_id as "defaultStaffId",
-              is_available as "isAvailable",
-              tags
-            FROM public.services
-            WHERE tenant_id = ${tenantSlug}
-            ORDER BY price_usd ASC;
-          `
-        : await sql`
-            SELECT 
-              id,
-              tenant_id as "tenantId",
-              name,
-              category,
-              price_usd as "priceUSD",
-              duration_minutes as "durationMinutes",
-              short_description as "shortDescription",
-              full_description as "fullDescription",
-              ideal_for as "idealFor",
-              image_url as "imageUrl",
-              badge_text as "badgeText",
-              badge_color as "badgeColor",
-              zone_id as "zoneId",
-              default_staff_id as "defaultStaffId",
-              is_available as "isAvailable",
-              tags
-            FROM public.services
-            WHERE tenant_id = 'andrea-nails'
-            ORDER BY price_usd ASC;
-          `;
+      const tenantSlug = req.query?.tenant ? String(req.query.tenant).trim().toLowerCase() : 'andrea-nails';
+      const rows = await executeWithTenantRls(tenantSlug, (tx) => tx`
+        SELECT 
+          id,
+          tenant_id as "tenantId",
+          name,
+          category,
+          price_usd as "priceUSD",
+          duration_minutes as "durationMinutes",
+          short_description as "shortDescription",
+          full_description as "fullDescription",
+          ideal_for as "idealFor",
+          image_url as "imageUrl",
+          badge_text as "badgeText",
+          badge_color as "badgeColor",
+          zone_id as "zoneId",
+          default_staff_id as "defaultStaffId",
+          is_available as "isAvailable",
+          tags
+        FROM public.services
+        WHERE tenant_id = ${tenantSlug}
+        ORDER BY price_usd ASC;
+      `);
 
       return res.status(200).json({
         services: rows.map((r: any) => ({ ...r, priceUSD: Number(r.priceUSD) || 0 })),
         databaseConnected: true,
+        rlsEnforced: true,
       });
     } catch (err: any) {
       console.error('[Neon Get Services Error]:', err);

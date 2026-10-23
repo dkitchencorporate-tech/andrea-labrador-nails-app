@@ -3,7 +3,17 @@ import { AppStore } from '../services/store';
 import { LoyaltyCard } from '../types';
 import { Heart, Sparkles, Award, Search, Gift, CheckCircle2 } from 'lucide-react';
 
-export const LoyaltyClub: React.FC = () => {
+interface LoyaltyClubProps {
+  tenantSlug?: string;
+  tenantName?: string;
+}
+
+export const LoyaltyClub: React.FC<LoyaltyClubProps> = ({
+  tenantSlug = 'andrea-nails',
+  tenantName = 'Andrea Labrador Nails Studio',
+}) => {
+  const isCapra = tenantSlug === 'capra-studio';
+  const rewardLabel = isCapra ? '¡Diseño de Cejas HD o Secado VIP GRATIS!' : '¡Depilación de Cejas 100% GRATIS!';
   const [searchPhone, setSearchPhone] = useState('');
   const [searchedCard, setSearchedCard] = useState<LoyaltyCard | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -30,7 +40,7 @@ export const LoyaltyClub: React.FC = () => {
         clientName: remote.clientName || 'Clienta VIP',
         stampsCount: remote.stampsCount,
         lastVisit: remote.lastVisit || new Date().toISOString().split('T')[0],
-        rewardsEarned: remote.stampsCount >= 5 ? ['¡Depilación de Cejas 100% GRATIS!'] : [],
+        rewardsEarned: remote.stampsCount >= 5 ? [rewardLabel] : [],
       });
     } else {
       setSearchedCard(null);
@@ -49,13 +59,13 @@ export const LoyaltyClub: React.FC = () => {
         <div className="text-center max-w-xl mx-auto space-y-2 mb-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-xs font-semibold tracking-wider uppercase border border-rose-100">
             <Heart className="w-3.5 h-3.5 fill-rose-400" />
-            <span>Programa de Fidelización Digital</span>
+            <span>Programa de Fidelización Digital &bull; {isCapra ? 'Capra Studio' : 'Andrea Labrador'}</span>
           </div>
           <h2 className="font-serif text-3xl sm:text-4xl text-warm-900 font-semibold">
-            Club VIP &bull; Tus Manos Recompensadas
+            {isCapra ? 'Club VIP Capra • Tu Fidelidad Premiada' : 'Club VIP • Tus Manos Recompensadas'}
           </h2>
           <p className="text-xs sm:text-sm text-warm-800/80">
-            Cada visita suma a tu cuidado. Con 5 servicios acumulados en tu tarjeta digital, obtienes una <strong>Depilación de Cejas 100% de cortesía</strong>.
+            Cada visita verificada en <strong>{tenantName}</strong> suma a tu cuidado. Con 5 servicios acumulados en tu tarjeta digital, obtienes <strong>{isCapra ? 'un Diseño de Cejas HD o Secado VIP 100% de cortesía' : 'una Depilación de Cejas 100% de cortesía'}</strong>.
           </p>
         </div>
 
@@ -66,7 +76,7 @@ export const LoyaltyClub: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-sage-200/60 pb-6">
             <div className="text-center sm:text-left">
               <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-sage-600 block">
-                Tarjeta Digital de Lealtad
+                Tarjeta Digital de Lealtad &bull; {isCapra ? 'Capra Studio' : 'Andrea Nails'}
               </span>
               <h3 className="font-serif text-2xl font-bold text-sage-900">
                 {searchedCard ? searchedCard.clientName : 'Tarjeta VIP Oficial'}
@@ -84,7 +94,7 @@ export const LoyaltyClub: React.FC = () => {
               </div>
               <div className="px-3 py-1.5 bg-white rounded-xl border border-sage-200 text-xs font-semibold text-sage-800 flex items-center gap-1.5 shadow-sm">
                 <Gift className="w-3.5 h-3.5 text-emerald-600" />
-                <span>¡Depilación de Cejas GRATIS!</span>
+                <span>{rewardLabel}</span>
               </div>
             </div>
           </div>

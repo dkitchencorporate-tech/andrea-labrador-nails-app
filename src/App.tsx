@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { ServiceCatalog } from './components/ServiceCatalog';
@@ -9,17 +9,25 @@ import { StudioPolicies } from './components/StudioPolicies';
 import { PaymentMethods } from './components/PaymentMethods';
 import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
-import { AdminDashboard } from './components/AdminDashboard';
 import { AdminAuthGate } from './components/AdminAuthGate';
 import { SharePage } from './components/SharePage';
 import { ClubInviteSection } from './components/ClubInviteSection';
 import { PWAInstallModal } from './components/PWAInstallModal';
 import { LegalModals, LegalModalType } from './components/LegalModals';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
-import { CentralDashboard } from './components/CentralDashboard';
-import { VanesevLanding } from './components/VanesevLanding';
 import { AppStore } from './services/store';
 import { ServiceItem, PromoOffer, GallerySlide } from './types';
+
+// Lazy-loaded Heavy Admin & Super-Admin Bundles (Code-Splitting for 3G/4G Mobile Speed)
+const CentralDashboard = React.lazy(() =>
+  import('./components/CentralDashboard').then((m) => ({ default: m.CentralDashboard }))
+);
+const VanesevLanding = React.lazy(() =>
+  import('./components/VanesevLanding').then((m) => ({ default: m.VanesevLanding }))
+);
+const AdminDashboard = React.lazy(() =>
+  import('./components/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
 import {
   Calendar,
   MessageCircle,
@@ -287,6 +295,7 @@ export const App: React.FC = () => {
 
   // Load store data with Neon Cloud synchronization per activeTenant
   const refreshData = (targetTenant: 'andrea-nails' | 'capra-studio' = activeTenant) => {
+    AppStore.setActiveTenant(targetTenant);
     if (targetTenant === 'capra-studio') {
       setServices(CAPRA_FALLBACK_SERVICES);
       fetch('/api/services?tenant=capra-studio')
@@ -342,8 +351,24 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
+    AppStore.setActiveTenant(activeTenant);
     refreshData(activeTenant);
-  }, [activeTenant]);
+
+    // Dynamic PWA Manifest & Title per Tenant
+    const isCapra = activeTenant === 'capra-studio';
+    document.title = isCentralRoute
+      ? 'VANESEV Central • Super-Admin Command Center'
+      : isSaasRoute
+      ? 'VANESEV Cloud • Suite SaaS Multi-Tenant de Belleza'
+      : isCapra
+      ? 'Capra Studio • By María Capra | Salón & Capra Academy'
+      : 'Andrea Labrador • Nails Studio | Cordero & San Cristóbal';
+
+    const manifestLink = document.querySelector("link[rel='manifest']") as HTMLLinkElement | null;
+    if (manifestLink) {
+      manifestLink.href = `/api/manifest?tenant=${activeTenant}`;
+    }
+  }, [activeTenant, isCentralRoute, isSaasRoute]);
 
   // Listen to browser navigation changes
   useEffect(() => {
@@ -466,29 +491,44 @@ export const App: React.FC = () => {
     setIsBookingOpen(true);
   };
 
+  const lazyFallback = (
+    <div className="min-h-screen bg-[#0B0D11] text-white flex items-center justify-center p-6">
+      <div className="text-center space-y-2">
+        <div className="w-10 h-10 rounded-full border-2 border-[#C5A059] border-t-transparent animate-spin mx-auto" />
+        <p className="text-xs font-semibold text-[#E5C158] tracking-widest uppercase">
+          Cargando Módulo Cloud VANESEV...
+        </p>
+      </div>
+    </div>
+  );
+
   // ─── ZONA 2: VANESEV CENTRAL (SUPER-ADMIN COMMAND CENTER FOR KARC0) ───────
   if (isCentralRoute) {
     return (
-      <CentralDashboard
-        onNavigateToSaaSLanding={switchToSaasLanding}
-        onNavigateToTenant={(slug) => {
-          if (slug === 'capra-studio' || slug === 'andrea-nails') {
-            switchToTenant(slug, false);
-          } else {
-            switchToSaasLanding();
-          }
-        }}
-      />
+      <Suspense fallback={lazyFallback}>
+        <CentralDashboard
+          onNavigateToSaaSLanding={switchToSaasLanding}
+          onNavigateToTenant={(slug) => {
+            if (slug === 'capra-studio' || slug === 'andrea-nails') {
+              switchToTenant(slug, false);
+            } else {
+              switchToSaasLanding();
+            }
+          }}
+        />
+      </Suspense>
     );
   }
 
   // ─── ZONA 1: WEB COMERCIAL DE VENTA VANESEV (vanesev.com / ?zone=saas) ───
   if (isSaasRoute) {
     return (
-      <VanesevLanding
-        onOpenCentral={switchToCentral}
-        onSelectTenant={(slug) => switchToTenant(slug, false)}
-      />
+      <Suspense fallback={lazyFallback}>
+        <VanesevLanding
+          onOpenCentral={switchToCentral}
+          onSelectTenant={(slug) => switchToTenant(slug, false)}
+        />
+      </Suspense>
     );
   }
 
@@ -507,49 +547,51 @@ export const App: React.FC = () => {
     }
 
     return (
-      <div>
-        {/* Top Ecosystem Bar inside Admin */}
-        <div className="bg-[#0B0D11] text-white px-4 py-2 border-b border-white/15 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-[#C5A059] text-[#0B0D11] font-black text-[10px]">
-              ZONA 3 · ADMIN PRO V2
-            </span>
-            <span className="font-bold text-white/90">
-              Salón Activo: {activeTenant === 'capra-studio' ? 'Capra Studio (@caprastudio_)' : 'Andrea Labrador Nails Studio'}
-            </span>
+      <Suspense fallback={lazyFallback}>
+        <div>
+          {/* Top Ecosystem Bar inside Admin */}
+          <div className="bg-[#0B0D11] text-white px-4 py-2 border-b border-white/15 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-[#C5A059] text-[#0B0D11] font-black text-[10px]">
+                ZONA 3 · ADMIN PRO V2
+              </span>
+              <span className="font-bold text-white/90">
+                Salón Activo: {activeTenant === 'capra-studio' ? 'Capra Studio (@caprastudio_)' : 'Andrea Labrador Nails Studio'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => switchToTenant(activeTenant === 'capra-studio' ? 'andrea-nails' : 'capra-studio', true)}
+                className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold cursor-pointer"
+              >
+                Cambiar a Admin de {activeTenant === 'capra-studio' ? 'Andrea Nails' : 'Capra Studio'}
+              </button>
+              <button
+                onClick={switchToCentral}
+                className="px-3 py-1 rounded-lg bg-[#C5A059] text-[#0B0D11] font-black flex items-center gap-1 cursor-pointer"
+              >
+                <Terminal className="w-3.5 h-3.5" />
+                <span>Ir a VANESEV Central</span>
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => switchToTenant(activeTenant === 'capra-studio' ? 'andrea-nails' : 'capra-studio', true)}
-              className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold cursor-pointer"
-            >
-              Cambiar a Admin de {activeTenant === 'capra-studio' ? 'Andrea Nails' : 'Capra Studio'}
-            </button>
-            <button
-              onClick={switchToCentral}
-              className="px-3 py-1 rounded-lg bg-[#C5A059] text-[#0B0D11] font-black flex items-center gap-1 cursor-pointer"
-            >
-              <Terminal className="w-3.5 h-3.5" />
-              <span>Ir a VANESEV Central</span>
-            </button>
-          </div>
+          <AdminDashboard
+            services={services}
+            promos={promos}
+            bookings={bookings}
+            blockedSlots={blockedSlots}
+            exchangeRate={exchangeRate}
+            tenantSlug={activeTenant}
+            tenantName={activeTenant === 'capra-studio' ? 'Capra Studio · By María Capra' : 'Andrea Labrador Nails Studio'}
+            onRefreshData={() => refreshData(activeTenant)}
+            onExitToCatalog={handleExitToCatalog}
+            onLogout={() => {
+              AppStore.clearAdminSession();
+              setIsAdminAuthenticated(false);
+            }}
+          />
         </div>
-        <AdminDashboard
-          services={services}
-          promos={promos}
-          bookings={bookings}
-          blockedSlots={blockedSlots}
-          exchangeRate={exchangeRate}
-          tenantSlug={activeTenant}
-          tenantName={activeTenant === 'capra-studio' ? 'Capra Studio · By María Capra' : 'Andrea Labrador Nails Studio'}
-          onRefreshData={() => refreshData(activeTenant)}
-          onExitToCatalog={handleExitToCatalog}
-          onLogout={() => {
-            AppStore.clearAdminSession();
-            setIsAdminAuthenticated(false);
-          }}
-        />
-      </div>
+      </Suspense>
     );
   }
 
@@ -584,6 +626,9 @@ export const App: React.FC = () => {
           preSelectedPromo={selectedPromo}
           exchangeRate={exchangeRate}
           referralCode={referralCode}
+          tenantSlug={activeTenant}
+          tenantName={activeTenant === 'capra-studio' ? 'Capra Studio' : 'Andrea Labrador Nails Studio'}
+          tenantWhatsapp={activeTenant === 'capra-studio' ? '584247429530' : '584241360937'}
           onBookingCreated={() => refreshData(activeTenant)}
         />
         <ClientAccountModal
@@ -857,11 +902,14 @@ export const App: React.FC = () => {
         />
 
         {/* Tarjeta Digital & Club VIP de Fidelización */}
-        <LoyaltyClub />
+        <LoyaltyClub
+          tenantSlug={activeTenant}
+          tenantName={isCapra ? 'Capra Studio · By María Capra' : 'Andrea Labrador Nails Studio'}
+        />
 
-        <StudioPolicies />
+        <StudioPolicies tenantSlug={activeTenant} />
 
-        <PaymentMethods />
+        <PaymentMethods tenantSlug={activeTenant} />
       </main>
 
       {/* Client Footer */}
@@ -869,6 +917,7 @@ export const App: React.FC = () => {
         onOpenBooking={handleOpenGeneralBooking}
         onNavigateToShare={handleNavigateToShare}
         onOpenLegal={(type) => setActiveLegalModal(type)}
+        tenantSlug={activeTenant}
       />
 
       {/* Sticky Mobile Fast Booking Bar for Clients */}
@@ -924,6 +973,10 @@ export const App: React.FC = () => {
         services={services}
         exchangeRate={exchangeRate}
         referralCode={referralCode}
+        tenantSlug={activeTenant}
+        tenantName={isCapra ? 'Capra Studio' : 'Andrea Labrador Nails Studio'}
+        tenantWhatsapp={isCapra ? '584247429530' : '584241360937'}
+        onBookingCreated={() => refreshData(activeTenant)}
         onNavigateToShare={handleNavigateToShare}
       />
 

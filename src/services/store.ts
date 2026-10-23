@@ -40,10 +40,33 @@ export interface AppStoreData {
 }
 
 export class AppStore {
+  private static activeTenantId: string = 'andrea-nails';
+
+  static setActiveTenant(tenantSlug: string): void {
+    this.activeTenantId = (tenantSlug || 'andrea-nails').trim().toLowerCase();
+  }
+
+  static getActiveTenant(): string {
+    return this.activeTenantId;
+  }
+
+  private static resolveKey(baseKey: string): string {
+    const cleanSuffix = baseKey.replace(/^andrea_labrador_/, '');
+    return `vanesev_${this.activeTenantId}_${cleanSuffix}`;
+  }
+
   private static getStored<T>(key: string, defaultValue: T): T {
     try {
-      const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : defaultValue;
+      const namespacedKey = this.resolveKey(key);
+      const data = localStorage.getItem(namespacedKey);
+      if (data) return JSON.parse(data);
+
+      // Backward compatibility for existing Andrea Labrador local cache
+      if (this.activeTenantId === 'andrea-nails') {
+        const legacyData = localStorage.getItem(key);
+        if (legacyData) return JSON.parse(legacyData);
+      }
+      return defaultValue;
     } catch (e) {
       console.error(`Error reading ${key} from storage:`, e);
       return defaultValue;
@@ -52,7 +75,11 @@ export class AppStore {
 
   private static setStored<T>(key: string, value: T): void {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      const namespacedKey = this.resolveKey(key);
+      localStorage.setItem(namespacedKey, JSON.stringify(value));
+      if (this.activeTenantId === 'andrea-nails') {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
     } catch (e) {
       console.error(`Error saving ${key} to storage:`, e);
     }

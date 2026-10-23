@@ -1,7 +1,12 @@
 import React from 'react';
 import { Clock, ShieldCheck, Heart } from 'lucide-react';
 
-export const StudioPolicies: React.FC = () => {
+interface StudioPoliciesProps {
+  tenantSlug?: string;
+}
+
+export const StudioPolicies: React.FC<StudioPoliciesProps> = ({ tenantSlug = 'andrea-nails' }) => {
+  const isCapra = tenantSlug === 'capra-studio';
   return (
     <section id="politicas" className="py-16 bg-white border-t border-sage-200/60">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
@@ -9,14 +14,16 @@ export const StudioPolicies: React.FC = () => {
         {/* Header */}
         <div className="text-center max-w-xl mx-auto space-y-2 mb-10">
           <span className="text-xs font-bold tracking-[0.2em] text-sage-700 uppercase font-sans">
-            Cuidado & Convivencia
+            Cuidado &amp; Excelencia &bull; {isCapra ? 'Capra Studio' : 'Andrea Labrador'}
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl text-warm-900 font-bold">
-            Políticas del Estudio
+            Políticas del {isCapra ? 'Salón & Academia' : 'Estudio'}
           </h2>
           <div className="w-12 h-0.5 bg-sage-400 mx-auto"></div>
           <p className="text-sm text-warm-900 font-normal">
-            Para garantizar la calidad de mi trabajo y brindarte el mejor ambiente, te pido considerar lo siguiente:
+            {isCapra
+              ? 'Para garantizar una atención puntual en nuestras 6 áreas especializadas y cursos de Capra Academy, te pedimos tomar en cuenta:'
+              : 'Para garantizar la calidad de mi trabajo y brindarte el mejor ambiente, te pido considerar lo siguiente:'}
           </p>
         </div>
 
@@ -45,10 +52,12 @@ export const StudioPolicies: React.FC = () => {
             </div>
             <div className="space-y-1.5">
               <h3 className="font-serif text-xl font-bold text-warm-900">
-                Bioseguridad & Salud
+                Bioseguridad &amp; Salud
               </h3>
               <p className="text-sm text-warm-900 leading-relaxed font-normal">
-                Por estrictas normas de higiene y prevención, no atiendo a personas con patologías o sospecha de hongos. La salud y bienestar de tu uña natural es siempre primero.
+                {isCapra
+                  ? 'Trabajamos con herramientas esterilizadas e insumos dermatológicamente seguros en cada cabina (cejas, pestañas, peluquería, uñas y depilación).'
+                  : 'Por estrictas normas de higiene y prevención, no atiendo a personas con patologías o sospecha de hongos. La salud y bienestar de tu uña natural es siempre primero.'}
               </p>
             </div>
           </div>
@@ -63,7 +72,7 @@ export const StudioPolicies: React.FC = () => {
                 Tu Momento de Relax
               </h3>
               <p className="text-sm text-warm-900 leading-relaxed font-normal">
-                Para brindarte una experiencia exclusiva de spa y desconexión, te sugerimos asistir individualmente a tu cita. Si requieres venir acompañada o con pequeños, con gusto avísame previamente por WhatsApp para coordinarlo.
+                Para brindarte una experiencia exclusiva de armonía y desconexión, te sugerimos asistir individualmente a tu cita. Si requieres coordinar algún detalle especial, escríbenos por WhatsApp.
               </p>
             </div>
           </div>

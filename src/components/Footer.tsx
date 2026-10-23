@@ -7,9 +7,29 @@ interface FooterProps {
   onOpenBooking: () => void;
   onNavigateToShare?: () => void;
   onOpenLegal?: (type: LegalModalType) => void;
+  tenantSlug?: string;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare, onOpenLegal }) => {
+export const Footer: React.FC<FooterProps> = ({
+  onOpenBooking,
+  onNavigateToShare,
+  onOpenLegal,
+  tenantSlug = 'andrea-nails',
+}) => {
+  const isCapra = tenantSlug === 'capra-studio';
+  const brandInitials = isCapra ? 'CS' : 'AL';
+  const brandTitle = isCapra ? 'Capra Studio' : 'Andrea Labrador';
+  const brandSubtitle = isCapra
+    ? 'Salón de Belleza Integral & Capra Academy • By María Capra'
+    : 'Estudio de Uñas • Cordero • San Cristóbal, Táchira';
+  const brandBio = isCapra
+    ? 'Nos complace ser parte de tu embellecimiento y armonía perfecta. Especialistas en Cejas, Pestañas, Peluquería, Alisados, Maquillaje Profesional, Manicure, Depilación y Formación Certificada en Capra Academy.'
+    : '7 años dedicados al cuidado y embellecimiento de tus uñas en Cordero y San Cristóbal, Táchira. Especialista en nivelación con Base Rubber, Polygel y Jelly Tips, priorizando siempre la salud de tu uña natural.';
+  const waHref = isCapra ? 'https://wa.me/584247429530' : 'https://wa.me/584241360937';
+  const waText = isCapra ? '0424-7429530' : '0424-1360937';
+  const igHref = isCapra ? 'https://instagram.com/caprastudio_' : 'https://instagram.com/andrealabradorl';
+  const igText = isCapra ? '@caprastudio_' : '@andrealabradorl';
+
   return (
     <footer className="bg-sage-900 text-warm-100 pt-10 pb-20 sm:pb-12 border-t border-sage-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
@@ -20,43 +40,43 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-sage-800 border border-amber-300/40 flex items-center justify-center font-serif text-amber-200 font-bold text-sm shadow-xs">
-                AL
+                {brandInitials}
               </div>
               <div className="space-y-0.5">
                 <span className="font-serif text-2xl font-bold tracking-wide text-white block leading-tight">
-                  Andrea Labrador
+                  {brandTitle}
                 </span>
                 <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300 font-semibold block">
-                  Estudio de Uñas &bull; Cordero &bull; San Cristóbal, Táchira
+                  {brandSubtitle}
                 </span>
               </div>
             </div>
 
             <p className="text-xs sm:text-sm text-sage-200/90 leading-relaxed max-w-sm">
-              7 años dedicados al cuidado y embellecimiento de tus uñas en Cordero y San Cristóbal, Táchira. Especialista en nivelación con Base Rubber, Polygel y Jelly Tips, priorizando siempre la salud de tu uña natural.
+              {brandBio}
             </p>
             
             {/* Social Buttons */}
             <div className="flex items-center gap-3 pt-1">
               <a
-                href="https://wa.me/584241360937"
+                href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold transition-all shadow-sm"
                 title="WhatsApp Oficial"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>0424-1360937</span>
+                <span>{waText}</span>
               </a>
               <a
-                href="https://instagram.com/andrealabradorl"
+                href={igHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-sage-800 hover:bg-pink-600 text-white text-xs font-bold transition-all shadow-sm"
                 title="Instagram Oficial"
               >
                 <InstagramIcon className="w-4 h-4" />
-                <span>@andrealabradorl</span>
+                <span>{igText}</span>
               </a>
             </div>
           </div>
@@ -80,7 +100,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
                   className="text-amber-300 hover:text-white transition-colors flex items-center gap-1.5 font-bold"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Fidelización: 6+1 &amp; $2 OFF</span>
+                  <span>Club VIP: 5 Sellos &amp; Cortesía</span>
                 </a>
               </li>
               <li><a href="#politicas" className="hover:text-white transition-colors">Políticas del Estudio</a></li>
@@ -108,7 +128,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
                 <span className="text-rose-300 font-semibold">Cerrado (Descanso)</span>
               </div>
               <div className="border-t border-sage-700 pt-1.5 text-[11px] text-sage-300">
-                📍 Atención exclusiva bajo previa cita en Cordero (Municipio Andrés Bello) y San Cristóbal, Estado Táchira.
+                {isCapra
+                  ? '📍 Atención personalizada por departamentos bajo previa cita • Capra Studio & Capra Academy.'
+                  : '📍 Atención exclusiva bajo previa cita en Cordero (Municipio Andrés Bello) y San Cristóbal, Estado Táchira.'}
               </div>
             </div>
           </div>
@@ -136,7 +158,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenBooking, onNavigateToShare
           </div>
 
           <p className="text-[11px] text-sage-400 text-center sm:text-right">
-            &copy; {new Date().getFullYear()} Andrea Labrador Nails Studio &bull; Cordero &bull; San Cristóbal, Táchira
+            &copy; {new Date().getFullYear()} {isCapra ? 'Capra Studio • By María Capra' : 'Andrea Labrador Nails Studio'} &bull; Powered by VANESEV Cloud
           </p>
         </div>
 

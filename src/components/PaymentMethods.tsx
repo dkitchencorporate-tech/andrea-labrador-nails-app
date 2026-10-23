@@ -2,7 +2,18 @@ import React from 'react';
 import { Smartphone, DollarSign, Coins, MessageCircle, ArrowUpRight, Copy, Check } from 'lucide-react';
 import { InstagramIcon } from './Icons';
 
-export const PaymentMethods: React.FC = () => {
+interface PaymentMethodsProps {
+  tenantSlug?: string;
+}
+
+export const PaymentMethods: React.FC<PaymentMethodsProps> = ({ tenantSlug = 'andrea-nails' }) => {
+  const isCapra = tenantSlug === 'capra-studio';
+  const waLink = isCapra ? 'https://wa.me/584247429530' : 'https://wa.me/584241360937';
+  const phoneDisplay = isCapra ? '0424-7429530' : '0424-1360937';
+  const phoneRaw = isCapra ? '04247429530' : '04241360937';
+  const igLink = isCapra ? 'https://instagram.com/caprastudio_' : 'https://instagram.com/andrealabradorl';
+  const igHandle = isCapra ? '@caprastudio_' : '@andrealabradorl';
+
   const [copiedKey, setCopiedKey] = React.useState<string | null>(null);
 
   const handleCopy = (text: string, key: string) => {
@@ -20,43 +31,43 @@ export const PaymentMethods: React.FC = () => {
           {/* Left: Explanation */}
           <div className="lg:col-span-6 space-y-4">
             <span className="text-xs font-bold tracking-[0.2em] text-sage-700 uppercase font-sans">
-              Comodidad para ti
+              Comodidad para ti &bull; {isCapra ? 'Capra Studio' : 'Andrea Labrador'}
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl text-warm-900 font-bold">
               Métodos de Pago
             </h2>
             <p className="text-sm text-warm-900 leading-relaxed font-normal">
-              Para tu mayor comodidad, acepto las siguientes formas de pago al finalizar tu cita: <strong>Pago móvil</strong>, <strong>Efectivo</strong> y <strong>Binance</strong>.
+              Para tu mayor comodidad, aceptamos las siguientes formas de pago Bimoneda al reservar o finalizar tu cita: <strong>Pago móvil (BCV)</strong>, <strong>Efectivo ($ USD)</strong> y <strong>USDT (Binance Pay)</strong>.
             </p>
 
-            {/* Direct Contact Links from PDF Page 9 */}
+            {/* Direct Contact Links */}
             <div className="p-5 bg-white rounded-3xl border border-sage-200 shadow-soft space-y-3">
               <span className="text-xs font-bold text-sage-900 uppercase tracking-wider block">
-                Reservas y Consultas Directas
+                Reservas y Consultas Directas ({isCapra ? 'Capra Studio' : 'Andrea Labrador'})
               </span>
               <div className="flex flex-col sm:flex-row gap-3">
                 <a
-                  href="https://wa.me/584241360937"
+                  href={waLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between hover:bg-emerald-100 transition-colors"
                 >
                   <div className="flex items-center gap-2 text-xs font-semibold">
                     <MessageCircle className="w-4 h-4 text-emerald-600" />
-                    <span>0424-1360937</span>
+                    <span>{phoneDisplay}</span>
                   </div>
                   <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
                 </a>
 
                 <a
-                  href="https://instagram.com/andrealabradorl"
+                  href={igLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 p-3 rounded-2xl bg-pink-50 border border-pink-200 text-pink-800 flex items-center justify-between hover:bg-pink-100 transition-colors"
                 >
                   <div className="flex items-center gap-2 text-xs font-semibold">
                     <InstagramIcon className="w-4 h-4 text-pink-600" />
-                    <span>@andrealabradorl</span>
+                    <span>{igHandle}</span>
                   </div>
                   <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
                 </a>
@@ -81,7 +92,7 @@ export const PaymentMethods: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => handleCopy('04241360937', 'pm')}
+                onClick={() => handleCopy(phoneRaw, 'pm')}
                 className="w-full py-2 px-3 bg-sage-50 hover:bg-sage-100 text-sage-800 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors border border-sage-200"
               >
                 {copiedKey === 'pm' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}

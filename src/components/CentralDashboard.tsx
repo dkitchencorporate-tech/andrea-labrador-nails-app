@@ -53,14 +53,14 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   const [taskZone, setTaskZone] = useState('ZONA 2 · CENTRAL');
   const [taskPriority, setTaskPriority] = useState('critical');
 
-  // New / Edit Tenant Form
+  // New / Edit Tenant 1-Click Wizard Form
   const [showTenantModal, setShowTenantModal] = useState(false);
   const [tenantForm, setTenantForm] = useState({
     id: '',
     customSubdomain: '',
     businessName: '',
     niche: 'multi_studio',
-    slogan: '',
+    slogan: 'Excelencia, armonía y atención personalizada',
     ownerName: '',
     ownerEmail: '',
     whatsappPhone: '58424',
@@ -71,6 +71,8 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
     loyaltyStampsTarget: 5,
     loyaltyRewardTitle: 'Servicio VIP 100% GRATIS',
     monthlyFeeUsd: 29,
+    initialZonesCsv: 'Cejas & Pestañas, Estilismo & Peluquería, Manicure & Spa',
+    initialStaffCsv: 'Directora Principal, Especialista Senior',
   });
 
   // Selected Document Viewer
@@ -168,7 +170,25 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   const handleSaveTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tenantForm.businessName.trim() || !tenantForm.customSubdomain.trim()) return;
-    await postAction('upsert_tenant', tenantForm);
+    const initialZones = tenantForm.initialZonesCsv
+      .split(',')
+      .map((z) => z.trim())
+      .filter(Boolean)
+      .map((name) => ({ name, description: `Área especializada de ${name}`, capacity: 2 }));
+    const initialStaff = tenantForm.initialStaffCsv
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((fullName, idx) => ({
+        fullName,
+        roleTitle: idx === 0 ? 'Directora & Master Artist' : 'Especialista Certificada',
+        commissionPct: idx === 0 ? 100 : 50,
+      }));
+    await postAction('create_tenant_wizard', {
+      ...tenantForm,
+      initialZones,
+      initialStaff,
+    });
     setShowTenantModal(false);
   };
 
@@ -913,8 +933,13 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
 
                 {showTenantModal && (
                   <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-[#0E0E14] border border-amber-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4">
-                      <h3 className="text-lg font-bold text-white">Dar de Alta Nuevo Salón en VANESEV</h3>
+                    <div className="bg-[#0E0E14] border border-amber-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                      <div>
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400">
+                          WIZARD 1-CLICK MULTI-TENANT · NEON DB
+                        </span>
+                        <h3 className="text-lg font-bold text-white">Dar de Alta Nuevo Salón + Zonas + Equipo</h3>
+                      </div>
                       <form onSubmit={handleSaveTenant} className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
@@ -924,8 +949,8 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                               required
                               value={tenantForm.businessName}
                               onChange={(e) => {
-                                const slug = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
-                                setTenantForm({ ...tenantForm, businessName: e.target.value, id: slug, customSubdomain: slug });
+                                const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+                                setTenantForm({ ...tenantForm, businessName: e.target.value, id: slug, customSubdomain: slug.replace(/-/g, '') });
                               }}
                               placeholder="Ej: Lumina Spa"
                               className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-white"
@@ -972,6 +997,30 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                             className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-white"
                           />
                         </div>
+                        <div>
+                          <label className="text-xs text-amber-300 block mb-1">
+                            Áreas / Cabinas Iniciales (separadas por coma → se crean en `studio_zones`)
+                          </label>
+                          <input
+                            type="text"
+                            value={tenantForm.initialZonesCsv}
+                            onChange={(e) => setTenantForm({ ...tenantForm, initialZonesCsv: e.target.value })}
+                            placeholder="Cejas & Pestañas, Peluquería, Manicure & Spa"
+                            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-xs text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-amber-300 block mb-1">
+                            Especialistas Iniciales (separadas por coma → se crean en `staff_members`)
+                          </label>
+                          <input
+                            type="text"
+                            value={tenantForm.initialStaffCsv}
+                            onChange={(e) => setTenantForm({ ...tenantForm, initialStaffCsv: e.target.value })}
+                            placeholder="Directora Principal, Especialista 1, Especialista 2"
+                            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-xs text-white"
+                          />
+                        </div>
                         <div className="flex justify-end gap-2 pt-3">
                           <button
                             type="button"
@@ -984,7 +1033,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                             type="submit"
                             className="px-4 py-2 rounded-lg bg-amber-500 text-black text-xs font-bold uppercase"
                           >
-                            Crear Salón en Neon DB
+                            Crear Salón + Zonas + Equipo en 1 Clic
                           </button>
                         </div>
                       </form>

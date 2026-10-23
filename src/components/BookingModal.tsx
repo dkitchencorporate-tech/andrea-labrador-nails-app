@@ -38,6 +38,9 @@ interface BookingModalProps {
   services: ServiceItem[];
   exchangeRate: number;
   referralCode?: string;
+  tenantSlug?: string;
+  tenantName?: string;
+  tenantWhatsapp?: string;
   onNavigateToShare?: () => void;
   onBookingCreated?: () => void;
 }
@@ -57,6 +60,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   services,
   exchangeRate,
   referralCode,
+  tenantSlug = 'andrea-nails',
+  tenantName = 'Andrea Labrador Nails Studio',
+  tenantWhatsapp = '584241360937',
   onNavigateToShare,
   onBookingCreated,
 }) => {
@@ -68,6 +74,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+
+  // Multi-Specialist & Studio Zone state from Neon DB
+  const [availableStaff, setAvailableStaff] = useState<any[]>([]);
+  const [availableZones, setAvailableZones] = useState<any[]>([]);
+  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const [selectedZoneId, setSelectedZoneId] = useState<string>('');
   
   // Client details
   const [clientName, setClientName] = useState('');
@@ -114,10 +126,28 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return dates;
   }, []);
 
-  // Sync remote schedule and check active client on open
+  // Sync remote schedule, staff/zones and check active client on open
   useEffect(() => {
     if (isOpen) {
       AppStore.fetchRemoteBlockedSlots().catch(console.warn);
+
+      fetch(`/api/central?mode=tenant_context&tenant=${encodeURIComponent(tenantSlug)}`)
+        .then(r => (r.ok ? r.json() : null))
+        .then(json => {
+          if (json) {
+            const staffList = Array.isArray(json.staff) ? json.staff : [];
+            const zoneList = Array.isArray(json.zones) ? json.zones : [];
+            setAvailableStaff(staffList);
+            setAvailableZones(zoneList);
+            if (staffList.length > 0 && !selectedStaffId) {
+              setSelectedStaffId(staffList[0].id);
+            }
+            if (zoneList.length > 0 && !selectedZoneId) {
+              setSelectedZoneId(zoneList[0].id);
+            }
+          }
+        })
+        .catch(() => {});
 
       const active = AppStore.getActiveClient();
       if (active) {
@@ -139,7 +169,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (availableDates.length > 0 && !selectedDate) {
       setSelectedDate(availableDates[0].dateString);
     }
-  }, [isOpen, preSelectedService, preSelectedPromo, services, availableDates]);
+  }, [isOpen, preSelectedService, preSelectedPromo, services, availableDates, tenantSlug]);
 
   // Intelligent real-time recognition by phone or email
   useEffect(() => {
@@ -220,6 +250,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     );
   };
 
+  const chosenStaffObj = availableStaff.find((s: any) => s.id === selectedStaffId) || availableStaff[0];
+  const chosenZoneObj = availableZones.find((z: any) => z.id === selectedZoneId) || availableZones[0];
+
   // Submit and open WhatsApp
   const handleConfirmReservation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,8 +276,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     setIsSubmitting(true);
 
-    const booking: AppointmentBooking = {
+    const staffNote = chosenStaffObj ? `Especialista: ${chosenStaffObj.name || chosenStaffObj.full_name}` : '';
+    const zoneNote = chosenZoneObj ? `Área: ${chosenZoneObj.name}` : '';
+    const enrichedNotes = [notes.trim(), staffNote, zoneNote].filter(Boolean).join(' | ');
+
+    const booking: AppointmentBooking & Record<string, any> = {
       id: 'cita_' + Date.now(),
+      tenantId: tenantSlug,
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
       clientEmail: clientEmail.trim() || undefined,
@@ -255,10 +293,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       servicePriceUSD: basePriceUSD,
       selectedAddons,
       totalPriceUSD,
+      staffId: chosenStaffObj?.id,
+      staffName: chosenStaffObj?.name || chosenStaffObj?.full_name,
+      zoneId: chosenZoneObj?.id,
+      zoneName: chosenZoneObj?.name,
       date: selectedDate,
       timeSlot: selectedTimeSlot,
       paymentMethod,
-      notes: notes.trim() || undefined,
+      notes: enrichedNotes || undefined,
       status: 'en_whatsapp',
       isFirstVisit: (!isExistingClient && isFirstVisit),
       discountUSD,
@@ -281,8 +323,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setIsSubmitting(false);
     onBookingCreated?.();
 
-    // Generate WhatsApp link
-    const waUrl = AppStore.generateWhatsAppBookingUrl({
+    // Generate WhatsApp link dynamically targeting the active salon's WhatsApp
+    const baseWaUrl = AppStore.generateWhatsAppBookingUrl({
       serviceName: finalBooking.serviceName,
       totalPriceUSD: finalBooking.totalPriceUSD,
       date: finalBooking.date,
@@ -299,6 +341,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       discountUSD: finalBooking.discountUSD,
       referralCode: referralCode || undefined,
     });
+    const cleanTargetWa = tenantWhatsapp.replace(/\D/g, '') || '584241360937';
+    const waUrl = baseWaUrl.replace(/wa\.me\/\d+/, `wa.me/${cleanTargetWa}`);
 
     // Open WhatsApp directly
     setTimeout(() => {
@@ -320,10 +364,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         <div className="px-6 py-5 bg-warm-100 border-b border-sage-200/80 flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-700 block">
-              Agenda tu Cita
+              Agenda tu Cita &bull; {tenantName}
             </span>
             <h3 className="font-serif text-2xl font-bold text-sage-900">
-              {isSuccess ? '¡Cita Lista para Confirmar!' : 'Agendar Cita con Andrea'}
+              {isSuccess ? '¡Cita Lista para Confirmar!' : `Reservar en ${tenantName}`}
             </h3>
           </div>
           <button
@@ -348,7 +392,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   ¡Casi listo, {lastCreatedBooking.clientName}!
                 </h4>
                 <p className="text-sm text-warm-900 max-w-md mx-auto font-medium">
-                  Tu cita está lista en el sistema. Toca el botón verde para enviar los datos a Andrea por WhatsApp (0424-1360937) para que te confirme en un momento.
+                  Tu cita está registrada en nuestra base de datos. Toca el botón verde para enviar los datos a {tenantName} por WhatsApp (+{tenantWhatsapp.replace(/\D/g, '')}) y recibir confirmación inmediata.
                 </p>
               </div>
 
@@ -358,6 +402,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <span className="text-sage-800 font-bold">Servicio:</span>
                   <span className="font-bold text-warm-900">{lastCreatedBooking.serviceName}</span>
                 </div>
+                {chosenStaffObj && (
+                  <div className="flex justify-between border-b border-sage-200/60 pb-2">
+                    <span className="text-sage-800 font-bold">Especialista &amp; Zona:</span>
+                    <span className="font-bold text-warm-900">
+                      {chosenStaffObj.name || chosenStaffObj.full_name} {chosenZoneObj ? `(${chosenZoneObj.name})` : ''}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between border-b border-sage-200/60 pb-2">
                   <span className="text-sage-800 font-bold">Fecha y Hora:</span>
                   <span className="font-bold text-warm-900">{lastCreatedBooking.date} a las {lastCreatedBooking.timeSlot}</span>
@@ -383,13 +435,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     paymentMethod: lastCreatedBooking.paymentMethod,
                     notes: lastCreatedBooking.notes,
                     referralCode: referralCode || undefined,
-                  })}
+                  }).replace(/wa\.me\/\d+/, `wa.me/${tenantWhatsapp.replace(/\D/g, '')}`)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-soft transition-all"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Enviar a WhatsApp (0424-1360937)</span>
+                  <span>Enviar a WhatsApp (+{tenantWhatsapp.replace(/\D/g, '')})</span>
                 </a>
                 <button
                   onClick={handleResetAndClose}
@@ -502,6 +554,80 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       })}
                     </div>
                   </div>
+
+                  {/* Selector Multi-Especialista y Cabina / Área (Conectado a Neon DB) */}
+                  {(availableStaff.length > 0 || availableZones.length > 0) && (
+                    <div className="p-4 rounded-2xl bg-warm-50/90 border border-sage-200/90 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-sage-800">
+                          Especialista &amp; Cabina / Área ({tenantName})
+                        </span>
+                        <span className="text-[10px] font-semibold text-sage-600 bg-white px-2 py-0.5 rounded-full border border-sage-200">
+                          Multi-Zona Activo
+                        </span>
+                      </div>
+
+                      {availableStaff.length > 0 && (
+                        <div className="space-y-1.5">
+                          <label className="block text-[11px] font-semibold text-warm-700">
+                            Selecciona tu Especialista de Preferencia:
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {availableStaff.map((st) => {
+                              const isChosen = selectedStaffId === st.id;
+                              return (
+                                <button
+                                  key={st.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedStaffId(st.id);
+                                    if (st.zoneId) setSelectedZoneId(st.zoneId);
+                                  }}
+                                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                                    isChosen
+                                      ? 'bg-sage-800 text-white border-sage-900 shadow-xs'
+                                      : 'bg-white text-warm-900 border-sage-200 hover:border-sage-400'
+                                  }`}
+                                >
+                                  <p className="text-xs font-bold truncate">{st.name}</p>
+                                  <p className={`text-[10px] truncate ${isChosen ? 'text-amber-200' : 'text-sage-600'}`}>
+                                    {st.role}
+                                  </p>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {availableZones.length > 0 && (
+                        <div className="space-y-1.5 pt-1">
+                          <label className="block text-[11px] font-semibold text-warm-700">
+                            Departamento / Cabina Asignada:
+                          </label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {availableZones.map((zn) => {
+                              const isZoneChosen = selectedZoneId === zn.id;
+                              return (
+                                <button
+                                  key={zn.id}
+                                  type="button"
+                                  onClick={() => setSelectedZoneId(zn.id)}
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                                    isZoneChosen
+                                      ? 'bg-amber-100 border-amber-400 text-amber-950 font-bold'
+                                      : 'bg-white border-sage-200 text-warm-700 hover:bg-warm-100'
+                                  }`}
+                                >
+                                  {zn.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Add-ons Section & Smart Cross-Sell Upsell */}
                   <div className="space-y-3">

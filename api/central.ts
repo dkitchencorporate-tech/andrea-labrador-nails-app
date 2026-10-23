@@ -110,7 +110,9 @@ export default async function handler(req: any, res: any) {
 
     // ─── POST: Create / Mutate Records in Central or Salon Admin V2 ───────────
     if (req.method === 'POST') {
-      const { action, payload } = req.body || {};
+      const bodyObj = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
+      const action = bodyObj.action;
+      const payload = bodyObj.payload || bodyObj;
 
       // 1. Review / Approve / Request Changes on a Session
       if (action === 'review_session') {
@@ -192,7 +194,7 @@ export default async function handler(req: any, res: any) {
       }
 
       // 6. Create or Update Tenant (Salon / Barbershop / Studio) & Custom Subdomain URL
-      if (action === 'upsert_tenant') {
+      if (action === 'upsert_tenant' || action === 'create_tenant_wizard') {
         const {
           id, customSubdomain, businessName, niche, slogan, ownerName, ownerEmail,
           whatsappPhone, instagramHandle, city, businessHours, themePalette,
@@ -238,23 +240,52 @@ export default async function handler(req: any, res: any) {
             monthly_fee_usd = EXCLUDED.monthly_fee_usd,
             updated_at = NOW();
         `;
+
+        if (action === 'create_tenant_wizard') {
+          await sql`
+            INSERT INTO public.studio_zones (id, tenant_id, name, department, description, capacity, station_code, is_active)
+            VALUES (
+              ${`zone-${cleanSlug}-main`}, ${cleanSlug}, 'Estación Principal VIP', 'general',
+              'Área principal del salón', 2, 'EST-01', true
+            )
+            ON CONFLICT (id) DO NOTHING;
+          `;
+          await sql`
+            INSERT INTO public.staff_members (id, tenant_id, name, role_title, specialty_tags, phone, instagram, commission_percent, schedule_summary, is_active)
+            VALUES (
+              ${`staff-${cleanSlug}-owner`}, ${cleanSlug}, ${String(ownerName || businessName)},
+              'Directora / Master Artist', ARRAY['Especialista Principal'], ${String(whatsappPhone || '')},
+              ${String(instagramHandle || '')}, 100, ${String(businessHours || 'Lun - Sáb · 9:00 AM - 6:00 PM')}, true
+            )
+            ON CONFLICT (id) DO NOTHING;
+          `;
+        }
+
         return res.status(200).json({ ok: true, id: cleanSlug, subdomain: `${cleanSub}.vanesev.com` });
       }
 
       // 7. Create or Update Staff Member (Admin Pro V2)
       if (action === 'upsert_staff') {
-        const { id, tenantId, name, roleTitle, specialtyTags, phone, instagram, commissionPercent, zoneId, scheduleSummary, isActive } = payload || {};
+        const {
+          id, tenantId, name, fullName, roleTitle, specialtyTags, specialties,
+          phone, instagram, commissionPercent, commissionPct, zoneId, scheduleSummary, isActive
+        } = payload || {};
         const staffId = id || `staff-${Date.now()}`;
-        const tagsArray = Array.isArray(specialtyTags) ? specialtyTags : String(specialtyTags || 'Especialista VIP').split(',').map((s: string) => s.trim()).filter(Boolean);
+        const finalName = String(name || fullName || 'Especialista');
+        const rawTags = specialtyTags || specialties || 'Especialista VIP';
+        const tagsArray = Array.isArray(rawTags)
+          ? rawTags
+          : String(rawTags).split(',').map((s: string) => s.trim()).filter(Boolean);
+        const finalComm = Number(commissionPercent ?? commissionPct ?? 40);
         await sql`
           INSERT INTO public.staff_members (
             id, tenant_id, name, role_title, specialty_tags, phone, instagram,
             commission_percent, zone_id, schedule_summary, is_active, updated_at
           ) VALUES (
-            ${staffId}, ${String(tenantId || 'andrea-nails')}, ${String(name)},
+            ${staffId}, ${String(tenantId || 'andrea-nails')}, ${finalName},
             ${String(roleTitle || 'Especialista Senior')}, ${tagsArray},
             ${String(phone || '')}, ${String(instagram || '')},
-            ${Number(commissionPercent ?? 40)}, ${zoneId || null},
+            ${finalComm}, ${zoneId || null},
             ${String(scheduleSummary || 'Lun - Sáb · 9:00 AM - 6:00 PM')},
             ${isActive !== false}, NOW()
           )
