@@ -469,6 +469,7 @@ export const App: React.FC = () => {
   if (isCentralRoute) {
     return (
       <CentralDashboard
+        onNavigateToSaaSLanding={switchToSaasLanding}
         onNavigateToTenant={(slug) => {
           if (slug === 'capra-studio' || slug === 'andrea-nails') {
             switchToTenant(slug, false);
