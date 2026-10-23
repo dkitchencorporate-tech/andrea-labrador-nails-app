@@ -109,10 +109,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const res = await fetch(`/api/central?mode=tenant_context&tenant=${encodeURIComponent(tenantSlug)}`);
       if (res.ok) {
         const json = await res.json();
-        if (json.success) {
-          setDbStaff(json.staff || []);
-          setDbZones(json.zones || []);
-        }
+        if (Array.isArray(json.staff)) setDbStaff(json.staff);
+        if (Array.isArray(json.zones)) setDbZones(json.zones);
       }
     } catch {
       // Fallback silencioso
@@ -2570,13 +2568,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     {dbStaff.map((member: any) => {
-                      const initials = (member.full_name || 'ES')
+                      const displayName = member.name || member.full_name || 'Especialista';
+                      const initials = displayName
                         .split(' ')
                         .map((n: string) => n[0])
                         .join('')
                         .slice(0, 2)
                         .toUpperCase();
-                      const specs = Array.isArray(member.specialties) ? member.specialties.join(', ') : 'Especialista Integral';
+                      const rawSpecs = member.specialty_tags || member.specialties;
+                      const specs = Array.isArray(rawSpecs) ? rawSpecs.join(', ') : 'Especialista Integral';
+                      const comm = Number(member.commission_percent ?? member.commission_pct ?? 50);
                       return (
                         <div key={member.id} className="p-4 rounded-2xl bg-white border border-sage-200 space-y-3 shadow-2xs">
                           <div className="flex items-start justify-between gap-2">
@@ -2589,7 +2590,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               </div>
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <h5 className="font-bold text-warm-900 text-sm">{member.full_name}</h5>
+                                  <h5 className="font-bold text-warm-900 text-sm">{displayName}</h5>
                                   <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-900 border border-emerald-300">
                                     {member.role_title || 'Especialista'}
                                   </span>
@@ -2618,13 +2619,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </div>
                             <div>
                               <span className="text-warm-400 font-bold uppercase text-[9px] block">Comisión Pactada</span>
-                              <span className="text-emerald-800 font-bold">{Number(member.commission_pct || 50)}% por servicio</span>
+                              <span className="text-emerald-800 font-bold">{comm}% por servicio</span>
                             </div>
                           </div>
 
                           <div className="flex items-center justify-between text-[11px] pt-1 border-t border-sage-100">
                             <span className="text-emerald-700 font-bold flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Activa en Neon Postgres
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Activa en Neon Postgres ({member.schedule_summary || 'Jornada Activa'})
                             </span>
                             <span className="text-warm-400 text-[10px]">ID: {member.id}</span>
                           </div>

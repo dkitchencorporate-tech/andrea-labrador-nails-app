@@ -190,9 +190,9 @@ const CAPRA_FALLBACK_SERVICES: ServiceItem[] = [
 const CAPRA_CATEGORIES = [
   { id: 'all', label: 'Todos (Servicios & Cursos)' },
   { id: 'cejas_pestanas', label: 'Cejas & Pestañas' },
-  { id: 'estilismo', label: 'Estilismo & Alisados' },
+  { id: 'estilismo_alisados', label: 'Estilismo & Alisados' },
   { id: 'maquillaje', label: 'Maquillaje Pro' },
-  { id: 'nails', label: 'Manicure & Pedicure' },
+  { id: 'manicure_pedicure', label: 'Manicure & Pedicure' },
   { id: 'depilacion', label: 'Depilación Corporal' },
   { id: 'cursos', label: '🎓 Cursos Capra Academy' },
 ];
@@ -292,21 +292,22 @@ export const App: React.FC = () => {
       fetch('/api/services?tenant=capra-studio')
         .then(r => (r.ok ? r.json() : null))
         .then(json => {
-          if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
-            const mapped: ServiceItem[] = json.data.map((row: any) => ({
+          const rawServices = Array.isArray(json?.services) ? json.services : Array.isArray(json?.data) ? json.data : null;
+          if (rawServices && rawServices.length > 0) {
+            const mapped: ServiceItem[] = rawServices.map((row: any) => ({
               id: row.id,
               name: row.name,
               category: row.category || 'cejas_pestanas',
-              priceUSD: Number(row.price_usd || 20),
-              durationMinutes: Number(row.duration_min || 60),
-              shortDescription: row.description || '',
-              fullDescription: row.description || '',
-              idealFor: row.includes_note || 'Atención personalizada en Capra Studio',
-              imageUrl: row.image_url || '/images/esmaltado-semipermanente.png',
-              badgeText: row.category === 'cursos' ? 'Capra Academy' : 'Capra Studio',
+              priceUSD: Number(row.priceUSD ?? row.price_usd ?? 20),
+              durationMinutes: Number(row.durationMinutes ?? row.duration_min ?? 60),
+              shortDescription: row.shortDescription || row.description || '',
+              fullDescription: row.fullDescription || row.description || '',
+              idealFor: row.idealFor || row.includes_note || 'Atención personalizada en Capra Studio',
+              imageUrl: row.imageUrl || row.image_url || '/images/esmaltado-semipermanente.png',
+              badgeText: row.badgeText || (row.category === 'cursos' ? 'Capra Academy' : 'Capra Studio'),
               badgeColor: row.category === 'cursos' ? 'bg-[#C5A059]' : 'bg-[#B5838D]',
-              isAvailable: row.is_active !== false,
-              tags: [row.category || 'Belleza', 'By María Capra'],
+              isAvailable: row.isAvailable !== false && row.is_active !== false,
+              tags: Array.isArray(row.tags) ? row.tags : [row.category || 'Belleza', 'By María Capra'],
             }));
             setServices(mapped);
           }

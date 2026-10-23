@@ -98,20 +98,21 @@ export const ClientAccountModal: React.FC<ClientAccountModalProps> = ({
       const res = await fetch(`/api/bookings?clientPhone=${encodeURIComponent(cleanPhone)}`);
       if (res.ok) {
         const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          const remoteMapped: AppointmentBooking[] = json.data.map((r: any) => ({
+        const rawList = Array.isArray(json.bookings) ? json.bookings : Array.isArray(json.data) ? json.data : null;
+        if (rawList) {
+          const remoteMapped: AppointmentBooking[] = rawList.map((r: any) => ({
             id: r.id,
-            clientName: r.client_name,
-            clientPhone: r.client_phone,
-            serviceId: r.service_id,
-            serviceName: r.service_name,
-            date: r.appointment_date,
-            timeSlot: r.time_slot,
+            clientName: r.clientName || r.client_name,
+            clientPhone: r.clientPhone || r.client_phone,
+            serviceId: r.serviceId || r.service_id,
+            serviceName: r.serviceName || r.service_name,
+            date: r.date || r.appointment_date,
+            timeSlot: r.timeSlot || r.time_slot,
             status: r.status || 'pendiente',
             notes: r.notes || '',
-            paymentMethod: r.payment_method || 'Pago Móvil',
-            totalPriceUSD: Number(r.price_usd || 0),
-            createdAt: r.created_at || new Date().toISOString(),
+            paymentMethod: r.paymentMethod || r.payment_method || 'pago_movil',
+            totalPriceUSD: Number(r.totalPriceUSD ?? r.price_usd ?? 0),
+            createdAt: r.createdAt || r.created_at || new Date().toISOString(),
           }));
           const mergedMap = new Map<string, AppointmentBooking>();
           remoteMapped.forEach(b => mergedMap.set(b.id, b));
