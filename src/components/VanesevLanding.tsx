@@ -25,45 +25,45 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
   onSelectTenant,
 }) => {
   return (
-    <div className="min-h-screen bg-[#0B0D11] text-[#F5F2EB] font-sans selection:bg-[#C5A059] selection:text-[#0B0D11]">
+    <div className="min-h-screen bg-[#0B0D11] text-[#F5F2EB] font-sans selection:bg-[#C5A059] selection:text-[#0B0D11] overflow-x-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0B0D11]/90 backdrop-blur-xl px-4 sm:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0B0D11]/90 backdrop-blur-xl px-3 sm:px-8 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#C5A059] to-[#8C6D2F] flex items-center justify-center text-[#0B0D11] font-serif font-black text-lg shadow-lg">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-[#C5A059] to-[#8C6D2F] flex items-center justify-center text-[#0B0D11] font-serif font-black text-base sm:text-lg shadow-lg shrink-0">
               V7
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-serif font-bold text-lg tracking-wide text-white">
+                <span className="font-serif font-bold text-base sm:text-lg tracking-wide text-white">
                   VANESEV
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-[#C5A059]/20 text-[#E5C158] border border-[#C5A059]/40">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-[#C5A059]/20 text-[#E5C158] border border-[#C5A059]/40 shrink-0">
                   Cloud SaaS Suite · Venezuela
                 </span>
               </div>
-              <p className="text-[11px] text-white/50">
+              <p className="text-[10px] sm:text-[11px] text-white/50 truncate">
                 vanesev.com &bull; Catálogos PWA, Agenda &amp; Fidelización Multi-Salón
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5 sm:pb-0">
             <button
               onClick={() => onSelectTenant('capra-studio')}
-              className="px-3.5 py-2 rounded-xl bg-[#B5838D]/20 hover:bg-[#B5838D]/30 text-[#F2D5DC] border border-[#B5838D]/40 text-xs font-bold transition-all cursor-pointer"
+              className="px-3 py-1.5 sm:py-2 rounded-xl bg-[#B5838D]/20 hover:bg-[#B5838D]/30 text-[#F2D5DC] border border-[#B5838D]/40 text-xs font-bold transition-all cursor-pointer shrink-0"
             >
               Ver Demo: Capra Studio
             </button>
             <button
               onClick={() => onSelectTenant('andrea-nails')}
-              className="px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer"
+              className="px-3 py-1.5 sm:py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer shrink-0"
             >
               Ver Flagship: Andrea Nails V2
             </button>
             <button
               onClick={onOpenCentral}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#C5A059] to-[#D4AF37] text-[#0B0D11] text-xs font-black flex items-center gap-1.5 shadow-md cursor-pointer"
+              className="px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#C5A059] to-[#D4AF37] text-[#0B0D11] text-xs font-black flex items-center gap-1.5 shadow-md cursor-pointer shrink-0"
             >
               <Terminal className="w-3.5 h-3.5" />
               <span>Entrar a VANESEV Central</span>

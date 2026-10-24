@@ -197,38 +197,48 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   const pendingTasksCount = (data.tasks || []).filter((t: any) => t.status !== 'completed').length;
 
   return (
-    <div className="min-h-screen bg-[#070709] text-zinc-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
+    <div className="min-h-screen bg-[#070709] text-zinc-100 font-sans selection:bg-amber-500/30 selection:text-amber-200 overflow-x-hidden">
       {/* TOP COMMAND HEADER */}
       <header className="sticky top-0 z-40 border-b border-amber-500/20 bg-[#09090D]/95 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 p-[1px] shadow-lg shadow-amber-500/15">
-              <div className="w-full h-full bg-[#09090D] rounded-[11px] flex items-center justify-center">
-                <span className="font-serif font-black text-xl bg-gradient-to-r from-amber-200 to-amber-500 bg-clip-text text-transparent">
-                  V
-                </span>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 p-[1px] shadow-lg shadow-amber-500/15 shrink-0">
+                <div className="w-full h-full bg-[#09090D] rounded-[11px] flex items-center justify-center">
+                  <span className="font-serif font-black text-lg sm:text-xl bg-gradient-to-r from-amber-200 to-amber-500 bg-clip-text text-transparent">
+                    V
+                  </span>
+                </div>
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.2em] text-amber-400 font-bold">
+                    VANESEV · CENTRAL
+                  </span>
+                  <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                    ● LIVE DB
+                  </span>
+                </div>
+                <h1 className="text-sm sm:text-xl font-bold tracking-tight text-white truncate">
+                  Centro de Mando &amp; Gobernanza de karc0
+                </h1>
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase tracking-[0.25em] text-amber-400 font-bold">
-                  VANESEV · CENTRAL
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  ● LIVE DB (POSTGRES 18)
-                </span>
-              </div>
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-                Centro de Mando & Gobernanza de karc0
-              </h1>
-            </div>
+            <button
+              onClick={fetchCentralState}
+              disabled={syncing}
+              className="sm:hidden p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 shrink-0"
+              title="Sincronizar con Neon DB"
+            >
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-amber-400' : ''}`} />
+            </button>
           </div>
 
-          {/* Quick Jump Switcher to Live Environments */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Quick Jump Switcher to Live Environments (Swipeable on Mobile) */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5 sm:pb-0">
             <button
               onClick={() => onNavigateToTenant('capra-studio', false)}
-              className="px-3 py-2 rounded-lg text-xs font-semibold bg-[#B5838D]/20 hover:bg-[#B5838D]/35 text-[#F4E1E6] border border-[#C5A059]/40 flex items-center gap-1.5 transition-all"
+              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-[#B5838D]/20 hover:bg-[#B5838D]/35 text-[#F4E1E6] border border-[#C5A059]/40 flex items-center gap-1.5 transition-all shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
               Ver Capra Studio
@@ -236,19 +246,19 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             </button>
             <button
               onClick={() => onNavigateToTenant('capra-studio', true)}
-              className="px-3 py-2 rounded-lg text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-all"
+              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-all shrink-0"
             >
               Admin Capra V2
             </button>
             <button
               onClick={() => onNavigateToTenant('andrea-nails', false)}
-              className="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-950/50 hover:bg-emerald-900/50 text-emerald-200 border border-emerald-500/30 flex items-center gap-1.5 transition-all"
+              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-emerald-950/50 hover:bg-emerald-900/50 text-emerald-200 border border-emerald-500/30 flex items-center gap-1.5 transition-all shrink-0"
             >
               Ver Andrea Nails V2
             </button>
             <button
               onClick={onNavigateToSaaSLanding}
-              className="px-3 py-2 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-black flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/10"
+              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-black flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/10 shrink-0"
             >
               <Globe className="w-3.5 h-3.5" />
               Web Comercial vanesev.com
@@ -256,7 +266,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             <button
               onClick={fetchCentralState}
               disabled={syncing}
-              className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300"
+              className="hidden sm:inline-flex p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 shrink-0"
               title="Sincronizar con Neon DB"
             >
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-amber-400' : ''}`} />

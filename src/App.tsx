@@ -645,56 +645,56 @@ export const App: React.FC = () => {
   const isCapra = activeTenant === 'capra-studio';
 
   return (
-    <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200">
-      {/* ══ BARRA RÁPIDA DE GOBERNANZA MULTI-ZONA VANESEV (ACCESO DIRECTO PARA KARC0) ══ */}
-      <div className="bg-[#0B0D11] text-white px-3 sm:px-6 py-2 border-b border-[#C5A059]/30 flex flex-wrap items-center justify-between gap-2 text-[11px] z-50">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="px-2 py-0.5 rounded bg-gradient-to-r from-[#C5A059] to-[#D4AF37] text-[#0B0D11] font-black uppercase tracking-wider text-[10px]">
-            VANESEV CLOUD
+    <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200 overflow-x-hidden">
+      {/* ══ BARRA RÁPIDA DE GOBERNANZA MULTI-ZONA VANESEV (COMPACTA Y DESLIZABLE EN MÓVIL) ══ */}
+      <div className="bg-[#0B0D11] text-white px-2.5 sm:px-6 py-1.5 sm:py-2 border-b border-[#C5A059]/30 flex items-center justify-between gap-2 text-[11px] z-50 overflow-x-auto no-scrollbar whitespace-nowrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <span className="px-2 py-0.5 rounded bg-gradient-to-r from-[#C5A059] to-[#D4AF37] text-[#0B0D11] font-black uppercase tracking-wider text-[9px] sm:text-[10px] shrink-0">
+            VANESEV
           </span>
           <button
             onClick={switchToCentral}
-            className="px-2.5 py-1 rounded-lg bg-[#C5A059]/20 hover:bg-[#C5A059]/35 text-[#E5C158] border border-[#C5A059]/50 font-bold flex items-center gap-1 cursor-pointer transition-all"
+            className="px-2.5 py-1 rounded-lg bg-[#C5A059]/20 hover:bg-[#C5A059]/35 text-[#E5C158] border border-[#C5A059]/50 font-bold flex items-center gap-1 cursor-pointer transition-all shrink-0"
           >
-            <Terminal className="w-3 h-3" />
-            <span>1. Central (/central)</span>
+            <Terminal className="w-3 h-3 shrink-0" />
+            <span>1. Central</span>
           </button>
           <button
             onClick={() => switchToTenant('capra-studio', false)}
-            className={`px-2.5 py-1 rounded-lg font-bold cursor-pointer transition-all ${
+            className={`px-2.5 py-1 rounded-lg font-bold cursor-pointer transition-all shrink-0 ${
               isCapra
                 ? 'bg-[#B5838D] text-[#0B0D11]'
                 : 'bg-white/10 hover:bg-white/20 text-white/80'
             }`}
           >
-            2. Capra Studio (@caprastudio_)
+            2. Capra Studio
           </button>
           <button
             onClick={() => switchToTenant('andrea-nails', false)}
-            className={`px-2.5 py-1 rounded-lg font-bold cursor-pointer transition-all ${
+            className={`px-2.5 py-1 rounded-lg font-bold cursor-pointer transition-all shrink-0 ${
               !isCapra
                 ? 'bg-emerald-400 text-[#0B0D11]'
                 : 'bg-white/10 hover:bg-white/20 text-white/80'
             }`}
           >
-            3. Andrea Labrador V2 (VIP)
+            3. Andrea V2
           </button>
           <button
             onClick={switchToSaasLanding}
-            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 font-bold flex items-center gap-1 cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 font-bold flex items-center gap-1 cursor-pointer shrink-0"
           >
-            <Globe className="w-3 h-3 text-[#E5C158]" />
-            <span>4. Web Comercial (vanesev.com)</span>
+            <Globe className="w-3 h-3 text-[#E5C158] shrink-0" />
+            <span>4. Web SaaS</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0 pl-1">
           <button
             onClick={() => switchToTenant(activeTenant, true)}
-            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[#E5C158] border border-white/15 font-bold flex items-center gap-1 cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[#E5C158] border border-white/15 font-bold flex items-center gap-1 cursor-pointer shrink-0"
           >
-            <ShieldCheck className="w-3 h-3" />
-            <span>Abrir Admin Pro V2 ({isCapra ? 'Capra' : 'Andrea'})</span>
+            <ShieldCheck className="w-3 h-3 shrink-0" />
+            <span>Admin V2 ({isCapra ? 'Capra' : 'Andrea'})</span>
           </button>
         </div>
       </div>
@@ -703,42 +703,44 @@ export const App: React.FC = () => {
       <div className="sticky top-0 z-40">
         <PWAInstallModal onOpenClientAccount={() => setIsAccountModalOpen(true)} />
         {isCapra ? (
-          /* ══ NAVBAR EXCLUSIVO DE CAPRA STUDIO (VELVET MAUVE & 3D GOLD) ══ */
-          <header className="bg-[#FDFBF9]/95 backdrop-blur-md border-b border-[#B5838D]/30 px-4 sm:px-8 py-3.5 shadow-xs">
-            <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#B5838D] to-[#8E5B66] border-2 border-[#C5A059] flex items-center justify-center text-white font-serif font-bold text-lg shadow-sm">
+          /* ══ NAVBAR EXCLUSIVO DE CAPRA STUDIO (RESPONSIVO MÓVIL Y ESCRITORIO) ══ */
+          <header className="bg-[#FDFBF9]/95 backdrop-blur-md border-b border-[#B5838D]/30 px-3 sm:px-8 py-2.5 sm:py-3.5 shadow-xs">
+            <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-[#B5838D] to-[#8E5B66] border-2 border-[#C5A059] flex items-center justify-center text-white font-serif font-bold text-sm sm:text-lg shadow-sm shrink-0">
                   CS
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="font-serif font-bold text-lg sm:text-xl text-[#2D1E22] tracking-tight">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <h1 className="font-serif font-bold text-base sm:text-xl text-[#2D1E22] tracking-tight truncate">
                       Capra Studio
                     </h1>
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-[#B5838D]/15 text-[#8E5B66] border border-[#B5838D]/40">
+                    <span className="hidden xs:inline-block px-1.5 sm:px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest bg-[#B5838D]/15 text-[#8E5B66] border border-[#B5838D]/40 shrink-0">
                       By María Capra
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#6E5359] font-medium">
-                    Salón de Belleza Integral &amp; Capra Academy &bull; 9:00 a 18:00
+                  <p className="text-[10px] sm:text-[11px] text-[#6E5359] font-medium truncate">
+                    Salón Integral &amp; Capra Academy &bull; 9:00–18:00
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                 <button
                   onClick={() => setIsAccountModalOpen(true)}
-                  className="px-3.5 py-2 rounded-full bg-[#F6EEF0] hover:bg-[#EAD8DC] text-[#5C3A42] border border-[#B5838D]/40 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="px-2.5 sm:px-3.5 py-2 rounded-full bg-[#F6EEF0] hover:bg-[#EAD8DC] text-[#5C3A42] border border-[#B5838D]/40 text-[11px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
-                  <span>Mi Ficha VIP (5 Sellos)</span>
+                  <Sparkles className="w-3.5 h-3.5 text-[#C5A059] shrink-0" />
+                  <span>Ficha VIP</span>
+                  <span className="hidden md:inline">(5 Sellos)</span>
                 </button>
                 <button
                   onClick={handleOpenGeneralBooking}
-                  className="px-4 sm:px-5 py-2.5 rounded-full bg-gradient-to-r from-[#B5838D] to-[#9B6B75] hover:opacity-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#B5838D] to-[#9B6B75] hover:opacity-95 text-white text-[11px] sm:text-xs font-bold flex items-center gap-1 sm:gap-1.5 shadow-sm cursor-pointer shrink-0"
                 >
-                  <Calendar className="w-3.5 h-3.5 text-[#F5E6C8]" />
-                  <span>Agendar Cita o Curso</span>
+                  <Calendar className="w-3.5 h-3.5 text-[#F5E6C8] shrink-0" />
+                  <span>Agendar</span>
+                  <span className="hidden sm:inline">Cita o Curso</span>
                 </button>
               </div>
             </div>
