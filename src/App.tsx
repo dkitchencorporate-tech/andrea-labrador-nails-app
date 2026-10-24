@@ -15,6 +15,7 @@ import { ClubInviteSection } from './components/ClubInviteSection';
 import { PWAInstallModal } from './components/PWAInstallModal';
 import { LegalModals, LegalModalType } from './components/LegalModals';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { CapraStudioExperience } from './components/CapraStudioExperience';
 import { AppStore } from './services/store';
 import { ServiceItem, PromoOffer, GallerySlide } from './types';
 
@@ -219,21 +220,29 @@ export const App: React.FC = () => {
       search.has('central') ||
       host.startsWith('central.');
 
-    const isSaasLanding =
-      path.startsWith('/saas') ||
-      hash === '#saas' ||
-      search.get('zone') === 'saas';
-
     const salonParam = search.get('salon');
-    let tenant: 'andrea-nails' | 'capra-studio' = 'andrea-nails';
-    if (
+    const isCapra =
       salonParam === 'capra-studio' ||
       salonParam === 'capra' ||
       host.startsWith('caprastudio.') ||
-      path.startsWith('/capra')
-    ) {
-      tenant = 'capra-studio';
-    }
+      path.startsWith('/capra');
+
+    const isAndrea =
+      salonParam === 'andrea-nails' ||
+      salonParam === 'andrea' ||
+      host.startsWith('andrealabrador.') ||
+      path.startsWith('/andrea');
+
+    const tenant: 'andrea-nails' | 'capra-studio' = isCapra ? 'capra-studio' : 'andrea-nails';
+
+    // Root SaaS route: on apex domain, localhost, or no salon param given
+    const isSaasLanding =
+      !isCentral &&
+      !isCapra &&
+      (path.startsWith('/saas') ||
+        hash === '#saas' ||
+        search.get('zone') === 'saas' ||
+        (!isAndrea && !search.has('salon') && !path.startsWith('/admin') && !search.has('admin')));
 
     return { isCentral, isSaasLanding, tenant };
   };
@@ -644,248 +653,65 @@ export const App: React.FC = () => {
   // --- RENDER PUBLIC CUSTOMER CATALOG (ZONA 4: CAPRA STUDIO OR ANDREA NAILS V2) ---
   const isCapra = activeTenant === 'capra-studio';
 
+  if (isCapra) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#FDFBF9] text-[#2D1E22] font-sans selection:bg-[#B5838D]/30 selection:text-[#2D1E22] overflow-x-hidden">
+        <PWAInstallModal onOpenClientAccount={() => setIsAccountModalOpen(true)} />
+        <CapraStudioExperience
+          services={services}
+          exchangeRate={exchangeRate}
+          onOpenBooking={(s) => s ? handleSelectService(s) : handleOpenGeneralBooking()}
+          onOpenAccountModal={() => setIsAccountModalOpen(true)}
+        />
+        <BookingModal
+          isOpen={isBookingOpen}
+          onClose={() => setIsBookingOpen(false)}
+          preSelectedService={selectedService}
+          preSelectedPromo={selectedPromo}
+          services={services}
+          exchangeRate={exchangeRate}
+          referralCode={referralCode}
+          tenantSlug="capra-studio"
+          tenantName="Capra Studio · By María Capra"
+          tenantWhatsapp="584247429530"
+          onBookingCreated={() => refreshData('capra-studio')}
+          onNavigateToShare={handleNavigateToShare}
+        />
+        <ClientAccountModal
+          isOpen={isAccountModalOpen}
+          onClose={() => setIsAccountModalOpen(false)}
+          onBookNewAppointment={handleOpenGeneralBooking}
+        />
+        <LegalModals
+          activeModal={activeLegalModal}
+          onClose={() => setActiveLegalModal(null)}
+        />
+        <CookieConsentBanner onOpenLegal={(type) => setActiveLegalModal(type)} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-warm-100 text-warm-900 font-sans selection:bg-sage-200 overflow-x-hidden">
-      {/* ══ BARRA RÁPIDA DE GOBERNANZA MULTI-ZONA VANESEV (COMPACTA Y DESLIZABLE EN MÓVIL) ══ */}
-      <div className="bg-[#0B0D11] text-white px-2.5 sm:px-6 py-1.5 sm:py-2 border-b border-[#C5A059]/30 flex items-center justify-between gap-2 text-[11px] z-50 overflow-x-auto no-scrollbar whitespace-nowrap">
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <span className="px-2 py-0.5 rounded bg-gradient-to-r from-[#C5A059] to-[#D4AF37] text-[#0B0D11] font-black uppercase tracking-wider text-[9px] sm:text-[10px] shrink-0">
-            VANESEV
-          </span>
-          <button
-            onClick={switchToCentral}
-            className="px-2.5 py-1 rounded-lg bg-[#C5A059]/20 hover:bg-[#C5A059]/35 text-[#E5C158] border border-[#C5A059]/50 font-bold flex items-center gap-1 cursor-pointer transition-all shrink-0"
-          >
-            <Terminal className="w-3 h-3 shrink-0" />
-            <span>1. Central</span>
-          </button>
-          <button
-            onClick={() => switchToTenant('capra-studio', false)}
-            className={`px-2.5 py-1 rounded-lg font-bold cursor-pointer transition-all shrink-0 ${
-              isCapra
-                ? 'bg-[#B5838D] text-[#0B0D11]'
-                : 'bg-white/10 hover:bg-white/20 text-white/80'
-            }`}
-          >
-            2. Capra Studio
-          </button>
-          <button
-            onClick={() => switchToTenant('andrea-nails', false)}
-            className={`px-2.5 py-1 rounded-lg font-bold cursor-pointer transition-all shrink-0 ${
-              !isCapra
-                ? 'bg-emerald-400 text-[#0B0D11]'
-                : 'bg-white/10 hover:bg-white/20 text-white/80'
-            }`}
-          >
-            3. Andrea V2
-          </button>
-          <button
-            onClick={switchToSaasLanding}
-            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 font-bold flex items-center gap-1 cursor-pointer shrink-0"
-          >
-            <Globe className="w-3 h-3 text-[#E5C158] shrink-0" />
-            <span>4. Web SaaS</span>
-          </button>
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0 pl-1">
-          <button
-            onClick={() => switchToTenant(activeTenant, true)}
-            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[#E5C158] border border-white/15 font-bold flex items-center gap-1 cursor-pointer shrink-0"
-          >
-            <ShieldCheck className="w-3 h-3 shrink-0" />
-            <span>Admin V2 ({isCapra ? 'Capra' : 'Andrea'})</span>
-          </button>
-        </div>
-      </div>
-
       {/* Sticky Top Header: PWA Install Banner + Client Navbar */}
       <div className="sticky top-0 z-40">
         <PWAInstallModal onOpenClientAccount={() => setIsAccountModalOpen(true)} />
-        {isCapra ? (
-          /* ══ NAVBAR EXCLUSIVO DE CAPRA STUDIO (RESPONSIVO MÓVIL Y ESCRITORIO) ══ */
-          <header className="bg-[#FDFBF9]/95 backdrop-blur-md border-b border-[#B5838D]/30 px-3 sm:px-8 py-2.5 sm:py-3.5 shadow-xs">
-            <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-[#B5838D] to-[#8E5B66] border-2 border-[#C5A059] flex items-center justify-center text-white font-serif font-bold text-sm sm:text-lg shadow-sm shrink-0">
-                  CS
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    <h1 className="font-serif font-bold text-base sm:text-xl text-[#2D1E22] tracking-tight truncate">
-                      Capra Studio
-                    </h1>
-                    <span className="hidden xs:inline-block px-1.5 sm:px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-widest bg-[#B5838D]/15 text-[#8E5B66] border border-[#B5838D]/40 shrink-0">
-                      By María Capra
-                    </span>
-                  </div>
-                  <p className="text-[10px] sm:text-[11px] text-[#6E5359] font-medium truncate">
-                    Salón Integral &amp; Capra Academy &bull; 9:00–18:00
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-                <button
-                  onClick={() => setIsAccountModalOpen(true)}
-                  className="px-2.5 sm:px-3.5 py-2 rounded-full bg-[#F6EEF0] hover:bg-[#EAD8DC] text-[#5C3A42] border border-[#B5838D]/40 text-[11px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#C5A059] shrink-0" />
-                  <span>Ficha VIP</span>
-                  <span className="hidden md:inline">(5 Sellos)</span>
-                </button>
-                <button
-                  onClick={handleOpenGeneralBooking}
-                  className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#B5838D] to-[#9B6B75] hover:opacity-95 text-white text-[11px] sm:text-xs font-bold flex items-center gap-1 sm:gap-1.5 shadow-sm cursor-pointer shrink-0"
-                >
-                  <Calendar className="w-3.5 h-3.5 text-[#F5E6C8] shrink-0" />
-                  <span>Agendar</span>
-                  <span className="hidden sm:inline">Cita o Curso</span>
-                </button>
-              </div>
-            </div>
-          </header>
-        ) : (
-          <Navbar
-            onOpenBooking={handleOpenGeneralBooking}
-            onOpenClientAccount={() => setIsAccountModalOpen(true)}
-            onNavigateToShare={handleNavigateToShare}
-            onNavigateToPromo={handleNavigateToPromo}
-            exchangeRate={exchangeRate}
-          />
-        )}
+        <Navbar
+          onOpenBooking={handleOpenGeneralBooking}
+          onOpenClientAccount={() => setIsAccountModalOpen(true)}
+          onNavigateToShare={handleNavigateToShare}
+          onNavigateToPromo={handleNavigateToPromo}
+          exchangeRate={exchangeRate}
+        />
       </div>
 
       {/* Main Public Content Sections */}
       <main className="flex-1 pb-16 sm:pb-0">
-        {isCapra ? (
-          /* ══ HERO EDITORIAL DE CAPRA STUDIO (BASADO EN CAPTURAS REALES DE @caprastudio_) ══ */
-          <section className="relative overflow-hidden bg-gradient-to-b from-[#F9F2F4] via-[#FDFBF9] to-[#F5E9EC] py-12 sm:py-20 px-4 sm:px-8 border-b border-[#B5838D]/25">
-            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-              <div className="lg:col-span-7 space-y-5">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#B5838D]/15 border border-[#B5838D]/40 text-[#7A4953] text-xs font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
-                  <span>@caprastudio_ &bull; Cejas · Pestañas · Peluquería · Maquillaje · Uñas · Cursos</span>
-                </div>
-
-                <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-[#2D1E22] leading-[1.1]">
-                  Nos complace ser parte de tu{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9E6370] via-[#B5838D] to-[#C5A059]">
-                    embellecimiento y armonía perfecta.
-                  </span>
-                </h2>
-
-                <p className="text-sm sm:text-base text-[#5C4348] leading-relaxed max-w-xl">
-                  Bienvenida a <strong>Capra Studio — By María Giovanna Capra</strong>. Disfruta de nuestras{' '}
-                  <strong>6 áreas especializadas</strong> con atención personalizada de lunes a sábado (9:00 a 18:00),
-                  o fórmate como profesional certificada en nuestra <strong>Capra Academy</strong>.
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  <button
-                    onClick={handleOpenGeneralBooking}
-                    className="px-6 py-3.5 rounded-full bg-gradient-to-r from-[#B5838D] to-[#8E5B66] text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md cursor-pointer"
-                  >
-                    <Calendar className="w-4 h-4 text-[#F5E6C8]" />
-                    <span>Reservar Turno en Capra Studio</span>
-                  </button>
-                  <a
-                    href="https://wa.me/584247429530?text=%C2%A1Hola%20Capra%20Studio!%20%E2%9C%A8%20Vengo%20desde%20su%20App%20Oficial%20y%20deseo%20informaci%C3%B3n%20sobre%20citas%20y%20cursos."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-5 py-3.5 rounded-full bg-white hover:bg-[#F9F2F4] text-[#2D1E22] border border-[#B5838D]/40 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-2xs"
-                  >
-                    <Phone className="w-4 h-4 text-emerald-600" />
-                    <span>WhatsApp: +58 424-7429530</span>
-                  </a>
-                </div>
-
-                {/* 6 Departamentos Reales en Neon DB */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-4">
-                  {[
-                    { title: 'Cejas & Pestañas', desc: 'Laminado, Visagismo y Extensiones' },
-                    { title: 'Estilismo & Alisados', desc: 'Cirugía Capilar, Secado y Color' },
-                    { title: 'Maquillaje Pro', desc: 'Social, Novias y Piel Blindada HD' },
-                    { title: 'Manicure & Pedicure', desc: 'Manicura Rusa, Rubber y Spa Pies' },
-                    { title: 'Depilación Corporal', desc: 'Cabina Privada con Cera Suave' },
-                    { title: '🎓 Capra Academy', desc: 'Cursos Intensivos con Certificado' },
-                  ].map((zone) => (
-                    <div
-                      key={zone.title}
-                      className="p-3 rounded-2xl bg-white/90 border border-[#B5838D]/30 shadow-2xs"
-                    >
-                      <span className="font-serif font-bold text-xs text-[#2D1E22] block">
-                        {zone.title}
-                      </span>
-                      <span className="text-[10px] text-[#6E5359] leading-tight block mt-0.5">
-                        {zone.desc}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tarjeta Derecha: Identidad & Academia Capra */}
-              <div className="lg:col-span-5">
-                <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#2D1E22] via-[#3B262C] to-[#1F1417] text-white border-2 border-[#C5A059]/60 shadow-2xl space-y-5">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                    <div>
-                      <span className="text-[10px] uppercase tracking-widest text-[#E5C158] font-bold block">
-                        Salón &amp; Academia Oficial
-                      </span>
-                      <h3 className="font-serif text-2xl font-bold text-white">
-                        Capra Studio VIP
-                      </h3>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-[#C5A059]/20 border border-[#C5A059] flex items-center justify-center text-[#E5C158] font-serif font-black text-xl">
-                      CS
-                    </div>
-                  </div>
-
-                  <div className="space-y-2.5 text-xs text-white/85">
-                    <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/5 border border-white/10">
-                      <Clock className="w-4 h-4 text-[#E5C158] shrink-0" />
-                      <div>
-                        <span className="font-bold text-white block">Horario de Atención</span>
-                        <span>Lunes a Sábado: 9:00 AM – 6:00 PM</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/5 border border-white/10">
-                      <Users className="w-4 h-4 text-[#E5C158] shrink-0" />
-                      <div>
-                        <span className="font-bold text-white block">Dirección &amp; Equipo Especializado</span>
-                        <span>María Giovanna Capra &bull; Staff Multi-Zona en Base de Datos</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/5 border border-white/10">
-                      <Award className="w-4 h-4 text-[#E5C158] shrink-0" />
-                      <div>
-                        <span className="font-bold text-white block">Tarjeta de Fidelidad Capra (5 Sellos)</span>
-                        <span>Acumula 5 visitas verificadas y recibe tu cortesía VIP.</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 flex flex-col gap-2">
-                    <button
-                      onClick={() => switchToTenant('capra-studio', true)}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C5A059] to-[#E5C158] text-[#1F1417] font-black text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
-                    >
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Explorar Panel Admin Pro V2 de Capra Studio</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        ) : (
-          <Hero
-            onOpenBooking={handleOpenGeneralBooking}
-            onSelectServiceById={handleSelectServiceById}
-            gallerySlides={gallerySlides}
-          />
-        )}
+        <Hero
+          onOpenBooking={handleOpenGeneralBooking}
+          onSelectServiceById={handleSelectServiceById}
+          gallerySlides={gallerySlides}
+        />
 
         {/* Visual Loyalty & First Visit Banner */}
         <ClubInviteSection onNavigateToShare={handleNavigateToShare} />
