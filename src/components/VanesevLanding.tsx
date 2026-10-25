@@ -220,6 +220,9 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
   // Active Sector Showcase
   const [activeSectorIdx, setActiveSectorIdx] = useState(0);
 
+  // Real-time Birthday Party Burst state for Vanessa
+  const [partyBurstId, setPartyBurstId] = useState(1);
+
   // Financial Recovery Calculator
   const [avgTicket, setAvgTicket] = useState(28);
   const [missedWeekly, setMissedWeekly] = useState(6);
@@ -296,15 +299,45 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
     onClientLoginSuccess(cleanSlug);
   };
 
+  const FLOATING_BIRTHDAY_ITEMS = [
+    { emoji: '🩷', left: '4%', delay: 0, duration: 6.5, size: 'text-2xl sm:text-3xl' },
+    { emoji: '🌹', left: '11%', delay: 1.1, duration: 7.2, size: 'text-2xl sm:text-4xl' },
+    { emoji: '🎂', left: '19%', delay: 0.4, duration: 8.0, size: 'text-2xl sm:text-4xl' },
+    { emoji: '💋', left: '27%', delay: 1.8, duration: 6.8, size: 'text-xl sm:text-3xl' },
+    { emoji: '🩷', left: '35%', delay: 0.7, duration: 7.5, size: 'text-2xl sm:text-4xl' },
+    { emoji: '🎉', left: '44%', delay: 2.1, duration: 6.9, size: 'text-xl sm:text-3xl' },
+    { emoji: '🌹', left: '53%', delay: 0.2, duration: 7.4, size: 'text-2xl sm:text-4xl' },
+    { emoji: '💖', left: '62%', delay: 1.5, duration: 6.6, size: 'text-2xl sm:text-3xl' },
+    { emoji: '💋', left: '71%', delay: 0.9, duration: 7.8, size: 'text-xl sm:text-3xl' },
+    { emoji: '🎂', left: '79%', delay: 2.4, duration: 7.1, size: 'text-2xl sm:text-4xl' },
+    { emoji: '🩷', left: '87%', delay: 0.5, duration: 6.4, size: 'text-2xl sm:text-4xl' },
+    { emoji: '🌹', left: '94%', delay: 1.3, duration: 7.6, size: 'text-2xl sm:text-3xl' },
+  ];
+
+  const BURST_PARTICLES = [
+    { emoji: '🩷', x: -140, y: -120 },
+    { emoji: '🌹', x: 145, y: -115 },
+    { emoji: '🎂', x: 0, y: -155 },
+    { emoji: '💋', x: -165, y: -25 },
+    { emoji: '💖', x: 170, y: -20 },
+    { emoji: '🎉', x: -110, y: 110 },
+    { emoji: '🌹', x: 115, y: 105 },
+    { emoji: '🩷', x: -55, y: -140 },
+    { emoji: '💋', x: 65, y: -135 },
+    { emoji: '👑', x: 0, y: 130 },
+    { emoji: '🌸', x: -130, y: 55 },
+    { emoji: '✨', x: 135, y: 60 },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#161214] font-sans selection:bg-[#9E3B52]/15 selection:text-[#9E3B52] overflow-x-hidden">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#161214] font-sans selection:bg-[#EC4899]/20 selection:text-[#9D174D] overflow-x-hidden">
       {/* ═══════════════════════════════════════════════════════════════════════════
-          1. FLOATING CAPSULE COMMERCIAL NAVBAR (DKITCHEN-INSPIRED FUNNEL CLARITY)
+          1. FLOATING CAPSULE COMMERCIAL NAVBAR (100% MOBILE RESPONSIVE, ZERO ADMIN/LOGIN LEAKS)
       ═══════════════════════════════════════════════════════════════════════════ */}
-      <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-3 sm:px-6 pt-4">
+      <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-2.5 sm:px-6 pt-3 sm:pt-4">
         <nav
           aria-label="Principal"
-          className="flex w-full max-w-6xl items-center justify-between gap-3 rounded-full border border-[#161214]/10 bg-white/95 text-[#161214] shadow-[0_14px_40px_rgba(22,18,20,0.08)] backdrop-blur-xl py-2.5 pl-4 sm:pl-6 pr-2.5"
+          className="flex w-full max-w-6xl min-w-0 items-center justify-between gap-2 rounded-full border border-[#EC4899]/25 bg-white/95 text-[#161214] shadow-[0_14px_40px_rgba(219,39,119,0.12)] backdrop-blur-xl py-2 pl-3 sm:pl-5 pr-2 sm:pr-2.5"
         >
           {/* Brand Logo */}
           <a
@@ -313,40 +346,40 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="flex items-center gap-2.5 shrink-0"
+            className="flex items-center gap-2 min-w-0 shrink-0"
           >
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-display font-bold text-sm shadow-xs"
-              style={{ background: 'linear-gradient(135deg, #9E3B52 0%, #D95F43 100%)' }}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white font-display font-bold text-xs sm:text-sm shadow-xs shrink-0"
+              style={{ background: 'linear-gradient(135deg, #EC4899 0%, #E11D74 55%, #9E3B52 100%)' }}
             >
               V
             </div>
-            <div className="leading-none">
-              <span className="font-display font-bold text-lg tracking-tight text-[#161214]">
-                VANE<span className="text-[#9E3B52]">SEV</span>
+            <div className="leading-none truncate">
+              <span className="font-display font-bold text-base sm:text-lg tracking-tight text-[#161214]">
+                VANE<span className="text-[#E11D74]">SEV</span>
               </span>
-              <span className="block text-[8px] font-bold uppercase tracking-[0.22em] text-[#7A6B70] mt-0.5">
-                Beauty Cloud
+              <span className="block text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.18em] text-[#9D174D] mt-0.5">
+                🩷 Edición Vanessa
               </span>
             </div>
           </a>
 
-          {/* Center Commercial Funnel Links */}
+          {/* Center Commercial Funnel Links (Desktop) */}
           <ul className="hidden lg:flex items-center gap-0.5">
             {[
+              { id: 'inicio', label: '🎂 Cumpleaños Vanessa' },
               { id: 'carta-qr', label: 'Carta QR' },
               { id: 'signature', label: 'Atelier Signature' },
               { id: 'personalizador', label: 'Diseño de Autor' },
               { id: 'sectores', label: 'Especialidades' },
               { id: 'precios', label: 'Precios' },
               { id: 'casos', label: 'Casos de Éxito' },
-              { id: 'blog', label: 'Blog' },
             ].map((item) => (
               <li key={item.id}>
                 <button
                   type="button"
                   onClick={() => scrollToSection(item.id)}
-                  className="whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-bold text-[#574B4F] hover:text-[#161214] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                  className="whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-bold text-[#574B4F] hover:text-[#161214] hover:bg-[#FFF0F5] transition-colors cursor-pointer"
                 >
                   {item.label}
                 </button>
@@ -354,102 +387,72 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
             ))}
           </ul>
 
-          {/* Right Commercial Actions: Zona Cliente + Primary CTA */}
-          <div className="flex items-center gap-2">
+          {/* Right Actions: Responsive CTA + Properly Contained Mobile Menu Button (Zero Login/Admin buttons) */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => {
-                setLoginError('');
-                setLoginModalOpen(true);
-              }}
-              className="hidden sm:inline-flex whitespace-nowrap rounded-full px-4 py-2 text-xs font-bold text-[#574B4F] hover:text-[#161214] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              onClick={() => setPartyBurstId((n) => n + 1)}
+              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white shadow-xs transition-transform active:scale-95 cursor-pointer"
+              style={{ background: 'linear-gradient(135deg, #EC4899 0%, #E11D74 100%)' }}
             >
-              Zona cliente
-            </button>
-            <button
-              type="button"
-              onClick={() => openCheckoutWithPlan('Salon Couture Pro ($29/mes)')}
-              className="whitespace-nowrap rounded-full px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm transition-transform hover:scale-[1.02] cursor-pointer"
-              style={{ background: 'linear-gradient(135deg, #9E3B52 0%, #D95F43 100%)' }}
-            >
-              Empieza desde $19/mes
+              <span>🎂</span>
+              <span className="hidden xs:inline sm:inline">¡Celebrar a Vanessa!</span>
+              <span className="xs:hidden sm:hidden">🩷 Fiesta</span>
             </button>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="rounded-full p-2 text-[#161214] bg-[#FAF7F2] border border-[#161214]/10 lg:hidden cursor-pointer"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[#831843] bg-[#FFF0F5] border border-[#EC4899]/30 lg:hidden shrink-0 cursor-pointer"
               aria-label="Abrir menú"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
           </div>
         </nav>
 
-        {/* Mobile Drawer */}
+        {/* Mobile Drawer — Clean Public Sections Only (Zero Login / Admin Buttons) */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed inset-x-3 top-20 z-50 rounded-3xl bg-white border border-[#161214]/10 shadow-2xl p-5 space-y-3 lg:hidden"
+              className="fixed inset-x-3 top-18 z-50 rounded-3xl bg-white border border-[#EC4899]/25 shadow-2xl p-4 sm:p-5 space-y-3 lg:hidden"
             >
               <div className="grid grid-cols-2 gap-2">
                 {[
+                  { id: 'inicio', label: '🎂 Cumpleaños Vanessa' },
                   { id: 'carta-qr', label: 'Carta QR' },
                   { id: 'signature', label: 'Atelier Signature' },
                   { id: 'personalizador', label: 'Diseño de Autor' },
                   { id: 'sectores', label: 'Especialidades' },
                   { id: 'precios', label: 'Precios & Planes' },
                   { id: 'casos', label: 'Casos de Éxito' },
-                  { id: 'blog', label: 'Blog Beauty' },
                   { id: 'faq', label: 'Preguntas Frecuentes' },
                 ].map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => scrollToSection(item.id)}
-                    className="p-3 rounded-2xl bg-[#FAF7F2] text-left text-xs font-bold text-[#161214]"
+                    className="p-3 rounded-2xl bg-[#FFF5F8] text-left text-xs font-bold text-[#831843] border border-[#F472B6]/20"
                   >
                     {item.label}
                   </button>
                 ))}
               </div>
-              <div className="pt-2 border-t border-[#161214]/10 flex flex-col gap-2">
+              <div className="pt-2 border-t border-[#EC4899]/15 flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    openCheckoutWithPlan('Salon Couture Pro ($29/mes)');
+                    setPartyBurstId((n) => n + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-full py-3 rounded-full text-xs font-bold text-white flex items-center justify-center gap-2"
-                  style={{ background: 'linear-gradient(135deg, #9E3B52 0%, #D95F43 100%)' }}
+                  className="w-full py-3 rounded-full text-xs font-bold text-white flex items-center justify-center gap-2 shadow-md"
+                  style={{ background: 'linear-gradient(135deg, #EC4899 0%, #E11D74 100%)' }}
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Crear el Sistema de mi Salón</span>
+                  <span>🎂🩷🌹 Ver Dedicatoria de Cumpleaños de Vanessa</span>
                 </button>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      onOpenCapraDemo();
-                    }}
-                    className="py-2.5 rounded-full text-xs font-bold bg-[#FAF7F2] text-[#161214] border border-[#161214]/15"
-                  >
-                    Ver Demo en Vivo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setLoginModalOpen(true);
-                    }}
-                    className="py-2.5 rounded-full text-xs font-bold bg-white text-[#9E3B52] border border-[#9E3B52]/30"
-                  >
-                    Zona Cliente (Acceso)
-                  </button>
-                </div>
               </div>
             </motion.div>
           )}
@@ -457,96 +460,228 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
       </header>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
-          2. HIGH-IMPACT COMMERCIAL SAAS HERO + 3D DEVICE & FLOATING SALON BADGES
+          2. HERO ESPECIAL DE CUMPLEAÑOS PARA VANESSA (REAL-TIME PARTY, CAKE, ROSES, HEARTS & DEDICATION)
       ═══════════════════════════════════════════════════════════════════════════ */}
       <section
         id="inicio"
-        className="relative overflow-hidden pt-28 sm:pt-36 pb-20 sm:pb-28 px-4 sm:px-6"
+        className="relative overflow-hidden pt-24 sm:pt-32 pb-16 sm:pb-24 px-3.5 sm:px-6"
         style={{
           background:
-            'radial-gradient(circle at 85% 15%, rgba(242, 213, 220, 0.7) 0%, transparent 45%), radial-gradient(circle at 12% 80%, rgba(245, 224, 206, 0.65) 0%, transparent 50%), #FAF7F2',
+            'radial-gradient(circle at 50% 0%, #FFD6E8 0%, #FFEAF3 42%, #FFF7FA 78%, #FAF7F2 100%)',
         }}
       >
-        <div className="mx-auto max-w-6xl grid items-center gap-12 lg:gap-16 lg:grid-cols-[1.15fr_1fr]">
-          {/* Left Commercial SaaS Pitch */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="inline-flex items-center gap-2 rounded-full border border-[#9E3B52]/25 bg-white px-4 py-1.5 text-xs font-bold text-[#9E3B52] shadow-2xs">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-[#10B981]" />
-              Marca propia para salones de belleza, clínicas y spas &bull; 0% comisiones
-            </p>
+        {/* Continuous Real-Time Floating Hearts 🩷, Roses 🌹, Cakes 🎂 & Kisses 💋 */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden z-0" aria-hidden="true">
+          {FLOATING_BIRTHDAY_ITEMS.map((item, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ y: '110%', opacity: 0, rotate: -12 }}
+              animate={{
+                y: ['-10%', '110%'],
+                opacity: [0, 0.9, 0.9, 0],
+                rotate: [-15, 15, -10],
+              }}
+              transition={{
+                duration: item.duration,
+                repeat: Infinity,
+                delay: item.delay,
+                ease: 'easeInOut',
+              }}
+              style={{ left: item.left }}
+              className={`absolute top-0 select-none ${item.size}`}
+            >
+              {item.emoji}
+            </motion.div>
+          ))}
+        </div>
 
-            <h1 className="font-display mt-6 text-[44px] sm:text-6xl lg:text-[76px] font-semibold leading-[0.98] tracking-tight text-[#161214]">
-              Tu salón de belleza, con{' '}
-              <span className="italic font-normal text-[#9E3B52]">sistema y marca</span> propia.
+        <div className="relative z-10 mx-auto max-w-4xl text-center space-y-6 sm:space-y-8">
+          {/* Top Royal Birthday Pill */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border-2 border-[#F472B6] bg-white/95 px-4 sm:px-6 py-2 text-xs sm:text-sm font-extrabold text-[#be185d] shadow-[0_10px_30px_rgba(236,72,153,0.22)]"
+          >
+            <span>🎂</span>
+            <span>HOY CELEBRAMOS EL CUMPLEAÑOS DE NUESTRA PRINCESA</span>
+            <span>🩷🌹💋</span>
+          </motion.div>
+
+          {/* Giant Birthday Title for Vanessa */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="space-y-3 sm:space-y-4"
+          >
+            <h1 className="font-display text-[40px] sm:text-6xl md:text-7xl font-bold leading-[1.03] tracking-tight text-[#831843] drop-shadow-xs">
+              ¡Feliz Cumpleaños,{' '}
+              <span
+                className="block sm:inline bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, #EC4899 0%, #E11D74 50%, #9D174D 100%)',
+                }}
+              >
+                Vanessa!
+              </span>{' '}
+              <span className="inline-block animate-bounce">🎂🩷🌹</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-[#3F373A] font-medium">
-              Tu carta interactiva con código QR en recepción, agenda por especialista conectada a WhatsApp y tu propio Pasaporte VIP de sellos digitales. Una libreta de citas la tiene cualquiera: nosotros te damos una marca de autor que llena tus sillones.
+            <p className="text-base sm:text-2xl font-bold text-[#be185d] max-w-2xl mx-auto leading-snug">
+              💋 Millones de besos, rosas, corazones y bendiciones para ti en tu gran día 💋
             </p>
+          </motion.div>
 
-            {/* Primary & Secondary Commercial CTAs */}
-            <div className="mt-8 flex flex-col sm:flex-row gap-3.5">
-              <button
-                type="button"
-                onClick={() => openCheckoutWithPlan('Salon Couture Pro ($29/mes)')}
-                className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-sm sm:text-[15px] font-bold text-white shadow-[0_14px_38px_rgba(158,59,82,0.32)] transition-transform hover:scale-[1.02] cursor-pointer"
-                style={{ background: 'linear-gradient(135deg, #9E3B52 0%, #D95F43 100%)' }}
+          {/* Interactive Real-Time Cake, Roses, Hearts & Party Explosion Centerpiece */}
+          <div className="relative mx-auto max-w-md py-3">
+            {/* Explosion Burst Particles Triggered in Real Time */}
+            <AnimatePresence mode="popLayout">
+              <motion.div
+                key={partyBurstId}
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 0 }}
+                transition={{ duration: 1.8, ease: 'easeOut' }}
+                className="pointer-events-none absolute inset-0 flex items-center justify-center z-20"
               >
-                <span>Quiero mi propio sistema</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+                {BURST_PARTICLES.map((bp, i) => (
+                  <motion.span
+                    key={i}
+                    initial={{ x: 0, y: 0, scale: 0.4, opacity: 1 }}
+                    animate={{ x: bp.x, y: bp.y, scale: 1.5, opacity: 0 }}
+                    transition={{ duration: 1.5, ease: 'easeOut' }}
+                    className="absolute text-3xl sm:text-4xl select-none"
+                  >
+                    {bp.emoji}
+                  </motion.span>
+                ))}
+              </motion.div>
+            </AnimatePresence>
 
-              <button
-                type="button"
-                onClick={onOpenCapraDemo}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[#161214]/15 bg-white hover:bg-[#F3EDE2] px-7 py-4 text-sm sm:text-[15px] font-bold text-[#161214] shadow-xs transition-colors cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-[#9E3B52]" />
-                <span>Ver Demo en Vivo (/m/capra-studio)</span>
-              </button>
+            {/* Glowing Cake & Roses Medallion */}
+            <motion.div
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setPartyBurstId((n) => n + 1)}
+              className="mx-auto rounded-[32px] border-2 border-[#F472B6]/60 bg-white/95 p-5 sm:p-6 shadow-[0_20px_60px_rgba(236,72,153,0.25)] cursor-pointer select-none space-y-3"
+            >
+              <div className="flex items-center justify-center gap-3 sm:gap-5 text-4xl sm:text-6xl">
+                <span className="animate-pulse">🌹</span>
+                <span className="animate-bounce">🩷</span>
+                <span className="text-5xl sm:text-7xl drop-shadow-md">🎂</span>
+                <span className="animate-bounce">💋</span>
+                <span className="animate-pulse">🌹</span>
+              </div>
+              <p className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-[#be185d]">
+                ✨ Toca la tarta para lanzar confeti, besos y rosas ✨
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <span className="px-3 py-1 rounded-full bg-[#FFF0F6] border border-[#F472B6]/40 text-xs font-bold text-[#9D174D]">
+                  🩷 VANESEV = VANESSA
+                </span>
+                <span className="px-3 py-1 rounded-full bg-[#FFF0F6] border border-[#F472B6]/40 text-xs font-bold text-[#9D174D]">
+                  🌹 100% Tu Propio Negocio
+                </span>
+                <span className="px-3 py-1 rounded-full bg-[#FFF0F6] border border-[#F472B6]/40 text-xs font-bold text-[#9D174D]">
+                  💋 Regalo de Papá
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* FATHER'S EMOTIONAL DEDICATION CARD (OPTIMIZED FOR PHONE & TABLET READING WITH MOM) */}
+          <motion.div
+            initial={{ y: 24, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="mx-auto max-w-3xl rounded-[32px] sm:rounded-[40px] border-2 border-[#F472B6]/50 bg-white p-6 sm:p-10 md:p-12 text-left shadow-[0_28px_80px_rgba(190,24,93,0.16)] space-y-5 sm:space-y-6 relative overflow-hidden"
+          >
+            {/* Decorative Corner Roses & Hearts */}
+            <div className="flex items-center justify-between border-b border-[#F472B6]/25 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl sm:text-3xl">💌</span>
+                <div>
+                  <p className="text-[11px] sm:text-xs font-extrabold uppercase tracking-[0.2em] text-[#E11D74]">
+                    Dedicatoria Especial de Cumpleaños
+                  </p>
+                  <p className="font-display text-lg sm:text-2xl font-bold text-[#831843]">
+                    De tu Papá para ti, mi amada Vanessa 🩷🌹
+                  </p>
+                </div>
+              </div>
+              <span className="text-2xl sm:text-4xl">🎂💋</span>
             </div>
 
-            {/* Direct Sub-Links (DKitchen Funnel Pattern) */}
-            <p className="mt-6 text-xs sm:text-sm text-[#574B4F]">
-              ¿Solo quieres la carta digital QR?{' '}
+            <div className="space-y-4 sm:space-y-5 text-base sm:text-xl leading-relaxed text-[#4A0E2E] font-medium">
+              <p>
+                Mi querida y hermosa hija <strong className="text-[#E11D74] font-extrabold">Vanessa</strong>: 🩷🌹
+              </p>
+
+              <p>
+                Hoy, en el día de tu cumpleaños, tu papá te envía todo su corazón, millones de besos 💋, un jardín entero de rosas 🌹 y el abrazo más grande e infinito del mundo.
+              </p>
+
+              <div className="rounded-3xl bg-[#FFF0F6] border-2 border-[#F472B6]/40 p-5 sm:p-6 space-y-2">
+                <p className="font-display text-xl sm:text-2xl font-bold text-[#9D174D]">
+                  🎁 Mira el nombre de esta gran plataforma: <span className="underline decoration-[#EC4899]">VANESEV</span>
+                </p>
+                <p className="text-base sm:text-xl text-[#831843] leading-relaxed">
+                  Lleva tu nombre porque <strong>este negocio es mi regalo de cumpleaños para ti</strong>. Fue creado pensando en ti, con todo el amor de tu padre, y <strong>será tuyo al 100%</strong> para que siempre sepas lo valiosa, grande y especial que eres.
+                </p>
+              </div>
+
+              <p>
+                Eres mi mayor orgullo, mi alegría y la luz de mi corazón. En tu día de hoy te deseo el cumpleaños más feliz, dulce y mágico del mundo, lleno de salud, sonrisas, tartas 🎂, regalos y sueños cumplidos junto a quienes te aman.
+              </p>
+
+              <p className="font-bold text-[#9D174D]">
+                ¡Feliz cumpleaños, princesa mía! Que Dios te bendiga hoy y siempre. 🌹🩷✨
+              </p>
+            </div>
+
+            {/* GIANT "TE AMO" BANNER FOR PHONE & TABLET */}
+            <div
+              className="rounded-3xl p-6 sm:p-8 text-center text-white shadow-xl space-y-2"
+              style={{
+                background: 'linear-gradient(135deg, #EC4899 0%, #E11D74 50%, #9D174D 100%)',
+              }}
+            >
+              <div className="text-3xl sm:text-5xl">🩷 🌹 🎂 💋 🩷</div>
+              <p className="font-display text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight drop-shadow-sm">
+                ¡TE AMO INFINITO, VANESSA!
+              </p>
+              <p className="text-sm sm:text-xl font-bold text-[#FFE4EE] pt-1">
+                Con todo el amor del mundo en tu cumpleaños &bull; Tu Papá que te adora ❤️🌹💋
+              </p>
+            </div>
+
+            {/* Interactive Celebration Trigger Button for Phone/Tablet */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 type="button"
-                onClick={() => scrollToSection('carta-qr')}
-                className="font-bold text-[#161214] underline decoration-[#9E3B52] decoration-2 underline-offset-4 cursor-pointer"
+                onClick={() => setPartyBurstId((n) => n + 1)}
+                className="w-full sm:w-auto px-8 py-4 rounded-full text-sm sm:text-base font-extrabold text-white shadow-[0_14px_35px_rgba(225,29,116,0.38)] active:scale-95 transition-transform cursor-pointer"
+                style={{ background: 'linear-gradient(135deg, #FF2E93 0%, #E11D74 100%)' }}
               >
-                Empieza desde $19/mes
-              </button>{' '}
-              &bull;{' '}
-              <a
-                href="https://wa.me/584247429530?text=Hola%2C%20quiero%20ver%20una%20demo%20de%20VANESEV%20con%20los%20servicios%20de%20mi%20sal%C3%B3n."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold text-[#161214] underline decoration-[#10B981] decoration-2 underline-offset-4"
-              >
-                Pedir demo por WhatsApp
-              </a>
-            </p>
-
-            {/* 3 Quick Proof Metrics */}
-            <div className="mt-8 pt-6 border-t border-[#161214]/10 grid grid-cols-3 gap-4 max-w-lg">
-              <div>
-                <p className="font-display text-2xl sm:text-3xl font-bold text-[#161214]">0%</p>
-                <p className="text-[11px] font-semibold text-[#574B4F]">Comisión por cita</p>
-              </div>
-              <div>
-                <p className="font-display text-2xl sm:text-3xl font-bold text-[#9E3B52]">15 seg</p>
-                <p className="text-[11px] font-semibold text-[#574B4F]">Reserva en WhatsApp</p>
-              </div>
-              <div>
-                <p className="font-display text-2xl sm:text-3xl font-bold text-[#161214]">100%</p>
-                <p className="text-[11px] font-semibold text-[#574B4F]">Diseño editable</p>
-              </div>
+                🎉 ¡Lanzar más Besos 💋, Corazones 🩷 y Tarta 🎂 para Vanessa!
+              </button>
             </div>
           </motion.div>
+        </div>
+
+        {/* Below the Birthday Dedication: The Interactive Phone Preview of Her Platform VANESEV */}
+        <div className="relative z-10 mx-auto max-w-6xl mt-16 sm:mt-20 pt-12 border-t border-[#F472B6]/30 grid items-center gap-12 lg:gap-16 lg:grid-cols-[1.15fr_1fr]">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full border border-[#EC4899]/30 bg-white px-4 py-1.5 text-xs font-bold text-[#be185d] shadow-2xs">
+              <span>👑</span>
+              <span>El Ecosistema Digital que lleva el nombre de Vanessa</span>
+            </p>
+            <h2 className="font-display mt-4 text-3xl sm:text-5xl font-semibold leading-[1.04] tracking-tight text-[#161214]">
+              Así funciona <span className="italic font-normal text-[#E11D74]">VANESEV</span> en vivo.
+            </h2>
+            <p className="mt-4 max-w-xl text-base sm:text-lg leading-relaxed text-[#3F373A] font-medium">
+              La plataforma tecnológica de belleza, salones, clínicas estéticas y spas creada en honor a Vanessa: con cartas digitales QR, agenda en tiempo real y Pasaporte VIP de fidelidad.
+            </p>
+          </div>
 
           {/* Right: 3D Interactive Phone Showcase + 4 Floating Live Salon Badges */}
           <div className="relative mx-auto w-full max-w-[350px]" style={{ perspective: '1600px' }}>
@@ -1955,20 +2090,17 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
               </ul>
             </nav>
 
-            {/* Column 4: Recursos & Cuenta */}
-            <nav aria-label="Cuenta">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/40">Cuenta &amp; Demos</p>
+            {/* Column 4: Recursos & Demos */}
+            <nav aria-label="Recursos">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/40">Recursos &amp; Demos</p>
               <ul className="mt-4 space-y-2.5 text-xs sm:text-sm text-white/75">
                 <li>
                   <button
                     type="button"
-                    onClick={() => {
-                      setLoginError('');
-                      setLoginModalOpen(true);
-                    }}
-                    className="hover:text-white font-semibold text-[#F5D0A9] cursor-pointer"
+                    onClick={() => scrollToSection('inicio')}
+                    className="hover:text-white font-semibold text-[#F472B6] cursor-pointer"
                   >
-                    Entrar en mi panel (Zona Cliente)
+                    🎂 Dedicatoria Cumpleaños Vanessa
                   </button>
                 </li>
                 <li>
