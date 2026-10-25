@@ -3,9 +3,10 @@ import {
   Shield, Layers, CheckCircle2, AlertTriangle, MessageSquare, FileText,
   Globe, Plus, RefreshCw, ExternalLink, Sparkles, Send, Check, XCircle,
   Clock, Server, Database, HardDrive, GitBranch, ArrowUpRight, Users,
-  MapPin, DollarSign, Crown, Eye, Terminal, Activity, Lock, QrCode
+  MapPin, DollarSign, Crown, Eye, Terminal, Activity, Lock, QrCode, Crosshair
 } from 'lucide-react';
 import { DynamicQrManager } from './DynamicQrManager';
+import { CentralCompetitors } from './CentralCompetitors';
 
 interface CentralDashboardProps {
   onNavigateToTenant: (tenantSlug: string, openAdmin?: boolean) => void;
@@ -16,7 +17,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   onNavigateToTenant,
   onNavigateToSaaSLanding,
 }) => {
-  const [activeTab, setActiveTab] = useState<'sessions' | 'incidents' | 'mailbox' | 'tasks_roadmap' | 'tenants' | 'docs' | 'qr'>('sessions');
+  const [activeTab, setActiveTab] = useState<'sessions' | 'incidents' | 'mailbox' | 'tasks_roadmap' | 'tenants' | 'docs' | 'qr' | 'competitors'>('sessions');
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [data, setData] = useState<any>({
@@ -285,6 +286,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             { id: 'tenants', label: '5. Salones (Tenants) & Dominios', icon: Crown, badge: (data.tenants || []).length },
             { id: 'docs', label: '6. Documentación Compartida', icon: FileText, badge: (data.docs || []).length },
             { id: 'qr', label: '7. Motor QR Dinámico & Analítica', icon: QrCode, badge: 0 },
+            { id: 'competitors', label: '8. Radar de Competidores & Inteligencia', icon: Crosshair, badge: 4 },
           ].map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -1104,6 +1106,11 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                 tenantSlug="all"
                 tenantName="VANESEV Central (Todos los Salones)"
               />
+            )}
+
+            {/* TAB 8: RADAR DE COMPETIDORES & GUERRA COMERCIAL */}
+            {activeTab === 'competitors' && (
+              <CentralCompetitors />
             )}
           </>
         )}

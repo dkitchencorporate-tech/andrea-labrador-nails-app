@@ -32,7 +32,11 @@ import {
   QrCode,
   SlidersHorizontal,
   X,
-  Play
+  Play,
+  Scissors,
+  BookOpen,
+  Sparkle,
+  GraduationCap
 } from 'lucide-react';
 
 interface VanesevLandingProps {
@@ -40,9 +44,89 @@ interface VanesevLandingProps {
   onSelectTenant: (slug: 'andrea-nails' | 'capra-studio') => void;
 }
 
+interface NicheProfile {
+  id: 'peluqueria' | 'barberia' | 'nails' | 'medspa' | 'academia';
+  label: string;
+  badge: string;
+  icon: any;
+  headline: string;
+  subheadline: string;
+  stat1: { value: string; label: string };
+  stat2: { value: string; label: string };
+  painPoint: string;
+  solution: string;
+}
+
+const NICHES_DATA: NicheProfile[] = [
+  {
+    id: 'peluqueria',
+    label: 'Peluquerías & Estilismo',
+    badge: 'Salones de Belleza & Hair Studios',
+    icon: Scissors,
+    headline: 'Llena las sillas de tu peluquería sin regalar el 20% en comisiones.',
+    subheadline: 'Sincroniza tintes, cirugías capilares, secados y cortes sin solapamientos. Tu clienta elige a su estilista favorita y confirma por WhatsApp en 1 toque.',
+    stat1: { value: '0%', label: 'Comisiones por cita' },
+    stat2: { value: '+45%', label: 'Citas repetidas cada 21 días' },
+    painPoint: 'Tintes que se solapan con cortes y estilistas discutiendo por el orden del lavacabezas.',
+    solution: 'Tiempos de proceso inteligentes y asignación automática de cabinas y estaciones.'
+  },
+  {
+    id: 'barberia',
+    label: 'Barberías & Grooming',
+    badge: 'Barber Shops & Gentleman Clubs',
+    icon: Flame,
+    headline: 'La suite de autor para barberías con lista de espera.',
+    subheadline: 'Turnos continuos, combo corte + barba, venta de pomadas en mostrador y tarjeta VIP con sellos digitales. Despacha rápido y haz que vuelvan cada 10 días.',
+    stat1: { value: '1 Toque', label: 'Reserva sin descargar apps' },
+    stat2: { value: 'x2.4', label: 'Venta de productos en caja' },
+    painPoint: 'Barberos anotando en libretas mojadas y clientes esperando parados 45 minutos.',
+    solution: 'Agenda visual en vivo en la pantalla del salón y QR en cada espejo de corte.'
+  },
+  {
+    id: 'nails',
+    label: 'Nails Studios & Pedi Spa',
+    badge: 'Nail Bars & Cuidado Natural',
+    icon: Sparkles,
+    headline: 'Eleva tu estudio de uñas a una experiencia de lujo y alta costura.',
+    subheadline: 'Muestrario HD de técnicas (Rubber, Polygel, Jelly Tips, Nail Art) con tiempos reales por manicurista y cobro transparente en cualquier moneda.',
+    stat1: { value: '+35%', label: 'Ticket medio por Nail Art' },
+    stat2: { value: '5 Sellos', label: 'Fidelización VIP automática' },
+    painPoint: 'Clientas que piden presupuestos por 10 fotos en Instagram a las 11 de la noche.',
+    solution: 'Catálogo HD con precios calculados y agendamiento 24/7 en automático.'
+  },
+  {
+    id: 'medspa',
+    label: 'MedSpas & Clínicas',
+    badge: 'Estética Avanzada & Spa Médico',
+    icon: Zap,
+    headline: 'Control absoluto de cabinas privadas, aparatología y protocolos.',
+    subheadline: 'Gestión médica y estética con consentimiento informado, fichas clínicas seguras y bloqueo estricto de aparatología por turnos para evitar cruces.',
+    stat1: { value: '100%', label: 'Privacidad de cabina' },
+    stat2: { value: '0', label: 'Solapamientos de aparatología' },
+    painPoint: 'Dos especialistas intentando usar el mismo láser o cabina a la misma hora.',
+    solution: 'Reserva condicionada por máquina, cabina y especialista simultáneamente.'
+  },
+  {
+    id: 'academia',
+    label: 'Academias & Cursos',
+    badge: 'Capacitación Certificada & Cursos Pro',
+    icon: GraduationCap,
+    headline: 'Vende tus servicios de estudio y llena tus cursos certificados.',
+    subheadline: 'El modelo Capra Academy: combina la agenda de clientas VIP con la venta de cupos para cursos presenciales certificados de cejas, pestañas y maquillaje.',
+    stat1: { value: 'Cupos', label: 'Límite de alumnas automático' },
+    stat2: { value: 'Dual', label: 'Salón + Academia en 1 app' },
+    painPoint: 'Cobrar cursos por chat, perder recibos de transferencia y mezclar alumnas con clientas.',
+    solution: 'Página exclusiva de cursos con temario descargable y pasarela de pago.'
+  }
+];
+
 export const VanesevLanding: React.FC<VanesevLandingProps> = ({
   onSelectTenant,
 }) => {
+  // Selected Niche State
+  const [selectedNicheId, setSelectedNicheId] = useState<NicheProfile['id']>('peluqueria');
+  const activeNiche = NICHES_DATA.find((n) => n.id === selectedNicheId) || NICHES_DATA[0];
+
   // Billing cycle toggle
   const [billingCycle, setBillingCycle] = useState<'quarterly' | 'monthly'>('quarterly');
 
@@ -67,8 +151,8 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
   const [checkoutOwnerPhone, setCheckoutOwnerPhone] = useState('');
 
   // Calculations
-  const platformCommissionLoss = Math.round(monthlyClients * averageTicket * 0.20); // 20% lost to third-party marketplaces
-  const retentionExtraRevenue = Math.round(monthlyClients * 0.35 * averageTicket); // 35% extra from 5-stamps club
+  const platformCommissionLoss = Math.round(monthlyClients * averageTicket * 0.20);
+  const retentionExtraRevenue = Math.round(monthlyClients * 0.35 * averageTicket);
 
   const toggleFaq = (index: number) => {
     setFaqOpen(faqOpen === index ? null : index);
@@ -102,146 +186,158 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#121316] font-sans selection:bg-[#C5A059]/30 selection:text-[#121316] overflow-x-hidden">
-      {/* ══ TOP ANNOUNCEMENT BAR (LUMINOUS GOLD AURA) ══ */}
-      <div className="bg-gradient-to-r from-[#FAF3E0] via-[#F4E3BA] to-[#FAF3E0] border-b border-[#E2CE9B]/50 px-4 py-2.5 text-center text-xs font-semibold text-[#664D15] flex items-center justify-center gap-2 shadow-2xs">
-        <span className="flex h-2 w-2 relative">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B88A36] opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#B88A36]"></span>
-        </span>
-        <span>
-          <strong>Lanzamiento 2026:</strong> Tu salón digital en 24 horas · Cero comisiones por cita · Pasarelas de pago y tarjeta VIP listas
-        </span>
-      </div>
-
-      {/* ══ STICKY NAVIGATION HEADER (LUMINOUS FROSTED GLASS) ══ */}
-      <header className="sticky top-0 z-40 border-b border-[#EBE5DA] bg-[#FDFBF7]/90 backdrop-blur-xl px-4 sm:px-8 py-3.5 shadow-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#E5C158] via-[#C5A059] to-[#8C6D2F] flex items-center justify-center text-white font-serif font-black text-xl shadow-md shadow-[#C5A059]/25 shrink-0">
-              V
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-serif font-bold text-xl tracking-wider text-[#121316]">
-                  VANESEV
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-[#C5A059]/15 text-[#8C6D2F] border border-[#C5A059]/30">
-                  Haute Studio Suite
-                </span>
-              </div>
-              <p className="text-[11px] text-[#6E7380] hidden sm:block font-medium">
-                Plataforma de Autor para Salones de Belleza, Nails, Barberías &amp; Academias
-              </p>
-            </div>
+    <div className="min-h-screen bg-[#FDFBF7] text-[#121316] font-sans selection:bg-[#C5A059]/30 selection:text-[#121316] overflow-x-hidden pt-24 sm:pt-28">
+      {/* ══ DOCK FLOTANTE ELEGANTE DE AUTOR (SUSPENDED CAPSULE GLASS) ══ */}
+      <nav className="fixed top-3 sm:top-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-5xl bg-white/85 backdrop-blur-2xl border border-[#E8E1D3] shadow-[0_12px_36px_rgb(0,0,0,0.08)] rounded-full px-3.5 sm:px-6 py-2.5 flex items-center justify-between transition-all">
+        {/* Brand Monogram */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#E5C158] via-[#C5A059] to-[#8C6D2F] flex items-center justify-center text-white font-serif font-black text-base shadow-sm shadow-[#C5A059]/30 shrink-0">
+            V
           </div>
-
-          <nav className="hidden lg:flex items-center gap-8 text-xs font-bold text-[#4B505E]">
-            <a href="#por-que" className="hover:text-[#B88A36] transition-colors">¿Por qué VANESEV?</a>
-            <a href="#superpoderes" className="hover:text-[#B88A36] transition-colors">Superpoderes</a>
-            <a href="#calculadora" className="hover:text-[#B88A36] transition-colors">Calculadora de Ahorro</a>
-            <a href="#casos" className="hover:text-[#B88A36] transition-colors">Casos Reales</a>
-            <a href="#planes" className="hover:text-[#B88A36] transition-colors">Planes &amp; Precios</a>
-            <a href="#preguntas" className="hover:text-[#B88A36] transition-colors">Preguntas</a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <a
-              href="#planes"
-              className="hidden sm:inline-flex px-4 py-2.5 rounded-xl border border-[#DCD5C9] bg-white hover:bg-[#F7F4EE] text-xs font-bold text-[#121316] transition-all shadow-2xs"
-            >
-              Ver Planes
-            </a>
-            <a
-              href={whatsappCommercialLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B88A36] hover:brightness-105 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-[#C5A059]/30 transition-all cursor-pointer transform hover:-translate-y-0.5"
-            >
-              <MessageCircle className="w-4 h-4 fill-current" />
-              <span>Pedir Demo VIP</span>
-            </a>
+          <div className="flex items-center gap-1.5">
+            <span className="font-serif font-bold text-lg tracking-wider text-[#121316]">
+              VANESEV
+            </span>
+            <span className="hidden md:inline px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-[#C5A059]/15 text-[#8C6D2F] border border-[#C5A059]/30">
+              Suite
+            </span>
           </div>
         </div>
-      </header>
 
-      {/* ══ HERO SECTION (LUMINOUS, EDITORIAL, HIGH CONTRAST) ══ */}
-      <section className="relative overflow-hidden pt-14 sm:pt-20 pb-20 sm:pb-28 px-4 sm:px-8 border-b border-[#EBE5DA] bg-gradient-to-b from-[#FAF8F5] via-[#FFFFFF] to-[#FDFBF7]">
-        {/* Soft luminous ambient aura */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] sm:w-[1000px] h-[450px] bg-gradient-to-b from-[#F9E8BA]/35 via-[#F1D1D8]/20 to-transparent blur-3xl pointer-events-none rounded-full" />
+        {/* Navigation Links */}
+        <div className="hidden lg:flex items-center gap-6 text-xs font-bold text-[#555A67]">
+          <a href="#nichos" className="hover:text-[#8C6D2F] transition-colors">Especialidades</a>
+          <a href="#por-que" className="hover:text-[#8C6D2F] transition-colors">¿Por qué?</a>
+          <a href="#superpoderes" className="hover:text-[#8C6D2F] transition-colors">Superpoderes</a>
+          <a href="#calculadora" className="hover:text-[#8C6D2F] transition-colors">Ahorro</a>
+          <a href="#casos" className="hover:text-[#8C6D2F] transition-colors">Casos Reales</a>
+          <a href="#blog" className="hover:text-[#8C6D2F] transition-colors">Revista</a>
+          <a href="#planes" className="hover:text-[#8C6D2F] transition-colors">Planes</a>
+        </div>
 
-        <div className="max-w-5xl mx-auto text-center space-y-7 relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#C5A059]/35 text-[#8C6D2F] text-xs font-bold tracking-wide shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[#B88A36]" />
-            <span>PLATAFORMA INTEGRAL DE AUTOR · CERO COMISIONES POR CITA</span>
+        {/* CTA Button */}
+        <div className="flex items-center gap-2">
+          <a
+            href={whatsappCommercialLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 sm:px-5 py-2 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B88A36] text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-[#C5A059]/30 hover:brightness-105 transition-all cursor-pointer"
+          >
+            <MessageCircle className="w-3.5 h-3.5 fill-current" />
+            <span>Pedir Demo VIP</span>
+          </a>
+        </div>
+      </nav>
+
+      {/* ══ HERO CON SELECTOR DINÁMICO DE NICHOS ══ */}
+      <section id="nichos" className="relative overflow-hidden pb-16 sm:pb-24 px-4 sm:px-8 bg-gradient-to-b from-[#FAF8F5] via-[#FFFFFF] to-[#FDFBF7]">
+        {/* Luminous aura */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] sm:w-[1000px] h-[450px] bg-gradient-to-b from-[#F9E8BA]/35 via-[#F1D1D8]/20 to-transparent blur-3xl pointer-events-none rounded-full" />
+
+        <div className="max-w-6xl mx-auto space-y-8 relative z-10">
+          {/* Niche Selector Pills */}
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1">
+            {NICHES_DATA.map((niche) => {
+              const Icon = niche.icon;
+              const isSelected = selectedNicheId === niche.id;
+              return (
+                <button
+                  key={niche.id}
+                  onClick={() => setSelectedNicheId(niche.id)}
+                  className={`px-3.5 sm:px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                    isSelected
+                      ? 'bg-[#121316] text-white shadow-md font-black scale-105'
+                      : 'bg-white hover:bg-[#F2ECE1] text-[#555A67] border border-[#DDD6C8]'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#E5C158]' : 'text-[#8C6D2F]'}`} />
+                  <span>{niche.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-[#121316] max-w-4xl mx-auto">
-            El talento y el salón ya son tuyos.{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B88A36] via-[#C5A059] to-[#996D19]">
-              Tu marca digital y tus clientas también deben serlo.
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-[#4A4F5E] leading-relaxed max-w-3xl mx-auto">
-            Tu propia web app con tu marca para vender sin intermediarios, sincronizar cabinas y especialistas sin solapamientos,
-            cobrar con pasarelas automáticas o transferencias y multiplicar visitas repetidas con tu Club VIP de 5 sellos.
-            <strong className="text-[#121316]"> Una agenda la tiene cualquiera: nosotros te damos una marca que llena tu local.</strong>
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-3">
-            <a
-              href="#planes"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B88A36] text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#C5A059]/35 hover:scale-[1.02] transition-all cursor-pointer"
-            >
-              <span>Quiero la plataforma para mi salón</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-            <a
-              href="#calculadora"
-              className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white hover:bg-[#F7F4EE] text-[#121316] border border-[#D9D3C7] font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-[#8C6D2F]" />
-              <span>Calcular cuánto dinero me ahorro ↓</span>
-            </a>
-          </div>
-
-          <p className="text-xs text-[#717786] pt-1">
-            ¿Solo quieres probar?{' '}
-            <a href={whatsappCommercialLink} target="_blank" rel="noopener noreferrer" className="text-[#8C6D2F] underline underline-offset-4 font-bold hover:text-[#121316]">
-              Pide una demo con tu lista de servicios por WhatsApp
-            </a>{' '}
-            · Te la montamos en 24h sin que tengas que teclear nada.
-          </p>
-
-          {/* Key Metrics Strip (Clean White Cards) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-10 border-t border-[#EBE5DA] text-left">
-            <div className="p-5 rounded-2xl bg-white border border-[#EBE5DA] shadow-xs">
-              <span className="font-serif text-3xl font-bold text-[#8C6D2F] block">0%</span>
-              <span className="text-xs font-bold text-[#121316] block mt-0.5">Cero Comisiones</span>
-              <span className="text-[11px] text-[#6E7380]">El 100% de cada cita cobrada es para tu negocio.</span>
+          {/* Dynamic Hero Billboard */}
+          <div className="text-center space-y-6 max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#C5A059]/35 text-[#8C6D2F] text-xs font-bold tracking-wide shadow-xs animate-in fade-in duration-300">
+              <Sparkles className="w-3.5 h-3.5 text-[#B88A36]" />
+              <span>{activeNiche.badge.toUpperCase()} &bull; CERO COMISIONES POR CITA</span>
             </div>
-            <div className="p-5 rounded-2xl bg-white border border-[#EBE5DA] shadow-xs">
-              <span className="font-serif text-3xl font-bold text-[#8C6D2F] block">+42%</span>
-              <span className="text-xs font-bold text-[#121316] block mt-0.5">Retención de Clientas</span>
-              <span className="text-[11px] text-[#6E7380]">Vuelven cada 3 semanas con el Club de 5 sellos.</span>
+
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight text-[#121316]">
+              {activeNiche.headline}
+            </h1>
+
+            <p className="text-sm sm:text-lg text-[#4A4F5E] leading-relaxed max-w-2xl mx-auto font-normal">
+              {activeNiche.subheadline}
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
+              <a
+                href="#planes"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#B88A36] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#C5A059]/35 hover:scale-[1.02] transition-all cursor-pointer"
+              >
+                <span>Activar VANESEV para mi local</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+              <a
+                href="#calculadora"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white hover:bg-[#F7F4EE] text-[#121316] border border-[#D9D3C7] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+              >
+                <SlidersHorizontal className="w-4 h-4 text-[#8C6D2F]" />
+                <span>Calcular Ahorro de Comisiones</span>
+              </a>
             </div>
-            <div className="p-5 rounded-2xl bg-white border border-[#EBE5DA] shadow-xs">
-              <span className="font-serif text-3xl font-bold text-[#8C6D2F] block">1 Toque</span>
-              <span className="text-xs font-bold text-[#121316] block mt-0.5">PWA Sin Descargas</span>
-              <span className="text-[11px] text-[#6E7380]">Se instala en iPhone y Android sin pasar por App Store.</span>
+
+            {/* Dynamic Pain & Solution Strip */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 text-left max-w-3xl mx-auto">
+              <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/80 space-y-1">
+                <span className="text-[10px] font-black uppercase text-rose-700 tracking-wider flex items-center gap-1">
+                  <X className="w-3 h-3" /> El dolor que sufres hoy
+                </span>
+                <p className="text-xs text-[#4A3238] font-medium leading-relaxed">
+                  {activeNiche.painPoint}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-1">
+                <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Cómo lo resuelve VANESEV
+                </span>
+                <p className="text-xs text-[#284233] font-medium leading-relaxed">
+                  {activeNiche.solution}
+                </p>
+              </div>
             </div>
-            <div className="p-5 rounded-2xl bg-white border border-[#EBE5DA] shadow-xs">
-              <span className="font-serif text-3xl font-bold text-[#8C6D2F] block">24h</span>
-              <span className="text-xs font-bold text-[#121316] block mt-0.5">Llave en Mano</span>
-              <span className="text-[11px] text-[#6E7380]">Nos envías tus servicios y la dejamos operando.</span>
+
+            {/* Key Metrics Strip */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-8 border-t border-[#EBE5DA] text-left">
+              <div className="p-4 rounded-2xl bg-white border border-[#EBE5DA] shadow-xs">
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-[#8C6D2F] block">{activeNiche.stat1.value}</span>
+                <span className="text-xs font-bold text-[#121316] block mt-0.5">{activeNiche.stat1.label}</span>
+                <span className="text-[11px] text-[#6E7380]">Tus ingresos íntegros son para ti.</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-[#EBE5DA] shadow-xs">
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-[#8C6D2F] block">{activeNiche.stat2.value}</span>
+                <span className="text-xs font-bold text-[#121316] block mt-0.5">{activeNiche.stat2.label}</span>
+                <span className="text-[11px] text-[#6E7380]">Impacto directo en tu facturación mensual.</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-[#EBE5DA] shadow-xs">
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-[#8C6D2F] block">1 Toque</span>
+                <span className="text-xs font-bold text-[#121316] block mt-0.5">PWA Sin Descargas</span>
+                <span className="text-[11px] text-[#6E7380]">Instalación directa en pantalla de inicio.</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-[#EBE5DA] shadow-xs">
+                <span className="font-serif text-2xl sm:text-3xl font-bold text-[#8C6D2F] block">24h</span>
+                <span className="text-xs font-bold text-[#121316] block mt-0.5">Llave en Mano</span>
+                <span className="text-[11px] text-[#6E7380]">Configuración asistida sin teclear nada.</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══ SECCIÓN DOLORES REALES (HIGH-CONTRAST LIGHT CARDS) ══ */}
-      <section id="por-que" className="py-20 sm:py-28 px-4 sm:px-8 border-b border-[#EBE5DA] bg-[#F7F4EE]">
+      {/* ══ SECCIÓN DOLORES REALES ══ */}
+      <section id="por-que" className="py-20 sm:py-24 px-4 sm:px-8 border-b border-[#EBE5DA] bg-[#F7F4EE]">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-[#8C6D2F]">
@@ -312,7 +408,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
       </section>
 
       {/* ══ CALCULADORA INTERACTIVA DE AHORRO & ROI ══ */}
-      <section id="calculadora" className="py-20 sm:py-28 px-4 sm:px-8 border-b border-[#EBE5DA] bg-white">
+      <section id="calculadora" className="py-20 sm:py-24 px-4 sm:px-8 border-b border-[#EBE5DA] bg-white">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-[#8C6D2F]">
@@ -421,7 +517,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
       </section>
 
       {/* ══ DEMOSTRACIÓN INTERACTIVA: "UNA SUITE, CUATRO SUPERPODERES" ══ */}
-      <section id="superpoderes" className="py-20 sm:py-28 px-4 sm:px-8 border-b border-[#EBE5DA] bg-[#F7F4EE]">
+      <section id="superpoderes" className="py-20 sm:py-24 px-4 sm:px-8 border-b border-[#EBE5DA] bg-[#F7F4EE]">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-[#8C6D2F]">
@@ -530,20 +626,20 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                 </div>
                 <div className="bg-[#FAF8F5] p-5 rounded-2xl border border-[#E8E1D3] space-y-3">
                   <div className="flex items-center justify-between text-xs font-bold text-[#121316] border-b border-[#E8E1D3] pb-2">
-                    <span>Cabina Principal · Hoy</span>
+                    <span>Cabina Principal &bull; Hoy</span>
                     <span className="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">3 Citas Agendadas</span>
                   </div>
                   <div className="space-y-2 text-xs">
                     <div className="p-2.5 rounded-xl bg-white border border-[#E2DBD0] flex justify-between items-center">
                       <div>
-                        <strong className="block text-[#121316]">10:00 AM · Nivelación Rubber</strong>
+                        <strong className="block text-[#121316]">10:00 AM &bull; Nivelación Rubber</strong>
                         <span className="text-[#6E7380] text-[11px]">Especialista: Andrea</span>
                       </div>
                       <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">Confirmada</span>
                     </div>
                     <div className="p-2.5 rounded-xl bg-white border border-[#E2DBD0] flex justify-between items-center">
                       <div>
-                        <strong className="block text-[#121316]">02:30 PM · Jelly Tips + Spa</strong>
+                        <strong className="block text-[#121316]">02:30 PM &bull; Jelly Tips + Spa</strong>
                         <span className="text-[#6E7380] text-[11px]">Especialista: María</span>
                       </div>
                       <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">En Cabina</span>
@@ -564,7 +660,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                   </h3>
                   <p className="text-sm text-[#555A67] leading-relaxed">
                     Las tarjetas de cartón se botan. Tu tarjeta VIP vive en el móvil de tu clienta con su número de teléfono.
-                    Por cada visita que realiza, acumula un sello digital. Al 5to sello, desbloquea su beneficio exclusivo (descuento o servicio de regalo).
+                    Por cada visita que realiza, acumula un sello digital. Al 5to sello, desbloquea su beneficio exclusivo.
                   </p>
                   <div className="flex items-center gap-2 pt-2">
                     <span className="text-xs font-bold text-[#121316]">Simular sellos de visita:</span>
@@ -587,7 +683,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                   <div className="flex justify-between items-center border-b border-white/10 pb-3">
                     <div>
                       <span className="text-[10px] tracking-widest text-[#E5C158] uppercase font-bold block">Tarjeta VIP Oficial</span>
-                      <strong className="text-base text-white">Clienta Fiel · Mariana R.</strong>
+                      <strong className="text-base text-white">Clienta Fiel &bull; Mariana R.</strong>
                     </div>
                     <span className="text-xs font-black text-[#E5C158] bg-white/10 px-2.5 py-1 rounded-full">
                       {simulatorStamps}/5 Sellos
@@ -653,14 +749,14 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                     <div className="p-2.5 bg-white rounded-xl border border-[#E2DBD0] flex justify-between items-center">
                       <div>
                         <strong className="block text-[#121316]">Andrea (Nails Specialist)</strong>
-                        <span className="text-[#6E7380] text-[11px]">24 servicios · 60%</span>
+                        <span className="text-[#6E7380] text-[11px]">24 servicios &bull; 60%</span>
                       </div>
                       <span className="font-bold text-[#121316]">$420 USD Comis.</span>
                     </div>
                     <div className="p-2.5 bg-white rounded-xl border border-[#E2DBD0] flex justify-between items-center">
                       <div>
                         <strong className="block text-[#121316]">María (Estilismo &amp; Alisados)</strong>
-                        <span className="text-[#6E7380] text-[11px]">18 servicios · 55%</span>
+                        <span className="text-[#6E7380] text-[11px]">18 servicios &bull; 55%</span>
                       </div>
                       <span className="font-bold text-[#121316]">$385 USD Comis.</span>
                     </div>
@@ -673,7 +769,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
       </section>
 
       {/* ══ CASOS DE ÉXITO REALES (ANDREA NAILS & CAPRA STUDIO) ══ */}
-      <section id="casos" className="py-20 sm:py-28 px-4 sm:px-8 border-b border-[#EBE5DA] bg-white">
+      <section id="casos" className="py-20 sm:py-24 px-4 sm:px-8 border-b border-[#EBE5DA] bg-white">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-[#8C6D2F]">
@@ -723,7 +819,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                 <span className="text-xs text-[#8A5661] font-bold">By María Capra</span>
               </div>
               <h3 className="font-serif text-2xl font-bold text-[#2D1E22]">
-                Capra Studio · Alta Peluquería &amp; Academy
+                Capra Studio &bull; Alta Peluquería &amp; Academy
               </h3>
               <p className="text-xs sm:text-sm text-[#664950] leading-relaxed">
                 6 departamentos especializados (Cejas, Pestañas, Alisados Orgánicos, Maquillaje Pro y Uñas)
@@ -743,8 +839,85 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
         </div>
       </section>
 
+      {/* ══ THE BEAUTY FOUNDER JOURNAL (REVISTA & BLOG EDITORIAL) ══ */}
+      <section id="blog" className="py-20 sm:py-24 px-4 sm:px-8 border-b border-[#EBE5DA] bg-[#FAF8F5]">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-black uppercase tracking-widest text-[#8C6D2F] flex items-center justify-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-[#B88A36]" />
+              The Beauty Founder Journal
+            </span>
+            <h2 className="font-serif text-3xl sm:text-5xl font-bold text-[#121316] tracking-tight">
+              Estrategias reales para escalar tu salón y retener clientas.
+            </h2>
+            <p className="text-sm text-[#555A67]">
+              Artículos formativos y casos de estudio para dueñas y directores de estética:
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <article className="p-6 rounded-3xl bg-white border border-[#E8E1D3] shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-[10px] text-[#717786] font-bold">
+                  <span className="bg-[#FAF3E0] text-[#8C6D2F] px-2.5 py-1 rounded-full border border-[#E2CE9B]/40">ECONOMÍA DE SALÓN</span>
+                  <span>Lectura: 4 min</span>
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#121316] leading-snug">
+                  La trampa de los marketplaces: por qué las apps "gratis" te quitan 400$/mes
+                </h3>
+                <p className="text-xs text-[#555A67] leading-relaxed">
+                  Analizamos el desglose real de comisiones del 20% en salones de estética y cómo el modelo parásito pone la competencia en tu propio perfil.
+                </p>
+              </div>
+              <div className="pt-2 text-xs font-bold text-[#8C6D2F] flex items-center gap-1">
+                <span>Leer artículo completo</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </article>
+
+            <article className="p-6 rounded-3xl bg-white border border-[#E8E1D3] shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-[10px] text-[#717786] font-bold">
+                  <span className="bg-[#FAF3E0] text-[#8C6D2F] px-2.5 py-1 rounded-full border border-[#E2CE9B]/40">FIDELIZACIÓN VIP</span>
+                  <span>Lectura: 5 min</span>
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#121316] leading-snug">
+                  Por qué las tarjetas de papel fracasan y el Club de 5 sellos multiplica visitas
+                </h3>
+                <p className="text-xs text-[#555A67] leading-relaxed">
+                  El factor psicológico del progreso visible en el teléfono: cómo lograr que una clienta reserve su retoque a las 3 semanas exactas.
+                </p>
+              </div>
+              <div className="pt-2 text-xs font-bold text-[#8C6D2F] flex items-center gap-1">
+                <span>Leer artículo completo</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </article>
+
+            <article className="p-6 rounded-3xl bg-white border border-[#E8E1D3] shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-[10px] text-[#717786] font-bold">
+                  <span className="bg-[#FAF3E0] text-[#8C6D2F] px-2.5 py-1 rounded-full border border-[#E2CE9B]/40">OPERACIONES</span>
+                  <span>Lectura: 3 min</span>
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#121316] leading-snug">
+                  Sincronización multi-cabina: cero cruces entre especialistas
+                </h3>
+                <p className="text-xs text-[#555A67] leading-relaxed">
+                  Cómo organizar estaciones de lavado, camillas de pestañas y mesas de manicura para maximizar el rendimiento por metro cuadrado de tu local.
+                </p>
+              </div>
+              <div className="pt-2 text-xs font-bold text-[#8C6D2F] flex items-center gap-1">
+                <span>Leer artículo completo</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* ══ PLANES & PRECIOS (PREPARADOS PARA PASARELAS DE SUSCRIPCIÓN) ══ */}
-      <section id="planes" className="py-20 sm:py-28 px-4 sm:px-8 border-b border-[#EBE5DA] bg-[#F7F4EE]">
+      <section id="planes" className="py-20 sm:py-24 px-4 sm:px-8 border-b border-[#EBE5DA] bg-[#F7F4EE]">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-[#8C6D2F]">
@@ -767,7 +940,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                     : 'text-[#6E7380] hover:text-[#121316]'
                 }`}
               >
-                Trimestral · Ahorra 25% 🔥
+                Trimestral &bull; Ahorra 25% 🔥
               </button>
               <button
                 onClick={() => setBillingCycle('monthly')}
@@ -944,7 +1117,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
       </section>
 
       {/* ══ FAQ SECTION ══ */}
-      <section id="preguntas" className="py-20 sm:py-28 px-4 sm:px-8 border-b border-[#EBE5DA] bg-white">
+      <section id="preguntas" className="py-20 sm:py-24 px-4 sm:px-8 border-b border-[#EBE5DA] bg-white">
         <div className="max-w-4xl mx-auto space-y-10">
           <div className="text-center space-y-3">
             <span className="text-xs font-black uppercase tracking-widest text-[#8C6D2F]">
@@ -1042,12 +1215,14 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
             </div>
             <div>
               <strong className="text-sm text-[#121316] font-serif block">VANESEV PLATFORM</strong>
-              <span className="text-[11px] text-[#8A8F9E]">Haute Studio Suite · Tecnología de Autor para Salones</span>
+              <span className="text-[11px] text-[#8A8F9E]">Haute Studio Suite &bull; Tecnología de Autor para Salones</span>
             </div>
           </div>
           <div className="flex items-center gap-6 font-semibold">
+            <a href="#nichos" className="hover:text-[#121316]">Especialidades</a>
             <a href="#por-que" className="hover:text-[#121316]">Beneficios</a>
             <a href="#superpoderes" className="hover:text-[#121316]">Superpoderes</a>
+            <a href="#blog" className="hover:text-[#121316]">Revista</a>
             <a href="#planes" className="hover:text-[#121316]">Planes</a>
             <a href="/central" className="hover:text-[#121316] text-[#8C6D2F]">Acceso Central</a>
           </div>
@@ -1064,7 +1239,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
             <div className="flex justify-between items-start border-b border-[#EAE3D6] pb-4">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#8C6D2F] block">
-                  Alta de Salón · {selectedPlanForCheckout.period}
+                  Alta de Salón &bull; {selectedPlanForCheckout.period}
                 </span>
                 <h3 className="font-serif text-2xl font-bold text-[#121316]">
                   Activar Plan {selectedPlanForCheckout.name}
