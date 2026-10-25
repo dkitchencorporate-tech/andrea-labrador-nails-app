@@ -538,6 +538,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [cancellationReasonType, setCancellationReasonType] = useState('aviso_previo');
   const [cancellationCustomNote, setCancellationCustomNote] = useState('');
 
+  const isCapraTenant = tenantSlug === 'capra-studio';
+  const tenantInitials = isCapraTenant ? 'CS' : 'AL';
+  const tenantRewardLabel = isCapraTenant ? 'Tratamiento VIP de Cortesía' : 'Depilación de Cejas 100% de cortesía';
+
   const handleConfirmCompletion = async (notifyWhatsApp = false) => {
     if (!completeModalBooking) return;
     const b = completeModalBooking;
@@ -547,7 +551,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     if (notifyWhatsApp) {
       const cleanPhone = b.clientPhone.replace(/\D/g, '');
-      const waMsg = `¡Hola ${b.clientName} bella! 💕💅\n\nTu servicio de *${b.serviceName}* ha sido marcado como *Culminado con Éxito* hoy en Andrea Labrador Nails Studio.\n\n✨ Hemos acreditado tu sello VIP en tu Tarjeta Digital de Fidelización.\nRecuerda que al completar 5 visitas, ¡tu Depilación de Cejas es 100% de cortesía!\n\n¡Gracias por consentirte con nosotros, nos vemos pronto! 💕`;
+      const waMsg = `¡Hola ${b.clientName}! ✨\n\nTu servicio de *${b.serviceName}* ha sido registrado como *Culminado con Éxito* hoy en ${tenantName}.\n\n✨ Hemos acreditado tu sello VIP en tu Pasaporte Digital de Fidelidad.\nRecuerda que al completar 5 visitas, ¡tu ${tenantRewardLabel} corre por cuenta de la casa!\n\n¡Gracias por preferirnos, te esperamos pronto!`;
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMsg)}`, '_blank');
     }
   };
@@ -561,7 +565,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     if (notifyWhatsApp) {
       const cleanPhone = b.clientPhone.replace(/\D/g, '');
-      const waMsg = `¡Hola ${b.clientName} bella! 💕\n\nTe estuvimos esperando hoy para tu cita de *${b.serviceName}* en Andrea Labrador Nails Studio. Qué pena que se te haya complicado llegar ✨.\n\nAvísame cuando tengas disponibilidad y con todo el gusto te reagendamos para consentirte en tus uñas 💕.`;
+      const waMsg = `¡Hola ${b.clientName}! ✨\n\nTe estuvimos esperando hoy para tu cita de *${b.serviceName}* en ${tenantName}.\n\nAvísanos cuando tengas disponibilidad y con todo el gusto reprogramamos tu turno en agenda.`;
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(waMsg)}`, '_blank');
     }
   };
@@ -702,14 +706,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       <body>
         <div class="header">
           <div>
-            <div class="logo">ANDREA LABRADOR NAILS STUDIO</div>
+            <div class="logo">${tenantName.toUpperCase()}</div>
             <div class="subtitle">Reporte Ejecutivo &amp; Balance Contable de Citas</div>
             <div style="font-size: 12px; font-weight: 700; color: #b45309; margin-top: 4px;">Período Evaluado: ${periodLabel}</div>
           </div>
           <div class="meta">
             <div><b>Fecha de Emisión:</b> ${new Date().toLocaleDateString('es-VE')}</div>
             <div><b>Tasa del Día:</b> $1 USD = ${exchangeRate.toFixed(2)} Bs</div>
-            <div><b>Super Admin:</b> slenandreal@gmail.com</div>
+            <div><b>Sede Activa:</b> ${tenantSlug}</div>
           </div>
         </div>
 
@@ -1009,21 +1013,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     if (emailTemplate === 'confirmation') {
       return {
-        subject: `Confirmación de Cita — Andrea Labrador Nails Studio`,
-        body: `Hola ${name},\n\n¡Tu cita ha sido confirmada con éxito!\n\nDetalles de tu servicio:\n💅 Servicio: ${svc}\n📅 Fecha: ${date}\n⏰ Hora: ${time}\n💰 Total: $${priceUSD} USD (≈ ${priceVES} Bs)\n\n📍 Políticas del estudio:\n- Contamos con 10 minutos de margen de tolerancia.\n- Te sugerimos asistir sola para disfrutar de tu momento de relax y desconexión (si requieres venir acompañada o con niños, avísame con gusto por WhatsApp para coordinarlo).\n\n¡Te esperamos con entusiasmo para consentir tus manos!\n\nAndrea Labrador — Manicurista Profesional\nWhatsApp: +58 424 1360937\nInstagram: @andrealabradorl`
+        subject: `Confirmación de Cita — ${tenantName}`,
+        body: `Hola ${name},\n\n¡Tu cita ha sido confirmada con éxito!\n\nDetalles de tu servicio:\n✨ Servicio: ${svc}\n📅 Fecha: ${date}\n⏰ Hora: ${time}\n💰 Total: $${priceUSD} USD (≈ ${priceVES} Bs)\n\n📍 Políticas del estudio:\n- Contamos con margen de tolerancia de puntualidad.\n- Te sugerimos asistir puntualmente para disfrutar de tu experiencia completa.\n\n¡Te esperamos en ${tenantName}!`
       };
     }
 
     if (emailTemplate === 'reminder') {
       return {
-        subject: `Recordatorio de tu Cita de Mañana — Andrea Labrador Nails`,
-        body: `Hola ${name},\n\nTe escribo para recordarte tu cita programada para el día de mañana:\n\n💅 Servicio: ${svc}\n📅 Fecha: ${date}\n⏰ Hora: ${time}\n\nSi necesitas reprogramar o tienes alguna pregunta previa, avísame con anticipación por WhatsApp al 0424-1360937.\n\n¡Nos vemos pronto!\nAndrea Labrador Nails`
+        subject: `Recordatorio de tu Cita de Mañana — ${tenantName}`,
+        body: `Hola ${name},\n\nTe escribimos para recordarte tu cita programada para el día de mañana:\n\n✨ Servicio: ${svc}\n📅 Fecha: ${date}\n⏰ Hora: ${time}\n\nSi necesitas reprogramar o tienes alguna pregunta previa, avísanos con anticipación por WhatsApp.\n\n¡Nos vemos pronto!\n${tenantName}`
       };
     }
 
     return {
-      subject: `🎉 ¡Felicitaciones ${name}! Tu Depilación de Cejas es 100% de Cortesía`,
-      body: `¡Hola ${name}!\n\n¡Tenemos una excelente noticia para ti! Con tus visitas continuas has acumulado 5 servicios en el estudio de Andrea Labrador Nails.\n\n⭐ Tu Depilación de Cejas es 100% de CORTESÍA por cuenta de la casa.\n\nPara canjear tu cortesía, responde a este correo o escríbenos directamente a WhatsApp (0424-1360937) para agendar tu cupo especial.\n\n¡Gracias por tu confianza y preferencia!\nAndrea Labrador Studio`
+      subject: `🎉 ¡Felicitaciones ${name}! Tu ${tenantRewardLabel} está disponible`,
+      body: `¡Hola ${name}!\n\n¡Tenemos una excelente noticia para ti! Con tus visitas continuas has acumulado 5 sellos verificados en ${tenantName}.\n\n⭐ Tu ${tenantRewardLabel} corre por cuenta de la casa.\n\nPara canjear tu beneficio, responde a este mensaje o escríbenos por WhatsApp para agendar tu cupo especial.\n\n¡Gracias por tu confianza y preferencia!\n${tenantName}`
     };
   };
 
@@ -1063,7 +1067,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const blob = new Blob([AppStore.exportDataJSON()], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `andrea-respaldo-${new Date().toISOString().split('T')[0]}.json`; a.click();
+    a.href = url; a.download = `${tenantSlug}-respaldo-${new Date().toISOString().split('T')[0]}.json`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -1079,15 +1083,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // ─── SHARED UI STYLES ──────────────────────────────────────────────────────
-  const inputCls = 'w-full p-2.5 rounded-xl bg-[#FBF9F6] border border-sage-200 text-warm-900 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sage-400 placeholder:text-warm-400';
+  const inputCls = 'w-full p-2.5 rounded-xl bg-[#FBF9F6] border border-warm-200 text-warm-900 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-warm-400 placeholder:text-warm-400';
   const tabBtnCls = (key: TabKey) =>
-    `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+    `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
       activeTab === key
-        ? 'bg-[#16291F] text-white shadow-sm'
-        : 'text-warm-700 hover:bg-sage-50 hover:text-warm-900'
+        ? isCapraTenant
+          ? 'bg-[#191215] text-white shadow-sm'
+          : 'bg-[#16291F] text-white shadow-sm'
+        : 'text-warm-700 hover:bg-warm-100 hover:text-warm-900'
     }`;
   const sectionHead = (title: string, sub: string, action?: React.ReactNode) => (
-    <div className="border-b border-sage-100 pb-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="border-b border-warm-200 pb-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <h3 className="text-lg font-bold font-serif text-warm-900">{title}</h3>
         <p className="text-xs text-warm-500 mt-0.5">{sub}</p>
@@ -1100,38 +1106,48 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     <div className="min-h-screen bg-[#F4F1ED] text-warm-900 font-sans flex flex-col">
 
       {/* ── TOP HEADER ── */}
-      <header className="sticky top-0 z-50 bg-[#FBF9F6] border-b border-sage-200 shadow-sm px-4 sm:px-6 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-[#FBF9F6] border-b border-warm-200 shadow-xs px-4 sm:px-6 py-3 flex items-center justify-between">
         
         <div className="flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-xl bg-sage-100 hover:bg-sage-200 text-sage-800 transition-colors border border-sage-200 lg:hidden"
+            className="p-2 rounded-xl bg-warm-100 hover:bg-warm-200 text-warm-800 transition-colors border border-warm-200 lg:hidden cursor-pointer"
             aria-label="Menú"
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#16291F] text-amber-200 flex items-center justify-center font-bold font-serif text-xs shrink-0">
-              AL
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold font-serif text-xs shrink-0 ${
+                isCapraTenant
+                  ? 'bg-[#8E4A59] text-white border border-[#C8A97E]/50'
+                  : 'bg-[#16291F] text-amber-200'
+              }`}
+            >
+              {tenantInitials}
             </div>
             <div>
-              <p className="font-serif font-bold text-warm-900 text-sm leading-tight">ANDREA LABRADOR</p>
-              <p className="text-[10px] text-warm-500 leading-tight">Panel de Gestión · Citas &amp; Estudio</p>
+              <p className="font-serif font-bold text-warm-900 text-sm leading-tight uppercase">
+                {tenantName}
+              </p>
+              <p className="text-[10px] text-warm-500 leading-tight">
+                Panel Administrativo de Sede · Citas, QR &amp; CRM
+              </p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sage-50 border border-sage-200 text-xs">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-warm-200 text-xs tabular-nums">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-warm-600">Tasa:</span>
-            <span className="font-bold text-warm-900">${exchangeRate.toFixed(2)} Bs/USD</span>
+            <span className="text-warm-600">Tasa BCV:</span>
+            <span className="font-bold text-warm-900">Bs. {exchangeRate.toFixed(2)}</span>
           </div>
 
           <button
             onClick={onRefreshData}
-            className="p-2 rounded-xl bg-sage-100 hover:bg-sage-200 text-sage-700 border border-sage-200 transition-colors"
+            className="p-2 rounded-xl bg-white hover:bg-warm-100 text-warm-700 border border-warm-200 transition-colors cursor-pointer"
             title="Sincronizar"
           >
             <RefreshCw className="w-4 h-4" />
@@ -1139,9 +1155,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           <button
             onClick={onExitToCatalog}
-            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-[#16291F] hover:bg-sage-900 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
+            className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+              isCapraTenant
+                ? 'bg-[#191215] hover:bg-[#8E4A59]'
+                : 'bg-[#16291F] hover:bg-sage-900'
+            }`}
           >
-            <span>Ver Catálogo</span>
+            <span>Ver Carta Pública</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </button>
 
@@ -1173,7 +1193,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <aside
           className={`
             fixed lg:relative top-0 left-0 h-full z-40
-            w-72 bg-white border-r border-sage-200 shadow-xl lg:shadow-none
+            w-72 bg-white border-r border-warm-200 shadow-xl lg:shadow-none
             transition-transform duration-300 ease-in-out
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             flex flex-col pt-[60px] lg:pt-0
@@ -1182,20 +1202,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         >
           <div className="flex flex-col h-full">
             {/* Quick Metrics */}
-            <div className="p-4 space-y-2 border-b border-sage-100">
-              <div className="p-3 rounded-xl bg-[#FBF9F6] border border-sage-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-warm-400 block">Citas Registradas</span>
+            <div className="p-4 space-y-2 border-b border-warm-100 tabular-nums">
+              <div className="p-3 rounded-xl bg-[#FBF9F6] border border-warm-200/70">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-warm-500 block">Citas Registradas</span>
                 <div className="flex items-baseline gap-1.5 mt-0.5">
-                  <span className="font-serif text-2xl font-black text-warm-900">{totalBookingsCount}</span>
+                  <span className="font-serif text-2xl font-bold text-warm-900">{totalBookingsCount}</span>
                   {enWhatsAppCount > 0 && (
                     <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 font-bold px-1.5 rounded-full animate-pulse">{enWhatsAppCount} en WhatsApp</span>
                   )}
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-[#FBF9F6] border border-sage-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-warm-400 block">Ingresos Confirmados</span>
-                <span className="font-serif text-lg font-black text-emerald-700">${totalRevenueUSD.toFixed(2)} USD</span>
-                <span className="block text-[10px] text-warm-400">≈ {(totalRevenueUSD * exchangeRate).toFixed(0)} Bs</span>
+              <div className="p-3 rounded-xl bg-[#FBF9F6] border border-warm-200/70">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-warm-500 block">Ingresos Confirmados</span>
+                <span className="font-serif text-lg font-bold text-emerald-700">${totalRevenueUSD.toFixed(2)} USD</span>
+                <span className="block text-[10px] text-warm-500">≈ Bs. {(totalRevenueUSD * exchangeRate).toFixed(2)}</span>
               </div>
             </div>
 
@@ -1209,15 +1229,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">{enWhatsAppCount}</span>
                   )}
                   {key === 'crm' && clientsList.some(c => c.hasFreeService) && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Clientes con 7º gratis" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Clientas con beneficio activo" />
                   )}
                 </button>
               ))}
             </nav>
 
-            <div className="p-4 border-t border-sage-100 text-[11px] text-warm-500 space-y-1">
-              <p className="font-bold text-warm-800">Estudio Andrea Labrador</p>
-              <p>Seguridad activa &bull; Citas blindadas</p>
+            <div className="p-4 border-t border-warm-100 text-[11px] text-warm-500 space-y-1">
+              <p className="font-bold text-warm-800">{tenantName}</p>
+              <p>VANESEV Cloud &bull; Sede Verificada</p>
             </div>
           </div>
         </aside>

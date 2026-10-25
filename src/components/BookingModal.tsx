@@ -356,23 +356,60 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     onClose();
   };
 
+  const isCapra = tenantSlug === 'capra-studio';
+  const directorName = isCapra ? 'María Capra' : 'Andrea';
+  const loyaltyRewardLabel = isCapra ? 'Tratamiento VIP de Cortesía' : 'Depilación de Cejas 100% GRATIS';
+
+  const getServiceCategoryLabel = (cat?: string) => {
+    if (!isCapra) return cat === 'pedicure' ? 'Pies' : 'Manos';
+    const c = (cat || '').toLowerCase();
+    if (c.includes('ceja') || c.includes('pestana')) return 'Cejas & Mirada';
+    if (c.includes('estilismo') || c.includes('alisado')) return 'Estilismo Capilar';
+    if (c.includes('maquillaje')) return 'Maquillaje HD';
+    if (c.includes('nail') || c.includes('manicure') || c.includes('pedicure')) return 'Nails & Spa Pies';
+    if (c.includes('depi')) return 'Cabina Privada';
+    if (c.includes('curso')) return 'Capra Academy';
+    return 'Atelier';
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-warm-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-luxury border border-sage-200 overflow-hidden flex flex-col max-h-[92vh]">
-        
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div
+        className={`relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border overflow-hidden flex flex-col max-h-[92vh] ${
+          isCapra ? 'border-[#8E4A59]/30' : 'border-sage-200'
+        }`}
+      >
         {/* Modal Header */}
-        <div className="px-6 py-5 bg-warm-100 border-b border-sage-200/80 flex items-center justify-between">
+        <div
+          className={`px-6 py-5 border-b flex items-center justify-between ${
+            isCapra
+              ? 'bg-[#191215] text-[#FAF6F3] border-[#C8A97E]/25'
+              : 'bg-warm-100 border-sage-200/80'
+          }`}
+        >
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-700 block">
-              Agenda tu Cita &bull; {tenantName}
+            <span
+              className={`text-[10px] font-bold uppercase tracking-[0.2em] block ${
+                isCapra ? 'text-[#C8A97E] font-mono' : 'text-sage-700'
+              }`}
+            >
+              Agenda Oficial &bull; {tenantName}
             </span>
-            <h3 className="font-serif text-2xl font-bold text-sage-900">
+            <h3
+              className={`font-serif text-2xl font-bold ${
+                isCapra ? 'text-[#FAF6F3] font-normal' : 'text-sage-900'
+              }`}
+            >
               {isSuccess ? '¡Cita Lista para Confirmar!' : `Reservar en ${tenantName}`}
             </h3>
           </div>
           <button
             onClick={handleResetAndClose}
-            className="p-2 rounded-full text-warm-500 hover:text-warm-900 hover:bg-white/80 transition-all"
+            className={`p-2 rounded-full transition-all cursor-pointer ${
+              isCapra
+                ? 'text-white/70 hover:text-white hover:bg-white/10'
+                : 'text-warm-500 hover:text-warm-900 hover:bg-white/80'
+            }`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -392,31 +429,37 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   ¡Casi listo, {lastCreatedBooking.clientName}!
                 </h4>
                 <p className="text-sm text-warm-900 max-w-md mx-auto font-medium">
-                  Tu cita está registrada en nuestra base de datos. Toca el botón verde para enviar los datos a {tenantName} por WhatsApp (+{tenantWhatsapp.replace(/\D/g, '')}) y recibir confirmación inmediata.
+                  Tu cita está registrada en nuestra agenda digital. Toca el botón para enviar tu comprobante a {tenantName} por WhatsApp (+{tenantWhatsapp.replace(/\D/g, '')}) y recibir confirmación inmediata.
                 </p>
               </div>
 
               {/* Booking Summary Box */}
-              <div className="p-5 bg-sage-50 rounded-2xl border border-sage-200/80 text-left max-w-md mx-auto space-y-3 text-xs sm:text-sm">
-                <div className="flex justify-between border-b border-sage-200/60 pb-2">
-                  <span className="text-sage-800 font-bold">Servicio:</span>
-                  <span className="font-bold text-warm-900">{lastCreatedBooking.serviceName}</span>
+              <div
+                className={`p-5 rounded-2xl border text-left max-w-md mx-auto space-y-3 text-xs sm:text-sm tabular-nums ${
+                  isCapra
+                    ? 'bg-[#FAF6F3] border-[#8E4A59]/25'
+                    : 'bg-sage-50 border-sage-200/80'
+                }`}
+              >
+                <div className="flex justify-between border-b border-black/10 pb-2 gap-4">
+                  <span className="text-warm-700 font-bold">Servicio:</span>
+                  <span className="font-bold text-warm-900 text-right">{lastCreatedBooking.serviceName}</span>
                 </div>
                 {chosenStaffObj && (
-                  <div className="flex justify-between border-b border-sage-200/60 pb-2">
-                    <span className="text-sage-800 font-bold">Especialista &amp; Zona:</span>
+                  <div className="flex justify-between border-b border-black/10 pb-2">
+                    <span className="text-warm-700 font-bold">Especialista &amp; Zona:</span>
                     <span className="font-bold text-warm-900">
                       {chosenStaffObj.name || chosenStaffObj.full_name} {chosenZoneObj ? `(${chosenZoneObj.name})` : ''}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between border-b border-sage-200/60 pb-2">
-                  <span className="text-sage-800 font-bold">Fecha y Hora:</span>
+                <div className="flex justify-between border-b border-black/10 pb-2">
+                  <span className="text-warm-700 font-bold">Fecha y Hora:</span>
                   <span className="font-bold text-warm-900">{lastCreatedBooking.date} a las {lastCreatedBooking.timeSlot}</span>
                 </div>
-                <div className="flex justify-between border-b border-sage-200/60 pb-2">
-                  <span className="text-sage-800 font-bold">Total a Pagar:</span>
-                  <span className="font-bold text-sage-900 font-serif text-base">${lastCreatedBooking.totalPriceUSD.toFixed(2)} USD</span>
+                <div className="flex justify-between pb-1">
+                  <span className="text-warm-700 font-bold">Total a Pagar:</span>
+                  <span className="font-bold text-warm-900 font-serif text-base">${lastCreatedBooking.totalPriceUSD.toFixed(2)} USD</span>
                 </div>
               </div>
 
@@ -445,7 +488,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </a>
                 <button
                   onClick={handleResetAndClose}
-                  className="px-6 py-3 border border-sage-300 text-sage-800 rounded-2xl text-xs sm:text-sm font-semibold hover:bg-sage-50 transition-all"
+                  className="px-6 py-3 border border-warm-300 text-warm-800 rounded-2xl text-xs sm:text-sm font-semibold hover:bg-warm-50 transition-all cursor-pointer"
                 >
                   Cerrar
                 </button>
@@ -453,14 +496,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
               {/* Official Loyalty Program Confirmation Banner */}
               {onNavigateToShare && (
-                <div className="p-4 bg-sage-50 border border-sage-200 rounded-2xl text-left flex items-center justify-between gap-3 max-w-md mx-auto shadow-xs">
+                <div
+                  className={`p-4 border rounded-2xl text-left flex items-center justify-between gap-3 max-w-md mx-auto shadow-xs ${
+                    isCapra
+                      ? 'bg-[#FAF6F3] border-[#8E4A59]/25'
+                      : 'bg-sage-50 border-sage-200'
+                  }`}
+                >
                   <div className="space-y-0.5">
-                    <span className="text-[10px] uppercase font-bold text-sage-800 tracking-wider flex items-center gap-1">
+                    <span className="text-[10px] uppercase font-bold text-warm-700 tracking-wider flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                       <span>Programa de Fidelización</span>
                     </span>
                     <p className="text-xs font-bold text-warm-900">
-                      ¡5 Visitas = Depilación de Cejas 100% GRATIS!
+                      ¡5 Visitas = {loyaltyRewardLabel}!
                     </p>
                     <p className="text-[11px] text-warm-600">
                       Esta visita sumará automáticamente a tu tarjeta digital.
@@ -471,7 +520,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       handleResetAndClose();
                       onNavigateToShare();
                     }}
-                    className="shrink-0 px-3.5 py-2 bg-sage-800 hover:bg-sage-900 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                    className={`shrink-0 px-3.5 py-2 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                      isCapra ? 'bg-[#191215] hover:bg-[#8E4A59]' : 'bg-sage-800 hover:bg-sage-900'
+                    }`}
                   >
                     Ver Tarjeta
                   </button>
@@ -482,28 +533,76 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             /* Wizard Steps */
             <div>
               {/* Step indicator breadcrumbs */}
-              <div className="flex items-center justify-between pb-6 border-b border-sage-100 mb-6">
+              <div className="flex items-center justify-between pb-6 border-b border-warm-200 mb-6">
                 <div 
                   onClick={() => setStep(1)}
-                  className={`flex items-center gap-2 cursor-pointer ${step === 1 ? 'text-sage-800 font-bold' : 'text-warm-400'}`}
+                  className={`flex items-center gap-2 cursor-pointer ${
+                    step === 1
+                      ? isCapra
+                        ? 'text-[#191215] font-bold'
+                        : 'text-sage-800 font-bold'
+                      : 'text-warm-400'
+                  }`}
                 >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step === 1 ? 'bg-sage-800 text-white' : 'bg-warm-200'}`}>1</div>
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                      step === 1
+                        ? isCapra
+                          ? 'bg-[#191215] text-white'
+                          : 'bg-sage-800 text-white'
+                        : 'bg-warm-200'
+                    }`}
+                  >
+                    1
+                  </div>
                   <span className="text-xs sm:text-sm">Servicio</span>
                 </div>
-                <div className="w-8 h-px bg-sage-200"></div>
+                <div className="w-8 h-px bg-warm-200"></div>
                 <div 
                   onClick={() => setStep(2)}
-                  className={`flex items-center gap-2 cursor-pointer ${step === 2 ? 'text-sage-800 font-bold' : 'text-warm-400'}`}
+                  className={`flex items-center gap-2 cursor-pointer ${
+                    step === 2
+                      ? isCapra
+                        ? 'text-[#191215] font-bold'
+                        : 'text-sage-800 font-bold'
+                      : 'text-warm-400'
+                  }`}
                 >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step === 2 ? 'bg-sage-800 text-white' : 'bg-warm-200'}`}>2</div>
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                      step === 2
+                        ? isCapra
+                          ? 'bg-[#191215] text-white'
+                          : 'bg-sage-800 text-white'
+                        : 'bg-warm-200'
+                    }`}
+                  >
+                    2
+                  </div>
                   <span className="text-xs sm:text-sm">Fecha y Hora</span>
                 </div>
-                <div className="w-8 h-px bg-sage-200"></div>
+                <div className="w-8 h-px bg-warm-200"></div>
                 <div 
                   onClick={() => setStep(3)}
-                  className={`flex items-center gap-2 cursor-pointer ${step === 3 ? 'text-sage-800 font-bold' : 'text-warm-400'}`}
+                  className={`flex items-center gap-2 cursor-pointer ${
+                    step === 3
+                      ? isCapra
+                        ? 'text-[#191215] font-bold'
+                        : 'text-sage-800 font-bold'
+                      : 'text-warm-400'
+                  }`}
                 >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step === 3 ? 'bg-sage-800 text-white' : 'bg-warm-200'}`}>3</div>
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                      step === 3
+                        ? isCapra
+                          ? 'bg-[#191215] text-white'
+                          : 'bg-sage-800 text-white'
+                        : 'bg-warm-200'
+                    }`}
+                  >
+                    3
+                  </div>
                   <span className="text-xs sm:text-sm">Tus Datos</span>
                 </div>
               </div>
@@ -511,14 +610,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               {/* STEP 1: SERVICE & ADDONS */}
               {step === 1 && (
                 <div className="space-y-6">
-                  {/* Elegant Boutique Multi-Service Selection (Replaces native black popup) */}
+                  {/* Multi-Service Selection */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-sage-800">
-                        Elige tus Servicios (Puedes seleccionar Manos y Pies)
+                      <label
+                        className={`block text-xs font-bold uppercase tracking-wider ${
+                          isCapra ? 'text-[#191215]' : 'text-sage-800'
+                        }`}
+                      >
+                        {isCapra
+                          ? 'Selecciona tus Servicios o Cursos'
+                          : 'Elige tus Servicios (Puedes seleccionar Manos y Pies)'}
                       </label>
-                      <span className="text-[11px] text-sage-600 font-semibold">
-                        {currentServices.length} {currentServices.length === 1 ? 'servicio' : 'servicios'} ({totalDurationMinutes} min)
+                      <span className="text-[11px] text-warm-600 font-semibold tabular-nums">
+                        {currentServices.length} {currentServices.length === 1 ? 'seleccionado' : 'seleccionados'} ({totalDurationMinutes} min)
                       </span>
                     </div>
 
@@ -531,22 +636,32 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                             onClick={() => toggleService(srv.id)}
                             className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-3 ${
                               isSelected
-                                ? 'bg-sage-50 border-sage-800 text-sage-950 shadow-sm ring-1 ring-sage-800'
-                                : 'bg-white border-sage-200/90 hover:bg-warm-50/80 text-warm-900'
+                                ? isCapra
+                                  ? 'bg-[#FAF6F3] border-[#8E4A59] text-[#191215] shadow-xs ring-1 ring-[#8E4A59]'
+                                  : 'bg-sage-50 border-sage-800 text-sage-950 shadow-sm ring-1 ring-sage-800'
+                                : 'bg-white border-warm-200 hover:bg-warm-50/80 text-warm-900'
                             }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
-                                isSelected ? 'bg-sage-800 border-sage-800 text-white' : 'border-sage-300 bg-white'
-                              }`}>
+                              <div
+                                className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                                  isSelected
+                                    ? isCapra
+                                      ? 'bg-[#8E4A59] border-[#8E4A59] text-white'
+                                      : 'bg-sage-800 border-sage-800 text-white'
+                                    : 'border-warm-300 bg-white'
+                                }`}
+                              >
                                 {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
                               </div>
                               <div className="truncate">
                                 <p className="text-xs font-bold text-warm-900 truncate">{srv.name}</p>
-                                <p className="text-[10px] text-sage-600 font-medium">{srv.durationMinutes} min &bull; {srv.category === 'pedicure' ? 'Pies' : 'Manos'}</p>
+                                <p className="text-[10px] text-warm-600 font-medium tabular-nums">
+                                  {srv.durationMinutes} min &bull; {getServiceCategoryLabel(srv.category)}
+                                </p>
                               </div>
                             </div>
-                            <span className="font-serif font-bold text-sm text-sage-900 shrink-0">
+                            <span className="font-serif font-bold text-sm text-warm-900 shrink-0 tabular-nums">
                               ${srv.priceUSD.toFixed(2)}
                             </span>
                           </div>
@@ -557,12 +672,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                   {/* Selector Multi-Especialista y Cabina / Área (Conectado a Neon DB) */}
                   {(availableStaff.length > 0 || availableZones.length > 0) && (
-                    <div className="p-4 rounded-2xl bg-warm-50/90 border border-sage-200/90 space-y-3">
+                    <div
+                      className={`p-4 rounded-2xl border space-y-3 ${
+                        isCapra
+                          ? 'bg-[#FAF6F3] border-[#8E4A59]/20'
+                          : 'bg-warm-50/90 border-sage-200/90'
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-sage-800">
+                        <span
+                          className={`text-xs font-bold uppercase tracking-wider ${
+                            isCapra ? 'text-[#191215]' : 'text-sage-800'
+                          }`}
+                        >
                           Especialista &amp; Cabina / Área ({tenantName})
                         </span>
-                        <span className="text-[10px] font-semibold text-sage-600 bg-white px-2 py-0.5 rounded-full border border-sage-200">
+                        <span className="text-[10px] font-semibold text-warm-600 bg-white px-2 py-0.5 rounded-full border border-warm-200">
                           Multi-Zona Activo
                         </span>
                       </div>
@@ -585,12 +710,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                                   }}
                                   className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                                     isChosen
-                                      ? 'bg-sage-800 text-white border-sage-900 shadow-xs'
-                                      : 'bg-white text-warm-900 border-sage-200 hover:border-sage-400'
+                                      ? isCapra
+                                        ? 'bg-[#191215] text-white border-[#191215] shadow-xs'
+                                        : 'bg-sage-800 text-white border-sage-900 shadow-xs'
+                                      : 'bg-white text-warm-900 border-warm-200 hover:border-warm-400'
                                   }`}
                                 >
                                   <p className="text-xs font-bold truncate">{st.name}</p>
-                                  <p className={`text-[10px] truncate ${isChosen ? 'text-amber-200' : 'text-sage-600'}`}>
+                                  <p className={`text-[10px] truncate ${isChosen ? 'text-amber-200' : 'text-warm-600'}`}>
                                     {st.role}
                                   </p>
                                 </button>
@@ -616,7 +743,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                                   className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
                                     isZoneChosen
                                       ? 'bg-amber-100 border-amber-400 text-amber-950 font-bold'
-                                      : 'bg-white border-sage-200 text-warm-700 hover:bg-warm-100'
+                                      : 'bg-white border-warm-200 text-warm-700 hover:bg-warm-100'
                                   }`}
                                 >
                                   {zn.name}
@@ -629,63 +756,64 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </div>
                   )}
 
-                  {/* Add-ons Section & Smart Cross-Sell Upsell */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-sage-800 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-gold-500" />
-                        <span>Adicionales &amp; Personalización (Opcional)</span>
-                      </span>
-                    </div>
-
-                    {/* Sutil Recomendación Upsell Cruzado */}
-                    {!selectedServiceIds.includes('pedicure') && (
-                      <div
-                        onClick={() => toggleService('pedicure')}
-                        className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-300/80 cursor-pointer flex items-center justify-between gap-3 hover:bg-amber-100/60 transition-all"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-lg">🦶</span>
-                          <div>
-                            <p className="text-xs font-bold text-amber-950">¿Deseas sumar Pedicure Spa a tu cita?</p>
-                            <p className="text-[11px] text-amber-800">Aprovecha tu visita y sal con manos y pies perfectos.</p>
-                          </div>
-                        </div>
-                        <span className="text-xs font-bold text-amber-950 bg-amber-200/80 px-2.5 py-1 rounded-full border border-amber-300 shrink-0">
-                          + $13.00 USD
+                  {/* Add-ons Section (Only for Andrea Nails Studio) */}
+                  {!isCapra && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-sage-800 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-gold-500" />
+                          <span>Adicionales &amp; Personalización (Opcional)</span>
                         </span>
                       </div>
-                    )}
 
-                    <div className="space-y-2">
-                      {INITIAL_ADDONS.map((addon) => {
-                        const isChecked = selectedAddonIds.includes(addon.id);
-                        return (
-                          <div
-                            key={addon.id}
-                            onClick={() => toggleAddon(addon.id)}
-                            className={`p-3 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
-                              isChecked
-                                ? 'bg-sage-100 border-sage-400 text-sage-900 font-semibold'
-                                : 'bg-white border-sage-200/80 text-warm-800 hover:bg-warm-50'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
-                                isChecked ? 'bg-sage-800 border-sage-800 text-white' : 'border-sage-300'
-                              }`}>
-                                {isChecked && <Check className="w-3.5 h-3.5" />}
-                              </div>
-                              <span className="text-xs sm:text-sm">{addon.name}</span>
+                      {!selectedServiceIds.includes('pedicure') && (
+                        <div
+                          onClick={() => toggleService('pedicure')}
+                          className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-300/80 cursor-pointer flex items-center justify-between gap-3 hover:bg-amber-100/60 transition-all"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-lg">🦶</span>
+                            <div>
+                              <p className="text-xs font-bold text-amber-950">¿Deseas sumar Pedicure Spa a tu cita?</p>
+                              <p className="text-[11px] text-amber-800">Aprovecha tu visita y sal con manos y pies perfectos.</p>
                             </div>
-                            <span className="text-xs font-bold text-sage-800">
-                              +${addon.priceUSD.toFixed(2)}
-                            </span>
                           </div>
-                        );
-                      })}
+                          <span className="text-xs font-bold text-amber-950 bg-amber-200/80 px-2.5 py-1 rounded-full border border-amber-300 shrink-0">
+                            + $13.00 USD
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        {INITIAL_ADDONS.map((addon) => {
+                          const isChecked = selectedAddonIds.includes(addon.id);
+                          return (
+                            <div
+                              key={addon.id}
+                              onClick={() => toggleAddon(addon.id)}
+                              className={`p-3 rounded-2xl border cursor-pointer flex items-center justify-between transition-all ${
+                                isChecked
+                                  ? 'bg-sage-100 border-sage-400 text-sage-900 font-semibold'
+                                  : 'bg-white border-sage-200/80 text-warm-800 hover:bg-warm-50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                                  isChecked ? 'bg-sage-800 border-sage-800 text-white' : 'border-sage-300'
+                                }`}>
+                                  {isChecked && <Check className="w-3.5 h-3.5" />}
+                                </div>
+                                <span className="text-xs sm:text-sm">{addon.name}</span>
+                              </div>
+                              <span className="text-xs font-bold text-sage-800">
+                                +${addon.priceUSD.toFixed(2)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* First Visit Discount Selector OR VIP Recognition Banner */}
                   {!preSelectedPromo && !isExistingClient ? (
@@ -694,38 +822,38 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
                         isFirstVisit 
                           ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-xs'
-                          : 'bg-warm-50 border-sage-200 text-warm-700 hover:bg-white'
+                          : 'bg-warm-50 border-warm-200 text-warm-700 hover:bg-white'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
-                          isFirstVisit ? 'bg-amber-600 border-amber-600 text-white' : 'border-sage-300'
+                          isFirstVisit ? 'bg-amber-600 border-amber-600 text-white' : 'border-warm-300'
                         }`}>
                           {isFirstVisit && <Check className="w-3.5 h-3.5" />}
                         </div>
                         <div>
                           <span className="text-xs sm:text-sm font-bold block">
-                            ¿Es tu primera cita con Andrea?
+                            ¿Es tu primera visita con {directorName}?
                           </span>
                           <span className="text-[11px] text-amber-900 font-medium block">
-                            Bonificación de $2.00 USD (validada presencialmente por Andrea en el salón para clientas nuevas).
+                            Bonificación de $2.00 USD de bienvenida (validada presencialmente en el estudio para clientas nuevas).
                           </span>
                         </div>
                       </div>
-                      <span className="text-xs sm:text-sm font-black text-amber-700 bg-amber-100/90 px-2.5 py-1 rounded-full border border-amber-300 shrink-0">
+                      <span className="text-xs sm:text-sm font-black text-amber-700 bg-amber-100/90 px-2.5 py-1 rounded-full border border-amber-300 shrink-0 tabular-nums">
                         -$2.00 USD
                       </span>
                     </div>
                   ) : isExistingClient ? (
-                    <div className="p-4 rounded-2xl bg-sage-100/80 border border-sage-300 text-sage-950 flex items-center justify-between">
+                    <div className="p-4 rounded-2xl bg-warm-100 border border-warm-300 text-warm-950 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
                         <div>
                           <span className="text-xs sm:text-sm font-bold block">
                             ¡Clienta VIP Reconocida!
                           </span>
-                          <span className="text-[11px] text-sage-800 block">
-                            Esta cita sumará a tus sellos acumulados ({recognizedStamps}/5) para tu Depilación de Cejas de cortesía.
+                          <span className="text-[11px] text-warm-700 block">
+                            Esta cita sumará a tus sellos acumulados ({recognizedStamps}/5) para tu {loyaltyRewardLabel}.
                           </span>
                         </div>
                       </div>
@@ -736,10 +864,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   ) : null}
 
                   {/* Step 1 Footer */}
-                  <div className="pt-4 flex items-center justify-between border-t border-sage-100">
-                    <div>
+                  <div className="pt-4 flex items-center justify-between border-t border-warm-100">
+                    <div className="tabular-nums">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-sage-600 uppercase font-bold">Total Estimado</span>
+                        <span className="text-[10px] text-warm-600 uppercase font-bold">Total Estimado</span>
                         {isFirstVisit && (
                           <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full font-bold">
                             -$2 OFF 1ª Cita
@@ -752,9 +880,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </div>
                     <button
                       onClick={() => setStep(2)}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-sage-800 hover:bg-sage-900 text-white rounded-2xl text-xs sm:text-sm font-semibold shadow-soft"
+                      className={`inline-flex items-center gap-2 px-6 py-3 text-white rounded-2xl text-xs sm:text-sm font-semibold shadow-soft cursor-pointer ${
+                        isCapra ? 'bg-[#191215] hover:bg-[#8E4A59]' : 'bg-sage-800 hover:bg-sage-900'
+                      }`}
                     >
-                      <span>Elegir Fecha & Hora</span>
+                      <span>Elegir Fecha &amp; Hora</span>
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -766,8 +896,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <div className="space-y-6">
                   {/* Date Picker Carousel / Grid */}
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-sage-800 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-sage-600" />
+                    <label
+                      className={`block text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        isCapra ? 'text-[#191215]' : 'text-sage-800'
+                      }`}
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-warm-600" />
                       <span>1. Selecciona el Día de tu Cita</span>
                     </label>
 
@@ -782,10 +916,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                               setSelectedDate(item.dateString);
                               setSelectedTimeSlot(''); // reset slot when day changes
                             }}
-                            className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center ${
+                            className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center cursor-pointer tabular-nums ${
                               isSelected
-                                ? 'bg-sage-800 border-sage-800 text-white shadow-soft'
-                                : 'bg-white border-sage-200 text-warm-800 hover:bg-sage-50'
+                                ? isCapra
+                                  ? 'bg-[#191215] border-[#191215] text-white shadow-soft'
+                                  : 'bg-sage-800 border-sage-800 text-white shadow-soft'
+                                : 'bg-white border-warm-200 text-warm-800 hover:bg-warm-50'
                             }`}
                           >
                             <span className="text-[10px] font-semibold opacity-75">{item.dayName}</span>
@@ -799,8 +935,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                   {/* Time Slots Grid */}
                   <div className="space-y-2 pt-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-sage-800 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-sage-600" />
+                    <label
+                      className={`block text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        isCapra ? 'text-[#191215]' : 'text-sage-800'
+                      }`}
+                    >
+                      <Clock className="w-3.5 h-3.5 text-warm-600" />
                       <span>2. Horarios Disponibles ({selectedDate || 'Elige fecha primero'})</span>
                     </label>
 
@@ -821,12 +961,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                               type="button"
                               disabled={isOccupied}
                               onClick={() => setSelectedTimeSlot(slot)}
-                              className={`p-3 rounded-2xl border text-xs sm:text-sm font-semibold flex items-center justify-between transition-all ${
+                              className={`p-3 rounded-2xl border text-xs sm:text-sm font-semibold flex items-center justify-between transition-all tabular-nums ${
                                 isOccupied
-                                  ? 'bg-warm-100 border-sage-100 text-warm-400 cursor-not-allowed line-through'
+                                  ? 'bg-warm-100 border-warm-100 text-warm-400 cursor-not-allowed line-through'
                                   : isSelected
-                                  ? 'bg-sage-800 border-sage-800 text-white shadow-soft'
-                                  : 'bg-white border-sage-200 text-sage-900 hover:border-sage-400 hover:bg-sage-50'
+                                  ? isCapra
+                                    ? 'bg-[#191215] border-[#191215] text-white shadow-soft cursor-pointer'
+                                    : 'bg-sage-800 border-sage-800 text-white shadow-soft cursor-pointer'
+                                  : 'bg-white border-warm-200 text-warm-900 hover:border-warm-400 hover:bg-warm-50 cursor-pointer'
                               }`}
                             >
                               <span>{slot}</span>
@@ -835,7 +977,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                                   Ocupado
                                 </span>
                               ) : isSelected ? (
-                                <Check className="w-4 h-4 text-gold-400" />
+                                <Check className="w-4 h-4 text-amber-300" />
                               ) : (
                                 <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
                                   Libre
@@ -849,10 +991,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
 
                   {/* Step 2 Footer */}
-                  <div className="pt-4 flex items-center justify-between border-t border-sage-100">
+                  <div className="pt-4 flex items-center justify-between border-t border-warm-100">
                     <button
                       onClick={() => setStep(1)}
-                      className="px-4 py-2.5 text-xs text-warm-600 hover:text-warm-900 font-semibold"
+                      className="px-4 py-2.5 text-xs text-warm-600 hover:text-warm-900 font-semibold cursor-pointer"
                     >
                       &larr; Volver
                     </button>
@@ -861,7 +1003,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       onClick={() => setStep(3)}
                       className={`inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all ${
                         selectedDate && selectedTimeSlot
-                          ? 'bg-sage-800 hover:bg-sage-900 text-white shadow-soft'
+                          ? isCapra
+                            ? 'bg-[#191215] hover:bg-[#8E4A59] text-white shadow-soft cursor-pointer'
+                            : 'bg-sage-800 hover:bg-sage-900 text-white shadow-soft cursor-pointer'
                           : 'bg-warm-200 text-warm-400 cursor-not-allowed'
                       }`}
                     >
@@ -877,8 +1021,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <form onSubmit={handleConfirmReservation} className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
-                        <User className="w-3.5 h-3.5 text-sage-600" />
+                      <label className="block text-xs font-bold text-warm-800 flex items-center gap-1">
+                        <User className="w-3.5 h-3.5 text-warm-600" />
                         <span>Nombre y Apellido *</span>
                       </label>
                       <input
@@ -887,13 +1031,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         placeholder="Ej: Sofía Ramírez"
                         value={clientName}
                         onChange={(e) => setClientName(e.target.value)}
-                        className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                        className="w-full p-3 bg-warm-50 border border-warm-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-warm-400 focus:outline-none"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
-                        <Phone className="w-3.5 h-3.5 text-sage-600" />
+                      <label className="block text-xs font-bold text-warm-800 flex items-center gap-1">
+                        <Phone className="w-3.5 h-3.5 text-warm-600" />
                         <span>Número de WhatsApp *</span>
                       </label>
                       <input
@@ -902,15 +1046,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         placeholder="Ej: 0414-1234567"
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
-                        className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                        className="w-full p-3 bg-warm-50 border border-warm-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-warm-400 focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
-                        <Mail className="w-3.5 h-3.5 text-sage-600" />
+                      <label className="block text-xs font-bold text-warm-800 flex items-center gap-1">
+                        <Mail className="w-3.5 h-3.5 text-warm-600" />
                         <span>Correo Electrónico (Para tu Ficha)</span>
                       </label>
                       <input
@@ -918,13 +1062,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         placeholder="tuemail@gmail.com"
                         value={clientEmail}
                         onChange={(e) => setClientEmail(e.target.value)}
-                        className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                        className="w-full p-3 bg-warm-50 border border-warm-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-warm-400 focus:outline-none"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
-                        <InstagramIcon className="w-3.5 h-3.5 text-sage-600" />
+                      <label className="block text-xs font-bold text-warm-800 flex items-center gap-1">
+                        <InstagramIcon className="w-3.5 h-3.5 text-warm-600" />
                         <span>Usuario de Instagram (Opcional)</span>
                       </label>
                       <input
@@ -932,37 +1076,41 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         placeholder="@tu_usuario"
                         value={clientInstagram}
                         onChange={(e) => setClientInstagram(e.target.value)}
-                        className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                        className="w-full p-3 bg-warm-50 border border-warm-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-warm-400 focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="block text-xs font-bold text-sage-800 flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5 text-sage-600" />
+                    <label className="block text-xs font-bold text-warm-800 flex items-center gap-1">
+                      <CreditCard className="w-3.5 h-3.5 text-warm-600" />
                       <span>Método de Pago Preferido</span>
                     </label>
                     <select
                       value={paymentMethod}
                       onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType)}
-                      className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                      className="w-full p-3 bg-warm-50 border border-warm-200 rounded-xl text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-warm-400 focus:outline-none"
                     >
-                      <option value="pago_movil">Pago Móvil</option>
-                      <option value="efectivo">Efectivo en Dólares ($)</option>
+                      <option value="pago_movil">Pago Móvil (Tasa BCV)</option>
+                      <option value="efectivo">Efectivo en Divisas ($)</option>
                       <option value="binance">Binance Pay (USDT)</option>
                     </select>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="block text-xs font-bold text-sage-800">
-                      Notas especiales o diseño de referencia (Opcional)
+                    <label className="block text-xs font-bold text-warm-800">
+                      Notas especiales o requerimiento (Opcional)
                     </label>
                     <textarea
                       rows={2}
-                      placeholder="Ej: Deseo tono nude clásico o retirar sistema previo..."
+                      placeholder={
+                        isCapra
+                          ? 'Ej: Deseo laminado natural o consultar por fechas de Capra Academy...'
+                          : 'Ej: Deseo tono nude clásico o retirar sistema previo...'
+                      }
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full p-3 bg-warm-50 border border-sage-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sage-400 focus:outline-none resize-none"
+                      className="w-full p-3 bg-warm-50 border border-warm-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-warm-400 focus:outline-none resize-none"
                     />
                   </div>
 
@@ -975,7 +1123,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       <div className="space-y-0.5 text-xs flex-1">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <span className="font-bold text-emerald-950 text-sm">
-                            ¡Qué alegría verte de nuevo, {clientName || 'Clienta'}! 💅✨
+                            ¡Qué alegría verte de nuevo, {clientName || 'Clienta'}!
                           </span>
                           <span className="text-[10px] uppercase font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
                             Clienta VIP Habitual
@@ -983,7 +1131,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         </div>
                         <p className="text-emerald-800 text-[11px] leading-relaxed">
                           Reconocida automáticamente en tu Ficha de Clienta. Cuentas con <b>{recognizedStamps} de 5 sellos</b> acumulados en tu Tarjeta de Fidelización.
-                          {recognizedStamps >= 4 ? ' ¡Esta visita completa tu ciclo para tu Depilación de Cejas GRATIS!' : ' ¡Esta cita sumará tu siguiente sello oficial!'}
+                          {recognizedStamps >= 4
+                            ? ` ¡Esta visita completa tu ciclo para tu ${loyaltyRewardLabel}!`
+                            : ' ¡Esta cita sumará tu siguiente sello oficial!'}
                         </p>
                       </div>
                     </div>
@@ -993,7 +1143,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       <span><b>Combo Promocional:</b> Ahorro directo aplicado en paquete cerrado. Suma automáticamente a tu Tarjeta VIP.</span>
                     </div>
                   ) : (
-                    /* Beneficio Primera Cita (Solo para clientas NO registradas) */
+                    /* Beneficio Primera Cita */
                     <div className="space-y-3">
                       <label className="flex items-start gap-3 p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl cursor-pointer hover:bg-amber-100/50 transition-colors">
                         <input
@@ -1004,19 +1154,19 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         />
                         <div className="text-xs space-y-0.5">
                           <span className="font-bold text-amber-950 block">
-                            ¿Es tu primera cita con Andrea? (Descuento de bienvenida -$2.00 USD)
+                            ¿Es tu primera visita con {directorName}? (Descuento de bienvenida -$2.00 USD)
                           </span>
                           <span className="text-[11px] text-amber-800 leading-tight block">
-                            <b>Validación Presencial:</b> Quien otorga el descuento real de $2.00 USD es Andrea al momento de tu cita en el salón tras verificar que sea tu primera visita. Si ya has sido atendida previamente, aplicará la tarifa regular.
+                            <b>Validación Presencial:</b> La bonificación de $2.00 USD es validada en recepción al momento de tu cita tras verificar que sea tu primera visita en {tenantName}.
                           </span>
                         </div>
                       </label>
 
                       {/* Crear PIN / Contraseña opcional para su ficha */}
-                      <div className="p-3 rounded-2xl bg-sage-50 border border-sage-200/80 space-y-1.5">
-                        <label className="block text-[11px] font-bold text-sage-800 flex items-center gap-1.5">
-                          <Lock className="w-3.5 h-3.5 text-sage-600" />
-                          <span>Crea tu PIN o Contraseña para tu Ficha de Clienta (Opcional - 4 dígitos)</span>
+                      <div className="p-3 rounded-2xl bg-warm-50 border border-warm-200 space-y-1.5">
+                        <label className="block text-[11px] font-bold text-warm-800 flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-warm-600" />
+                          <span>Crea tu PIN para tu Ficha de Clienta (Opcional - 4 dígitos)</span>
                         </label>
                         <input
                           type="password"
@@ -1024,39 +1174,45 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           placeholder="Ej: 1234"
                           value={clientPin}
                           onChange={(e) => setClientPin(e.target.value)}
-                          className="w-full p-2.5 bg-white border border-sage-200 rounded-xl text-xs focus:ring-2 focus:ring-sage-400 focus:outline-none"
+                          className="w-full p-2.5 bg-white border border-warm-200 rounded-xl text-xs focus:ring-2 focus:ring-warm-400 focus:outline-none"
                         />
                         <p className="text-[10px] text-warm-500">
-                          Te permitirá consultar tus sellos acumulados y citas en cualquier momento desde tu teléfono o correo.
+                          Te permitirá consultar tus sellos acumulados y próximas citas en cualquier momento.
                         </p>
                       </div>
                     </div>
                   )}
 
                   {/* Resumen Final de Reserva */}
-                  <div className="p-4 bg-sage-50/80 rounded-2xl border border-sage-200/80 space-y-2.5">
-                    <div className="flex items-center justify-between">
+                  <div
+                    className={`p-4 rounded-2xl border space-y-2.5 tabular-nums ${
+                      isCapra
+                        ? 'bg-[#FAF6F3] border-[#8E4A59]/25'
+                        : 'bg-sage-50/80 border-sage-200/80'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
                       <div className="space-y-0.5">
-                        <span className="text-[10px] font-bold text-sage-700 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-warm-700 uppercase tracking-wider">
                           Resumen de Cita
                         </span>
                         <p className="text-xs font-bold text-warm-900">
                           {combinedServiceNames} &bull; {selectedDate} ({selectedTimeSlot})
                         </p>
-                        <p className="text-[11px] text-sage-600">
-                          Tasa estimada: ≈ {totalPriceVES.toFixed(0)} Bs
+                        <p className="text-[11px] text-warm-600">
+                          Tasa oficial BCV: ≈ Bs. {totalPriceVES.toFixed(2)}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-sage-600 block uppercase">Total a Pagar</span>
-                        <span className="font-serif text-2xl font-bold text-sage-900">
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] text-warm-600 block uppercase">Total a Pagar</span>
+                        <span className="font-serif text-2xl font-bold text-warm-900">
                           ${totalPriceUSD.toFixed(2)} USD
                         </span>
                       </div>
                     </div>
 
                     {/* Breakdown & Loyalty notes */}
-                    <div className="pt-2 border-t border-sage-200/60 flex flex-wrap items-center justify-between text-xs text-sage-800 gap-1.5">
+                    <div className="pt-2 border-t border-black/10 flex flex-wrap items-center justify-between text-xs text-warm-800 gap-1.5">
                       <span>Base: ${basePriceUSD.toFixed(2)} {addonsTotalUSD > 0 && `+ Adicionales: $${addonsTotalUSD.toFixed(2)}`}</span>
                       {!preSelectedPromo && !isExistingClient && isFirstVisit ? (
                         <span className="font-bold text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-300 text-[11px]">
@@ -1072,31 +1228,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     {!preSelectedPromo && !isExistingClient && isFirstVisit && (
                       <div className="p-2.5 rounded-xl bg-amber-100/70 border border-amber-200/90 text-[11px] text-amber-900 flex items-start gap-2">
                         <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                        <span><b>Aviso de Seguridad:</b> La bonificación de $2.00 USD será validada y aplicada por Andrea en persona en el salón al momento de tu atención.</span>
+                        <span><b>Aviso:</b> La bonificación de $2.00 USD será validada en persona en {tenantName} al momento de tu atención.</span>
                       </div>
                     )}
 
-                    <div className="pt-1 text-[11px] text-sage-700 font-medium flex items-center gap-1.5">
+                    <div className="pt-1 text-[11px] text-warm-700 font-medium flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                      <span>Suma 1 servicio en tu Tarjeta de Fidelización (5 visitas = Depilación de Cejas GRATIS).</span>
+                      <span>Suma 1 sello en tu Pasaporte de Fidelidad (5 visitas = {loyaltyRewardLabel}).</span>
                     </div>
                   </div>
 
                   {/* Submit Button */}
-                  <div className="pt-2 flex items-center justify-between border-t border-sage-100">
+                  <div className="pt-2 flex items-center justify-between border-t border-warm-100">
                     <button
                       type="button"
                       onClick={() => setStep(2)}
-                      className="px-4 py-2.5 text-xs text-warm-600 hover:text-warm-900 font-semibold"
+                      className="px-4 py-2.5 text-xs text-warm-600 hover:text-warm-900 font-semibold cursor-pointer"
                     >
                       &larr; Cambiar Fecha
                     </button>
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-2 px-7 py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl text-xs sm:text-sm font-semibold shadow-soft hover:shadow-luxury transition-all transform active:scale-98"
+                      className={`inline-flex items-center gap-2 px-7 py-3.5 text-white rounded-2xl text-xs sm:text-sm font-semibold shadow-soft transition-all cursor-pointer ${
+                        isCapra ? 'bg-[#191215] hover:bg-[#8E4A59]' : 'bg-emerald-700 hover:bg-emerald-800'
+                      }`}
                     >
                       <Send className="w-4 h-4" />
-                      <span>Confirmar & Reservar vía WhatsApp</span>
+                      <span>Confirmar &amp; Reservar vía WhatsApp</span>
                     </button>
                   </div>
                 </form>
@@ -1104,7 +1262,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

@@ -113,6 +113,47 @@ const COMPETITORS_DATABASE: CompetitorData[] = [
     combatArgument: 'En Treatwell eres solo una fila más en un directorio con cientos de peluquerías compitiendo por precio a la baja. En VANESEV tienes tu propia aplicación de autor, donde tus clientas entran por recomendación o por tu Instagram/TikTok y descubren una marca de culto sin que nadie les robe la atención.',
     targetMarket: 'Salones tradicionales en España',
     status: 'Auditoría Completa'
+  },
+  {
+    id: 'mangomint',
+    name: 'Mangomint',
+    domain: 'mangomint.com',
+    category: 'CXP Luxury Corporativo',
+    pricing: '$165 a $375 USD / mes + costos adicionales por módulos de marketing y formularios',
+    strengths: [
+      'Flujos "invisible software" muy rápidos sin recargas de página (Express Booking)',
+      'Interfaz cálida y limpia que huye del aspecto frío de software médico antiguo',
+      'Automatizaciones sólidas para salones de más de 10 estilistas en Norteamérica'
+    ],
+    weaknesses: [
+      'No está diseñado para salones con menos de 5 especialistas (su propio sitio lo advierte)',
+      'Precio prohibitivo ($165-$375/mes) para salones en Latinoamérica y estudios independientes',
+      'No soporta bimonetarismo automático (USD / Bs BCV / COP) ni cobros por Zelle o Pago Móvil',
+      'No ofrece Carta Digital de Autor con identidad visual propia ni módulo de Academia'
+    ],
+    combatArgument: 'Mangomint tiene una velocidad de interfaz admirable, pero cuesta desde $165 USD al mes y ellos mismos descartan a estudios boutique de 1 a 4 especialistas. Con VANESEV obtienes esa misma fluidez instantánea, más una Carta Digital de Autor diseñada a la medida de tu salón, pasaporte de 5 sellos y soporte nativo para WhatsApp y multimoneda desde $29 USD/mes.',
+    targetMarket: 'Salones grandes y spas de 10 a 30 empleados en EE.UU. y Canadá',
+    status: 'Auditoría Completa'
+  },
+  {
+    id: 'agendapro',
+    name: 'AgendaPro',
+    domain: 'agendapro.com',
+    category: 'Legacy',
+    pricing: '$29 a $115 USD / mes + cobros extra por recordatorios de WhatsApp y facturación',
+    strengths: [
+      'Amplia presencia comercial en Latinoamérica (Chile, México, Colombia)',
+      'Módulos administrativos contables e inventario básico probados'
+    ],
+    weaknesses: [
+      'El portal donde reserva la clienta luce como un formulario médico genérico de hace 10 años',
+      'Cero diferenciación estética: una barbería de autor, un spa y un podólogo se ven idénticos',
+      'No tiene pasaporte de fidelidad visual interactivo ni QR dinámico con telemetría',
+      'Penaliza el crecimiento cobrando por cantidad de usuarios en vez de capacidad operativa clara'
+    ],
+    combatArgument: 'AgendaPro sirve para llevar cuentas internas, pero de cara a tu clienta proyecta una imagen fría de consultorio genérico que apaga el deseo de compra. En belleza la estética vende: VANESEV te da el control administrativo en la nube, pero hacia afuera viste a tu salón como una firma de lujo con carta interactiva propia y club de fidelidad.',
+    targetMarket: 'Centros estéticos y consultorios en Latinoamérica',
+    status: 'Auditoría Completa'
   }
 ];
 

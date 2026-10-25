@@ -2,147 +2,70 @@
 <html lang="es" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-    <meta name="theme-color" content="#FDFBF7" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0C0A0E" />
 
-    <!-- Primary Meta Tags for VANESEV Platform -->
-    <title>VANESEV | Plataforma de Autor para Salones de Belleza, Estética &amp; Academias</title>
-    <meta name="title" content="VANESEV | Plataforma de Autor para Salones de Belleza, Estética &amp; Academias" />
-    <meta name="description" content="Suite tecnológica de alta autoridad para salones de belleza, uñas, estilistas y academias. Catálogo interactivo con QR Dinámico, Club VIP de fidelización y agenda multiespecialista con cero comisiones." />
-    <meta name="keywords" content="software salones de belleza, catalogo digital qr belleza, agenda estetica y peluqueria, tarjeta vip fidelizacion salon, pwa salones venezuela y latam, vanesev plataforma" />
-    <meta name="author" content="VANESEV Haute Studio Suite" />
+    <!-- Primary Meta Tags for VANESEV -->
+    <title>VANESEV · Carta QR de Servicios y App Propia para Salones de Belleza</title>
+    <meta name="title" content="VANESEV · Carta QR de Servicios y App Propia para Salones de Belleza" />
+    <meta name="description" content="Catálogo digital QR en tocador, tu propia app de reservas sin comisiones, agenda multi-cabina y tarjeta VIP de 5 sellos para peluquerías, salones de uñas, barberías, clínicas estéticas y academias." />
+    <meta name="keywords" content="carta digital qr salon de belleza, app propia peluqueria sin comisiones, agenda estetica y barberia, tarjeta vip fidelizacion salon, software salones de belleza, vanesev" />
+    <meta name="author" content="VANESEV" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://vanesev.com" />
 
     <!-- Favicon & Touch Icons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
-    <link rel="shortcut icon" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg?v=3" />
+    <link rel="shortcut icon" href="/favicon.svg?v=3" />
     <link rel="manifest" href="/manifest.json" />
 
     <!-- Open Graph / WhatsApp Preview Meta Tags -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://vanesev.com" />
-    <meta property="og:site_name" content="VANESEV — Haute Studio Suite" />
-    <meta property="og:title" content="VANESEV | Plataforma de Autor para Salones de Belleza &amp; Academias" />
-    <meta property="og:description" content="Transforma tu salón en una marca de culto: Catálogo QR Dinámico, Fidelización VIP y Agenda Inteligente." />
+    <meta property="og:site_name" content="VANESEV" />
+    <meta property="og:title" content="VANESEV · Tu salón, con marca propia" />
+    <meta property="og:description" content="Catálogo QR dinámico, agenda multi-cabina sin comisiones y tarjeta VIP de 5 sellos para salones de belleza, clínicas y barberías." />
     <meta property="og:locale" content="es_ES" />
 
-    <!-- Google Fonts: Cormorant Garamond, Plus Jakarta Sans, Playfair Display & Syne -->
+    <!-- Google Fonts: DM Sans (Display & UI with lining tabular numbers), Instrument Serif (Editorial Accent), JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,400..700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Schema.org JSON-LD LocalBusiness Structured Data for Google SEO (Cordero / San Cristóbal, Táchira) -->
+    <!-- Schema.org JSON-LD Organization & WebSite for VANESEV -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "NailSalon",
-      "name": "Andrea Labrador Nails Studio",
-      "image": "https://andrea-labrador-nails-app.vercel.app/images/og-share-andrea-labrador.jpg",
-      "url": "https://andrea-labrador-nails-app.vercel.app",
-      "telephone": "+584241360937",
-      "priceRange": "$10 - $28 USD",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Cordero",
-        "addressRegion": "Táchira",
-        "postalCode": "5012",
-        "addressCountry": "VE"
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "@id": "https://vanesev.com/#organizacion",
+        "name": "VANESEV",
+        "url": "https://vanesev.com",
+        "logo": "https://vanesev.com/favicon.svg",
+        "description": "Digitalización de autor para salones de belleza, peluquerías, barberías, clínicas estéticas y academias: catálogo QR dinámico, app de reservas sin comisiones y fidelización VIP."
       },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 7.8633,
-        "longitude": -72.1833
-      },
-      "areaServed": [
-        { "@type": "City", "name": "Cordero" },
-        { "@type": "AdministrativeArea", "name": "Municipio Andrés Bello" },
-        { "@type": "City", "name": "San Cristóbal" },
-        { "@type": "City", "name": "Táriba" },
-        { "@type": "City", "name": "Palo Gordo" },
-        { "@type": "State", "name": "Estado Táchira" }
-      ],
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-          "opens": "09:00",
-          "closes": "18:00"
-        }
-      ],
-      "hasOfferCatalog": {
-        "@type": "OfferCatalog",
-        "name": "Servicios de Manicura y Pedicure",
-        "itemListElement": [
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Esmaltado Semipermanente"
-            },
-            "price": "10.00",
-            "priceCurrency": "USD"
-          },
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Nivelación de Base Rubber"
-            },
-            "price": "15.00",
-            "priceCurrency": "USD"
-          },
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Extensiones Jelly Tips"
-            },
-            "price": "15.00",
-            "priceCurrency": "USD"
-          },
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Extensiones en Polygel"
-            },
-            "price": "18.00",
-            "priceCurrency": "USD"
-          },
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Capping de Polygel"
-            },
-            "price": "16.00",
-            "priceCurrency": "USD"
-          },
-          {
-            "@type": "Offer",
-            "itemOffered": {
-              "@type": "Service",
-              "name": "Pedicure Spa Integral"
-            },
-            "price": "11.50",
-            "priceCurrency": "USD"
-          }
-        ]
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": "https://vanesev.com/#web",
+        "name": "VANESEV",
+        "url": "https://vanesev.com",
+        "inLanguage": "es",
+        "publisher": { "@id": "https://vanesev.com/#organizacion" }
       }
-    }
+    ]
     </script>
   </head>
-  <body class="bg-[#FDFBF7] text-[#121316] font-sans antialiased selection:bg-[#C5A059]/30 selection:text-[#121316] min-h-screen">
+  <body class="bg-[#F7F4EF] text-[#16151A] font-sans antialiased selection:bg-[#8E1B46]/20 selection:text-[#16151A] min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(console.warn);
+      if ('caches' in window) {
+        caches.keys().then(function(keys) {
+          keys.forEach(function(k) {
+            if (k !== 'vanesev-v3') caches.delete(k);
+          });
         });
       }
     </script>
