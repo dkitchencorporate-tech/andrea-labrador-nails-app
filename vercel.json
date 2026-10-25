@@ -17,11 +17,11 @@
   "rewrites": [
     {
       "source": "/r/:code",
-      "destination": "/api/r?code=:code"
+      "destination": "/api/qr?mode=redirect&code=:code"
     },
     {
       "source": "/:tenant/r/:code",
-      "destination": "/api/r?code=:code"
+      "destination": "/api/qr?mode=redirect&code=:code"
     },
     {
       "source": "/((?!api/).*)",
