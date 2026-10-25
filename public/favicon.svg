@@ -1,44 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2D4036"/>
-      <stop offset="50%" stop-color="#3A5346"/>
-      <stop offset="100%" stop-color="#1A2720"/>
+    <linearGradient id="vanesevBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E1015"/>
+      <stop offset="50%" stop-color="#14171E"/>
+      <stop offset="100%" stop-color="#08090C"/>
     </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FDF2D6"/>
-      <stop offset="25%" stop-color="#E2C582"/>
-      <stop offset="60%" stop-color="#BF984A"/>
-      <stop offset="100%" stop-color="#EAD198"/>
+    <linearGradient id="vanesevGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2D6"/>
+      <stop offset="25%" stop-color="#E5C158"/>
+      <stop offset="60%" stop-color="#C5A059"/>
+      <stop offset="100%" stop-color="#9A7732"/>
     </linearGradient>
-    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F1813" flood-opacity="0.5"/>
+    <linearGradient id="vanesevAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5C158" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#C5A059" stop-opacity="0.2"/>
+    </linearGradient>
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#C5A059" flood-opacity="0.35"/>
     </filter>
   </defs>
 
-  <!-- Base Squircle -->
-  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <!-- Luxury Squircle Outer Base -->
+  <rect width="512" height="512" rx="128" fill="url(#vanesevBg)"/>
   
-  <!-- Outer Border -->
-  <rect x="18" y="18" width="476" height="476" rx="114" fill="none" stroke="url(#goldGrad)" stroke-width="4" opacity="0.45"/>
+  <!-- Outer Gold Micro-Border -->
+  <rect x="20" y="20" width="472" height="472" rx="112" fill="none" stroke="url(#vanesevGold)" stroke-width="3" opacity="0.4"/>
   
-  <!-- Inner Delicate Concentric Circles -->
-  <circle cx="256" cy="256" r="212" fill="none" stroke="url(#goldGrad)" stroke-width="2" opacity="0.6"/>
-  <circle cx="256" cy="256" r="202" fill="none" stroke="url(#goldGrad)" stroke-width="1.2" stroke-dasharray="6 8" opacity="0.4"/>
+  <!-- Subtle Concentric Geometry -->
+  <circle cx="256" cy="256" r="216" fill="none" stroke="url(#vanesevGold)" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="256" cy="256" r="204" fill="none" stroke="url(#vanesevGold)" stroke-width="1" stroke-dasharray="4 6" opacity="0.25"/>
 
-  <!-- Top Star Accent -->
-  <path d="M 256 66 L 261 80 L 275 84 L 261 88 L 256 102 L 251 88 L 237 84 L 251 80 Z" fill="url(#goldGrad)"/>
+  <!-- Top Star Sparkle -->
+  <path d="M 256 68 L 261 82 L 275 86 L 261 90 L 256 104 L 251 90 L 237 86 L 251 82 Z" fill="url(#vanesevGold)"/>
 
-  <!-- Bottom Accent Dots -->
-  <circle cx="256" cy="438" r="4.5" fill="url(#goldGrad)"/>
-  <circle cx="238" cy="438" r="2.5" fill="url(#goldGrad)" opacity="0.7"/>
-  <circle cx="274" cy="438" r="2.5" fill="url(#goldGrad)" opacity="0.7"/>
-
-  <!-- Monogram AL -->
-  <g filter="url(#softGlow)">
-    <text x="256" y="324" font-family="'Cormorant Garamond', 'Georgia', 'Times New Roman', serif" font-size="216" font-weight="700" letter-spacing="4" fill="url(#goldGrad)" text-anchor="middle">AL</text>
+  <!-- Iconic Monogram "V" in Luxury Serif Geometry -->
+  <g filter="url(#goldGlow)">
+    <path d="M 148 152 L 198 152 L 256 348 L 314 152 L 364 152 L 284 396 C 278 414 266 422 256 422 C 246 422 234 414 228 396 Z" fill="url(#vanesevGold)"/>
   </g>
-  
-  <!-- Subtitle NAILS -->
-  <text x="256" y="382" font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="14" fill="#FDF2D6" text-anchor="middle" opacity="0.92">NAILS</text>
+
+  <!-- Micro-Diamond Accents -->
+  <polygon points="256,448 261,454 256,460 251,454" fill="url(#vanesevGold)"/>
 </svg>
