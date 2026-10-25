@@ -199,29 +199,29 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   const pendingTasksCount = (data.tasks || []).filter((t: any) => t.status !== 'completed').length;
 
   return (
-    <div className="min-h-screen bg-[#070709] text-zinc-100 font-sans selection:bg-amber-500/30 selection:text-amber-200 overflow-x-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans selection:bg-amber-500/20 selection:text-amber-900 overflow-x-hidden">
       {/* TOP COMMAND HEADER */}
-      <header className="sticky top-0 z-40 border-b border-amber-500/20 bg-[#09090D]/95 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-[#E2E8F0] bg-white/95 backdrop-blur-xl shadow-xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 p-[1px] shadow-lg shadow-amber-500/15 shrink-0">
-                <div className="w-full h-full bg-[#09090D] rounded-[11px] flex items-center justify-center">
-                  <span className="font-serif font-black text-lg sm:text-xl bg-gradient-to-r from-amber-200 to-amber-500 bg-clip-text text-transparent">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 p-[1px] shadow-sm shrink-0">
+                <div className="w-full h-full bg-[#0F172A] rounded-[11px] flex items-center justify-center">
+                  <span className="font-serif font-black text-lg sm:text-xl text-amber-300">
                     V
                   </span>
                 </div>
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.2em] text-amber-400 font-bold">
+                  <span className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.2em] text-amber-800 font-bold">
                     VANESEV · CENTRAL
                   </span>
-                  <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
                     ● LIVE DB
                   </span>
                 </div>
-                <h1 className="text-sm sm:text-xl font-bold tracking-tight text-white truncate">
+                <h1 className="text-sm sm:text-xl font-bold tracking-tight text-[#0F172A] truncate">
                   Centro de Mando &amp; Gobernanza de karc0
                 </h1>
               </div>
@@ -229,10 +229,10 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             <button
               onClick={fetchCentralState}
               disabled={syncing}
-              className="sm:hidden p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 shrink-0"
+              className="sm:hidden p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 shrink-0"
               title="Sincronizar con Neon DB"
             >
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-amber-400' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-amber-600' : ''}`} />
             </button>
           </div>
 
@@ -240,7 +240,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5 sm:pb-0">
             <button
               onClick={() => onNavigateToTenant('capra-studio', false)}
-              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-[#B5838D]/20 hover:bg-[#B5838D]/35 text-[#F4E1E6] border border-[#C5A059]/40 flex items-center gap-1.5 transition-all shrink-0"
+              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-[#FDF2F4] hover:bg-[#FBE4E9] text-[#7A4953] border border-[#F3C5CE] flex items-center gap-1.5 transition-all shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
               Ver Capra Studio
@@ -248,36 +248,36 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             </button>
             <button
               onClick={() => onNavigateToTenant('capra-studio', true)}
-              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-all shrink-0"
+              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 flex items-center gap-1.5 transition-all shrink-0"
             >
               Admin Capra V2
             </button>
             <button
               onClick={() => onNavigateToTenant('andrea-nails', false)}
-              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-emerald-950/50 hover:bg-emerald-900/50 text-emerald-200 border border-emerald-500/30 flex items-center gap-1.5 transition-all shrink-0"
+              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 transition-all shrink-0"
             >
               Ver Andrea Nails V2
             </button>
             <button
               onClick={onNavigateToSaaSLanding}
-              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-black flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/10 shrink-0"
+              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-[#0F172A] hover:bg-slate-800 text-white flex items-center gap-1.5 transition-all shadow-xs shrink-0"
             >
-              <Globe className="w-3.5 h-3.5" />
+              <Globe className="w-3.5 h-3.5 text-amber-400" />
               Web Comercial vanesev.com
             </button>
             <button
               onClick={fetchCentralState}
               disabled={syncing}
-              className="hidden sm:inline-flex p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 shrink-0"
+              className="hidden sm:inline-flex p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 shrink-0"
               title="Sincronizar con Neon DB"
             >
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-amber-400' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-amber-600' : ''}`} />
             </button>
           </div>
         </div>
 
         {/* NAVIGATION PILLS */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto no-scrollbar border-t border-zinc-900/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto no-scrollbar border-t border-[#E2E8F0]">
           {[
             { id: 'sessions', label: '1. Revisión de Sesiones & Aprobación', icon: CheckCircle2, badge: pendingSessionsCount },
             { id: 'incidents', label: '2. Buzón de Emergencia (Bugs)', icon: AlertTriangle, badge: openIncidentsCount, alert: true },
@@ -296,20 +296,20 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-3.5 text-xs sm:text-sm font-medium border-b-2 whitespace-nowrap transition-all ${
                   active
-                    ? 'border-amber-400 text-amber-300 bg-amber-500/5'
-                    : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
+                    ? 'border-amber-600 text-amber-950 bg-amber-50/70 font-semibold'
+                    : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${tab.alert && tab.badge > 0 ? 'text-rose-400' : active ? 'text-amber-400' : 'text-zinc-500'}`} />
+                <Icon className={`w-4 h-4 ${tab.alert && tab.badge > 0 ? 'text-rose-600' : active ? 'text-amber-600' : 'text-slate-400'}`} />
                 <span>{tab.label}</span>
                 {tab.badge > 0 && (
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full ${
                       tab.alert
-                        ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                        ? 'bg-rose-100 text-rose-800 border border-rose-300'
                         : active
-                        ? 'bg-amber-400 text-black'
-                        : 'bg-zinc-800 text-zinc-300'
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
                     }`}
                   >
                     {tab.badge}
@@ -326,22 +326,22 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
         {/* INFRASTRUCTURE TELEMETRY STRIP */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: 'GitHub Cloud CI', value: 'vanessas07 (7GB VM)', icon: GitBranch, color: 'text-emerald-400' },
-            { label: 'Vercel Edge', value: 'vanesevapp-4342 (iad1)', icon: Server, color: 'text-sky-400' },
-            { label: 'Neon Postgres 18', value: 'production + staging', icon: Database, color: 'text-amber-400' },
-            { label: 'Neon Live SQL', value: 'Realtime Activo', icon: Activity, color: 'text-purple-400' },
-            { label: 'Vercel Blob CDN', value: 'vanesev-media-blob', icon: HardDrive, color: 'text-pink-400' },
-            { label: 'Proyecto Aislado', value: 'VAKSAR (Reservado)', icon: Lock, color: 'text-zinc-300' },
+            { label: 'GitHub Cloud CI', value: 'vanessas07 (7GB VM)', icon: GitBranch, color: 'text-emerald-600' },
+            { label: 'Vercel Edge', value: 'vanesevapp-4342 (iad1)', icon: Server, color: 'text-sky-600' },
+            { label: 'Neon Postgres 18', value: 'production + staging', icon: Database, color: 'text-amber-600' },
+            { label: 'Neon Live SQL', value: 'Realtime Activo', icon: Activity, color: 'text-purple-600' },
+            { label: 'Vercel Blob CDN', value: 'vanesev-media-blob', icon: HardDrive, color: 'text-pink-600' },
+            { label: 'Proyecto Aislado', value: 'VAKSAR (Reservado)', icon: Lock, color: 'text-slate-500' },
           ].map((item, idx) => {
             const Icon = item.icon;
             return (
-              <div key={idx} className="p-3.5 rounded-xl bg-[#0E0E14] border border-zinc-800/80 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800">
+              <div key={idx} className="p-3.5 rounded-xl bg-white border border-[#E2E8F0] shadow-xs flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
                   <Icon className={`w-4 h-4 ${item.color}`} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 truncate">{item.label}</p>
-                  <p className="text-xs font-semibold text-zinc-200 truncate">{item.value}</p>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 truncate">{item.label}</p>
+                  <p className="text-xs font-semibold text-[#0F172A] truncate">{item.value}</p>
                 </div>
               </div>
             );
@@ -349,24 +349,24 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
         </div>
 
         {loading ? (
-          <div className="p-16 text-center rounded-2xl bg-[#0E0E14] border border-zinc-800">
-            <RefreshCw className="w-8 h-8 text-amber-400 animate-spin mx-auto mb-3" />
-            <p className="text-sm text-zinc-400">Cargando cerebro compartido de VANESEV desde Neon Postgres 18...</p>
+          <div className="p-16 text-center rounded-2xl bg-white border border-[#E2E8F0] shadow-xs">
+            <RefreshCw className="w-8 h-8 text-amber-600 animate-spin mx-auto mb-3" />
+            <p className="text-sm text-slate-600">Cargando cerebro compartido de VANESEV desde Neon Postgres 18...</p>
           </div>
         ) : (
           <>
             {/* TAB 1: REVISIÓN DE SESIONES & APROBACIÓN DE KARC0 */}
             {activeTab === 'sessions' && (
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-[#12121A] to-[#0E0E14] border border-amber-500/25">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-amber-200 shadow-xs">
                   <div>
-                    <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold">
+                    <span className="text-[11px] font-mono uppercase tracking-widest text-amber-800 font-bold">
                       AUDITORÍA PAUSADA & APROBACIÓN EJECUTIVA
                     </span>
-                    <h2 className="text-xl font-bold text-white mt-1">
+                    <h2 className="text-xl font-bold text-[#0F172A] mt-1">
                       Bitácora de Sesiones de Antigravity (Persistida en Neon DB)
                     </h2>
-                    <p className="text-sm text-zinc-400 mt-1">
+                    <p className="text-sm text-slate-600 mt-1">
                       Aquí te dejo cargado cada elemento construido, decisiones tomadas y archivos modificados en cada sesión. Puedes revisarlo con calma, dejarme tus instrucciones y pulsar <b>Aprobar</b> o <b>Pedir Cambios</b>.
                     </p>
                   </div>
@@ -379,44 +379,44 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                   const isChanges = ses.review_status === 'changes_requested';
 
                   return (
-                    <div key={ses.id} className="rounded-2xl bg-[#0E0E14] border border-zinc-800 overflow-hidden shadow-xl">
-                      <div className="p-6 border-b border-zinc-800/80 flex flex-wrap items-start justify-between gap-4 bg-[#12121A]">
+                    <div key={ses.id} className="rounded-2xl bg-white border border-[#E2E8F0] overflow-hidden shadow-xs">
+                      <div className="p-6 border-b border-[#E2E8F0] flex flex-wrap items-start justify-between gap-4 bg-[#F8FAFC]">
                         <div>
                           <div className="flex flex-wrap items-center gap-2.5 mb-2">
-                            <span className="px-2.5 py-0.5 rounded-md text-xs font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                            <span className="px-2.5 py-0.5 rounded-md text-xs font-mono bg-amber-50 text-amber-800 border border-amber-200">
                               ID: {ses.id}
                             </span>
-                            <span className="px-2.5 py-0.5 rounded-md text-xs font-mono bg-zinc-800 text-zinc-300">
+                            <span className="px-2.5 py-0.5 rounded-md text-xs font-mono bg-slate-100 text-slate-700 border border-slate-200">
                               Agente: {ses.agent_name}
                             </span>
                             <span
                               className={`px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                                 isApproved
-                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                                   : isChanges
-                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                  ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                                  : 'bg-amber-50 text-amber-800 border border-amber-200'
                               }`}
                             >
                               {isApproved ? '✓ APROBADA POR KARC0' : isChanges ? '⚠ CAMBIOS SOLICITADOS' : '⏳ PENDIENTE DE TU REVISIÓN'}
                             </span>
                           </div>
-                          <h3 className="text-lg sm:text-xl font-bold text-white">{ses.title}</h3>
-                          <p className="text-sm text-zinc-300 mt-2 leading-relaxed">{ses.summary}</p>
+                          <h3 className="text-lg sm:text-xl font-bold text-[#0F172A]">{ses.title}</h3>
+                          <p className="text-sm text-slate-600 mt-2 leading-relaxed">{ses.summary}</p>
                         </div>
                       </div>
 
                       <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Elements Built */}
                         <div className="space-y-3">
-                          <h4 className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
+                          <h4 className="text-xs font-mono uppercase tracking-wider text-amber-800 font-bold">
                             Elementos Construidos y Entregados en esta Sesión
                           </h4>
                           <div className="space-y-2">
                             {elements.map((el: any, i: number) => (
-                              <div key={i} className="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800/80 flex items-center justify-between gap-3">
-                                <span className="text-sm text-zinc-200 font-medium">{el.item}</span>
-                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
+                              <div key={i} className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between gap-3">
+                                <span className="text-sm text-slate-800 font-medium">{el.item}</span>
+                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
                                   {el.status}
                                 </span>
                               </div>
@@ -426,14 +426,14 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
 
                         {/* Decisions Logged */}
                         <div className="space-y-3">
-                          <h4 className="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
+                          <h4 className="text-xs font-mono uppercase tracking-wider text-amber-800 font-bold">
                             Decisiones Arquitectónicas Registradas
                           </h4>
                           <div className="space-y-2">
                             {decisions.map((dec: any, i: number) => (
-                              <div key={i} className="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800/80">
-                                <p className="text-sm font-bold text-white">{dec.decision}</p>
-                                <p className="text-xs text-zinc-400 mt-1">{dec.rationale}</p>
+                              <div key={i} className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                <p className="text-sm font-bold text-[#0F172A]">{dec.decision}</p>
+                                <p className="text-xs text-slate-600 mt-1">{dec.rationale}</p>
                               </div>
                             ))}
                           </div>
@@ -441,13 +441,13 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                       </div>
 
                       {/* Karc0 Review & Response Box */}
-                      <div className="p-6 bg-[#0A0A0F] border-t border-zinc-800/80 space-y-4">
+                      <div className="p-6 bg-[#F8FAFC] border-t border-[#E2E8F0] space-y-4">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <label className="text-xs font-mono uppercase tracking-wider text-amber-300 font-bold">
+                          <label className="text-xs font-mono uppercase tracking-wider text-amber-900 font-bold">
                             Tu Respuesta / Instrucciones sobre esta Sesión (Se guarda en Neon DB para el Agente):
                           </label>
                           {ses.karc0_feedback && (
-                            <span className="text-xs text-emerald-400 font-mono">
+                            <span className="text-xs text-emerald-700 font-mono">
                               Última nota guardada: "{ses.karc0_feedback}"
                             </span>
                           )}
@@ -458,19 +458,19 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                             value={feedbackMap[ses.id] ?? ses.karc0_feedback ?? ''}
                             onChange={(e) => setFeedbackMap({ ...feedbackMap, [ses.id]: e.target.value })}
                             placeholder="Escribe aquí tus observaciones, qué aprobar o qué ajustar en la siguiente sesión..."
-                            className="flex-1 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400"
+                            className="flex-1 px-4 py-3 rounded-xl bg-white border border-[#CBD5E1] text-sm text-[#0F172A] placeholder-slate-400 focus:outline-none focus:border-amber-500 shadow-2xs"
                           />
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleReviewSession(ses.id, 'approved')}
-                              className="px-4 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all"
+                              className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xs"
                             >
                               <Check className="w-4 h-4" />
                               Aprobar Sesión
                             </button>
                             <button
                               onClick={() => handleReviewSession(ses.id, 'changes_requested')}
-                              className="px-4 py-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all"
+                              className="px-4 py-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all"
                             >
                               <XCircle className="w-4 h-4" />
                               Pedir Cambios
@@ -487,21 +487,21 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             {/* TAB 2: BUZÓN DE EMERGENCIA (REPORTE INMEDIATO DE FALLOS EN VIVO) */}
             {activeTab === 'incidents' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 p-6 rounded-2xl bg-[#0E0E14] border border-rose-500/30 space-y-4 h-fit">
-                  <div className="flex items-center gap-2 text-rose-400">
-                    <AlertTriangle className="w-5 h-5" />
-                    <h3 className="text-base font-bold uppercase tracking-wider">Reportar Fallo o Emergencia</h3>
+                <div className="lg:col-span-1 p-6 rounded-2xl bg-white border border-rose-200 shadow-xs space-y-4 h-fit">
+                  <div className="flex items-center gap-2 text-rose-700">
+                    <AlertTriangle className="w-5 h-5 text-rose-600" />
+                    <h3 className="text-base font-bold uppercase tracking-wider text-[#0F172A]">Reportar Fallo o Emergencia</h3>
                   </div>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     Si mientras pruebas desde tu móvil o PC ves cualquier detalle que falle o quieras corregir al instante, anótalo aquí. Queda grabado en Neon DB como prioridad máxima.
                   </p>
                   <form onSubmit={handleCreateIncident} className="space-y-3">
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Severidad</label>
+                      <label className="text-xs text-slate-600 block mb-1">Severidad</label>
                       <select
                         value={incSeverity}
                         onChange={(e) => setIncSeverity(e.target.value as any)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-sm text-[#0F172A] focus:bg-white"
                       >
                         <option value="critical">🔥 Crítica (Atacar de inmediato)</option>
                         <option value="high">⚡ Alta (Corregir en la sesión actual)</option>
@@ -509,11 +509,11 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Zona Afectada</label>
+                      <label className="text-xs text-slate-600 block mb-1">Zona Afectada</label>
                       <select
                         value={incZone}
                         onChange={(e) => setIncZone(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-sm text-[#0F172A] focus:bg-white"
                       >
                         <option value="ZONA 1 · LANDING VANESEV">ZONA 1 · Web Comercial vanesev.com</option>
                         <option value="ZONA 2 · CENTRAL">ZONA 2 · Panel Central de karc0</option>
@@ -522,11 +522,11 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Negocio / Salón</label>
+                      <label className="text-xs text-slate-600 block mb-1">Negocio / Salón</label>
                       <select
                         value={incTenant}
                         onChange={(e) => setIncTenant(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-sm text-[#0F172A] focus:bg-white"
                       >
                         <option value="all">Todos / Plataforma General</option>
                         <option value="capra-studio">Capra Studio (@caprastudio_)</option>
@@ -534,29 +534,29 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Título corto del fallo</label>
+                      <label className="text-xs text-slate-600 block mb-1">Título corto del fallo</label>
                       <input
                         type="text"
                         required
                         value={incTitle}
                         onChange={(e) => setIncTitle(e.target.value)}
                         placeholder="Ej: Botón de reserva en móvil no abre..."
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#CBD5E1] text-sm text-[#0F172A] focus:border-amber-500"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Detalle de lo que viste</label>
+                      <label className="text-xs text-slate-600 block mb-1">Detalle de lo que viste</label>
                       <textarea
                         rows={3}
                         value={incDesc}
                         onChange={(e) => setIncDesc(e.target.value)}
                         placeholder="Describe qué hiciste y qué debería pasar..."
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#CBD5E1] text-sm text-[#0F172A] focus:border-amber-500"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full py-3 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs uppercase tracking-wider transition-all"
+                      className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-xs"
                     >
                       Registrar en Buzón de Emergencia
                     </button>
@@ -564,43 +564,43 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                 </div>
 
                 <div className="lg:col-span-2 space-y-4">
-                  <h3 className="text-lg font-bold text-white">Historial de Incidencias & Errores Solucionados</h3>
+                  <h3 className="text-lg font-bold text-[#0F172A]">Historial de Incidencias & Errores Solucionados</h3>
                   {(data.incidents || []).map((inc: any) => (
                     <div
                       key={inc.id}
                       className={`p-5 rounded-2xl border ${
                         inc.status === 'resolved'
-                          ? 'bg-[#0E0E14] border-zinc-800'
-                          : 'bg-rose-950/15 border-rose-500/40'
-                      } space-y-3`}
+                          ? 'bg-white border-[#E2E8F0]'
+                          : 'bg-rose-50/60 border-rose-300'
+                      } space-y-3 shadow-xs`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase font-bold ${
                               inc.status === 'resolved'
-                                ? 'bg-emerald-500/20 text-emerald-300'
-                                : 'bg-rose-500 text-white'
+                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                : 'bg-rose-600 text-white'
                             }`}
                           >
                             {inc.status === 'resolved' ? '✓ SOLUCIONADO' : '🔥 ABIERTO · ' + inc.severity}
                           </span>
-                          <span className="text-xs font-mono text-zinc-400">{inc.affected_zone}</span>
-                          <span className="text-xs font-mono text-amber-400">({inc.affected_tenant})</span>
+                          <span className="text-xs font-mono text-slate-500">{inc.affected_zone}</span>
+                          <span className="text-xs font-mono text-amber-800">({inc.affected_tenant})</span>
                         </div>
                         {inc.status !== 'resolved' && (
                           <button
                             onClick={() => postAction('update_incident', { id: inc.id, status: 'resolved', resolutionNote: 'Marcado como resuelto desde Central.' })}
-                            className="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-semibold"
+                            className="px-3 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold"
                           >
                             Marcar Resuelto
                           </button>
                         )}
                       </div>
-                      <h4 className="text-base font-bold text-white">{inc.title}</h4>
-                      <p className="text-sm text-zinc-300">{inc.description}</p>
+                      <h4 className="text-base font-bold text-[#0F172A]">{inc.title}</h4>
+                      <p className="text-sm text-slate-600">{inc.description}</p>
                       {inc.agent_resolution_note && (
-                        <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-200">
+                        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900">
                           <b>Solución aplicada por Agente:</b> {inc.agent_resolution_note}
                         </div>
                       )}
@@ -613,51 +613,51 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             {/* TAB 3: BUZÓN INTERACTIVO KARC0 <-> AGENTE */}
             {activeTab === 'mailbox' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 p-6 rounded-2xl bg-[#0E0E14] border border-amber-500/30 space-y-4 h-fit">
-                  <div className="flex items-center gap-2 text-amber-400">
-                    <MessageSquare className="w-5 h-5" />
-                    <h3 className="text-base font-bold uppercase tracking-wider">Dejar Orden o Nota al Agente</h3>
+                <div className="lg:col-span-1 p-6 rounded-2xl bg-white border border-amber-200 shadow-xs space-y-4 h-fit">
+                  <div className="flex items-center gap-2 text-amber-800">
+                    <MessageSquare className="w-5 h-5 text-amber-600" />
+                    <h3 className="text-base font-bold uppercase tracking-wider text-[#0F172A]">Dejar Orden o Nota al Agente</h3>
                   </div>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     Escribe aquí cualquier idea, requerimiento, cambio de precios o instrucción mientras navegas. Cuando abras sesión conmigo y me digas <i>"lee el buzón de Central"</i>, lo tendré todo cargado al instante.
                   </p>
                   <form onSubmit={handleSendMessage} className="space-y-3">
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Asunto / Tema</label>
+                      <label className="text-xs text-slate-600 block mb-1">Asunto / Tema</label>
                       <input
                         type="text"
                         required
                         value={msgSubject}
                         onChange={(e) => setMsgSubject(e.target.value)}
                         placeholder="Ej: Nuevos servicios para Capra Studio..."
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#CBD5E1] text-sm text-[#0F172A] focus:border-amber-500"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Prioridad</label>
+                      <label className="text-xs text-slate-600 block mb-1">Prioridad</label>
                       <select
                         value={msgPriority}
                         onChange={(e) => setMsgPriority(e.target.value as any)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-sm text-[#0F172A]"
                       >
                         <option value="high">Alta Prioridad</option>
                         <option value="normal">Normal / Idea futura</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Mensaje detallado para Antigravity</label>
+                      <label className="text-xs text-slate-600 block mb-1">Mensaje detallado para Antigravity</label>
                       <textarea
                         rows={4}
                         required
                         value={msgBody}
                         onChange={(e) => setMsgBody(e.target.value)}
                         placeholder="Escribe aquí todo lo que quieras que ejecute..."
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#CBD5E1] text-sm text-[#0F172A] focus:border-amber-500"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all"
+                      className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs"
                     >
                       <Send className="w-4 h-4" />
                       Guardar en Buzón de Neon DB
@@ -666,7 +666,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                 </div>
 
                 <div className="lg:col-span-2 space-y-4">
-                  <h3 className="text-lg font-bold text-white">Bandeja de Comunicaciones (karc0 ↔ Antigravity)</h3>
+                  <h3 className="text-lg font-bold text-[#0F172A]">Bandeja de Comunicaciones (karc0 ↔ Antigravity)</h3>
                   {(data.mailbox || []).map((m: any) => {
                     const fromKarc0 = m.sender === 'karc0';
                     return (
@@ -674,29 +674,29 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                         key={m.id}
                         className={`p-5 rounded-2xl border ${
                           fromKarc0
-                            ? 'bg-amber-500/10 border-amber-500/40'
-                            : 'bg-[#0E0E14] border-zinc-800'
-                        } space-y-2`}
+                            ? 'bg-amber-50/70 border-amber-300'
+                            : 'bg-white border-[#E2E8F0]'
+                        } space-y-2 shadow-xs`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
                             <span
                               className={`px-2.5 py-0.5 rounded-md text-xs font-mono font-bold uppercase ${
-                                fromKarc0 ? 'bg-amber-400 text-black' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                fromKarc0 ? 'bg-amber-500 text-white' : 'bg-purple-50 text-purple-800 border border-purple-200'
                               }`}
                             >
                               {fromKarc0 ? '👑 DE: KARC0 (DIRECTOR)' : '🤖 DE: ANTIGRAVITY'}
                             </span>
-                            <span className="text-xs font-mono text-zinc-400">→ PARA: {m.recipient.toUpperCase()}</span>
+                            <span className="text-xs font-mono text-slate-500">→ PARA: {m.recipient.toUpperCase()}</span>
                           </div>
-                          <span className="text-xs font-mono text-zinc-500">
+                          <span className="text-xs font-mono text-slate-400">
                             {new Date(m.created_at).toLocaleString('es-VE')}
                           </span>
                         </div>
-                        <h4 className="text-base font-bold text-white">{m.subject}</h4>
-                        <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">{m.body}</p>
+                        <h4 className="text-base font-bold text-[#0F172A]">{m.subject}</h4>
+                        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{m.body}</p>
                         {m.related_doc_path && (
-                          <p className="text-xs font-mono text-amber-400 pt-1">
+                          <p className="text-xs font-mono text-amber-800 pt-1">
                             📄 Doc vinculado: {m.related_doc_path}
                           </p>
                         )}
@@ -711,13 +711,13 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             {activeTab === 'tasks_roadmap' && (
               <div className="space-y-8">
                 {/* ARCHITECTURE COMPARISON: ACTUAL VS PROYECTADA */}
-                <div className="p-6 rounded-2xl bg-[#0E0E14] border border-zinc-800 space-y-4">
+                <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
+                      <span className="text-xs font-mono uppercase tracking-widest text-amber-800 font-bold">
                         MAPA DE INGENIERÍA EN VIVO
                       </span>
-                      <h3 className="text-xl font-bold text-white">Estructura Actual vs. Proyectada de las 4 Zonas</h3>
+                      <h3 className="text-xl font-bold text-[#0F172A]">Estructura Actual vs. Proyectada de las 4 Zonas</h3>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -747,13 +747,13 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                         desc: 'Perfiles de Andrea Labrador V2 y Capra Studio (6 áreas + Cursos) con Ficha VIP conectada a citas reales y guía visual.',
                       },
                     ].map((z, i) => (
-                      <div key={i} className="p-4 rounded-xl bg-zinc-900/70 border border-zinc-800 flex flex-col justify-between space-y-3">
+                      <div key={i} className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-between space-y-3">
                         <div>
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold">{z.zone}</span>
-                          <h4 className="text-base font-bold text-white mt-1">{z.title}</h4>
-                          <p className="text-xs text-zinc-400 mt-2 leading-relaxed">{z.desc}</p>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 font-bold">{z.zone}</span>
+                          <h4 className="text-base font-bold text-[#0F172A] mt-1">{z.title}</h4>
+                          <p className="text-xs text-slate-600 mt-2 leading-relaxed">{z.desc}</p>
                         </div>
-                        <span className="inline-block w-fit px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                        <span className="inline-block w-fit px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                           ● {z.status}
                         </span>
                       </div>
@@ -763,8 +763,8 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
 
                 {/* TASKS BACKLOG + ADD TASK */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-1 p-6 rounded-2xl bg-[#0E0E14] border border-zinc-800 space-y-4 h-fit">
-                    <h3 className="text-base font-bold text-white uppercase tracking-wider">Agregar Tarea Pendiente</h3>
+                  <div className="lg:col-span-1 p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-4 h-fit">
+                    <h3 className="text-base font-bold text-[#0F172A] uppercase tracking-wider">Agregar Tarea Pendiente</h3>
                     <form onSubmit={handleCreateTask} className="space-y-3">
                       <input
                         type="text"
@@ -772,12 +772,12 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                         value={taskTitle}
                         onChange={(e) => setTaskTitle(e.target.value)}
                         placeholder="Título de la tarea..."
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#CBD5E1] text-sm text-[#0F172A] focus:border-amber-500"
                       />
                       <select
                         value={taskZone}
                         onChange={(e) => setTaskZone(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-sm text-[#0F172A]"
                       >
                         <option value="ZONA 2 · CENTRAL">ZONA 2 · CENTRAL</option>
                         <option value="ZONA 4 · CAPRA STUDIO">ZONA 4 · CAPRA STUDIO</option>
@@ -788,7 +788,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                       <select
                         value={taskPriority}
                         onChange={(e) => setTaskPriority(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-sm text-[#0F172A]"
                       >
                         <option value="critical">Prioridad Crítica</option>
                         <option value="high">Prioridad Alta</option>
@@ -799,11 +799,11 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                         value={taskDesc}
                         onChange={(e) => setTaskDesc(e.target.value)}
                         placeholder="Especificaciones para el agente..."
-                        className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-white"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#CBD5E1] text-sm text-[#0F172A] focus:border-amber-500"
                       />
                       <button
                         type="submit"
-                        className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs uppercase tracking-wider"
+                        className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs uppercase tracking-wider shadow-xs"
                       >
                         Guardar Tarea en Neon DB
                       </button>
@@ -811,25 +811,25 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                   </div>
 
                   <div className="lg:col-span-2 space-y-4">
-                    <h3 className="text-lg font-bold text-white">Tablero de Tareas Pendientes & Cronograma</h3>
+                    <h3 className="text-lg font-bold text-[#0F172A]">Tablero de Tareas Pendientes & Cronograma</h3>
                     {(data.tasks || []).map((t: any) => (
-                      <div key={t.id} className="p-4 rounded-xl bg-[#0E0E14] border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div key={t.id} className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-800 text-amber-300">{t.zone}</span>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-zinc-900 text-zinc-400">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-50 text-amber-800 border border-amber-200">{t.zone}</span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-slate-100 text-slate-700">
                               Resp: {t.assigned_to}
                             </span>
-                            <span className="text-xs font-mono text-emerald-400">{t.due_label}</span>
+                            <span className="text-xs font-mono text-emerald-700">{t.due_label}</span>
                           </div>
-                          <h4 className="text-sm font-bold text-white">{t.title}</h4>
-                          <p className="text-xs text-zinc-400">{t.description}</p>
+                          <h4 className="text-sm font-bold text-[#0F172A]">{t.title}</h4>
+                          <p className="text-xs text-slate-600">{t.description}</p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <select
                             value={t.status}
                             onChange={(e) => postAction('upsert_task', { ...t, assignedTo: t.assigned_to, dueLabel: t.due_label, karc0Notes: t.karc0_notes, status: e.target.value })}
-                            className="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs text-white"
+                            className="px-3 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] text-xs text-[#0F172A]"
                           >
                             <option value="pending">⏳ Pendiente</option>
                             <option value="in_progress">⚡ En Curso</option>
@@ -848,14 +848,14 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
               <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-white">Gobernador Multi-Tenant de Salones & Subdominios (*.vanesev.com)</h2>
-                    <p className="text-sm text-zinc-400">
+                    <h2 className="text-xl font-bold text-[#0F172A]">Gobernador Multi-Tenant de Salones & Subdominios (*.vanesev.com)</h2>
+                    <p className="text-sm text-slate-600">
                       Cada negocio tiene su URL limpia modificable (`[subdominio].vanesev.com` y `vanesev.com/?salon=[id]`), su paleta de autor y su propio Admin Pro V2.
                     </p>
                   </div>
                   <button
                     onClick={() => setShowTenantModal(true)}
-                    className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs uppercase tracking-wider flex items-center gap-2"
+                    className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     Crear Nuevo Salón / Cliente
@@ -867,74 +867,74 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                     const tenantStaff = (data.staff || []).filter((s: any) => s.tenant_id === ten.id);
                     const tenantZones = (data.zones || []).filter((z: any) => z.tenant_id === ten.id);
                     return (
-                      <div key={ten.id} className="rounded-2xl bg-[#0E0E14] border border-zinc-800 overflow-hidden flex flex-col justify-between">
+                      <div key={ten.id} className="rounded-2xl bg-white border border-[#E2E8F0] shadow-xs overflow-hidden flex flex-col justify-between">
                         <div className="p-6 space-y-4">
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-3">
                               <div
-                                className="w-12 h-12 rounded-xl flex items-center justify-center font-serif font-bold text-lg text-white shadow-lg"
+                                className="w-12 h-12 rounded-xl flex items-center justify-center font-serif font-bold text-lg text-white shadow-md"
                                 style={{ backgroundColor: ten.primary_color, border: `2px solid ${ten.accent_color}` }}
                               >
                                 {ten.business_name.slice(0, 2).toUpperCase()}
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <h3 className="text-lg font-bold text-white">{ten.business_name}</h3>
+                                  <h3 className="text-lg font-bold text-[#0F172A]">{ten.business_name}</h3>
                                   {ten.is_lifetime_free && (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-50 text-amber-800 border border-amber-200">
                                       ★ VITALICIO GRATIS
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-xs text-zinc-400">{ten.owner_name} · {ten.instagram_handle} · +{ten.whatsapp_phone}</p>
+                                <p className="text-xs text-slate-500">{ten.owner_name} · {ten.instagram_handle} · +{ten.whatsapp_phone}</p>
                               </div>
                             </div>
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-mono uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-mono uppercase bg-emerald-50 text-emerald-800 border border-emerald-200">
                               {ten.subscription_status}
                             </span>
                           </div>
 
-                          <p className="text-xs text-zinc-300 italic">"{ten.slogan}"</p>
+                          <p className="text-xs text-slate-700 italic">"{ten.slogan}"</p>
 
                           {/* Editable Subdomain URL Box */}
-                          <div className="p-3.5 rounded-xl bg-zinc-900/90 border border-zinc-800 space-y-2">
-                            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 block">
+                          <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
+                            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 block font-bold">
                               URL Oficial Modificable (Wildcard DNS Activo en Vercel):
                             </span>
-                            <div className="flex items-center justify-between gap-2 text-xs font-mono text-white">
+                            <div className="flex items-center justify-between gap-2 text-xs font-mono text-[#0F172A]">
                               <span>https://{ten.custom_subdomain}.vanesev.com</span>
-                              <span className="text-zinc-500">|</span>
+                              <span className="text-slate-400">|</span>
                               <span>vanesev.com/?salon={ten.id}</span>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-3 gap-2 text-center">
-                            <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/80">
-                              <p className="text-[10px] text-zinc-500 uppercase font-mono">Especialistas</p>
-                              <p className="text-sm font-bold text-white">{tenantStaff.length}</p>
+                            <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                              <p className="text-[10px] text-slate-500 uppercase font-mono">Especialistas</p>
+                              <p className="text-sm font-bold text-[#0F172A]">{tenantStaff.length}</p>
                             </div>
-                            <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/80">
-                              <p className="text-[10px] text-zinc-500 uppercase font-mono">Zonas Local</p>
-                              <p className="text-sm font-bold text-white">{tenantZones.length}</p>
+                            <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                              <p className="text-[10px] text-slate-500 uppercase font-mono">Zonas Local</p>
+                              <p className="text-sm font-bold text-[#0F172A]">{tenantZones.length}</p>
                             </div>
-                            <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/80">
-                              <p className="text-[10px] text-zinc-500 uppercase font-mono">Fidelización</p>
-                              <p className="text-sm font-bold text-amber-400">{ten.loyalty_stamps_target} Sellos VIP</p>
+                            <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                              <p className="text-[10px] text-slate-500 uppercase font-mono">Fidelización</p>
+                              <p className="text-sm font-bold text-amber-800">{ten.loyalty_stamps_target} Sellos VIP</p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="p-4 bg-[#0A0A0F] border-t border-zinc-800/80 flex flex-wrap items-center justify-between gap-2">
+                        <div className="p-4 bg-[#F8FAFC] border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2">
                           <button
                             onClick={() => onNavigateToTenant(ten.id, false)}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5"
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-[#CBD5E1] text-[#0F172A] text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs"
                           >
-                            <Eye className="w-3.5 h-3.5 text-amber-400" />
+                            <Eye className="w-3.5 h-3.5 text-amber-600" />
                             Abrir PWA del Salón
                           </button>
                           <button
                             onClick={() => onNavigateToTenant(ten.id, true)}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center justify-center gap-1.5"
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center justify-center gap-1.5"
                           >
                             Abrir Admin Pro V2
                             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -946,18 +946,18 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                 </div>
 
                 {showTenantModal && (
-                  <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-[#0E0E14] border border-amber-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                  <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white border border-[#CBD5E1] rounded-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
                       <div>
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-amber-800 font-bold">
                           WIZARD 1-CLICK MULTI-TENANT · NEON DB
                         </span>
-                        <h3 className="text-lg font-bold text-white">Dar de Alta Nuevo Salón + Zonas + Equipo</h3>
+                        <h3 className="text-lg font-bold text-[#0F172A]">Dar de Alta Nuevo Salón + Zonas + Equipo</h3>
                       </div>
                       <form onSubmit={handleSaveTenant} className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-zinc-400 block mb-1">Nombre del Salón</label>
+                            <label className="text-xs text-slate-600 block mb-1">Nombre del Salón</label>
                             <input
                               type="text"
                               required
@@ -967,52 +967,52 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                                 setTenantForm({ ...tenantForm, businessName: e.target.value, id: slug, customSubdomain: slug.replace(/-/g, '') });
                               }}
                               placeholder="Ej: Lumina Spa"
-                              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-white"
+                              className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-sm text-[#0F172A] focus:border-amber-500"
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-zinc-400 block mb-1">Subdominio (.vanesev.com)</label>
+                            <label className="text-xs text-slate-600 block mb-1">Subdominio (.vanesev.com)</label>
                             <input
                               type="text"
                               required
                               value={tenantForm.customSubdomain}
                               onChange={(e) => setTenantForm({ ...tenantForm, customSubdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
                               placeholder="luminaspa"
-                              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-amber-300 font-mono"
+                              className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] text-sm text-amber-800 font-mono"
                             />
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-zinc-400 block mb-1">Dueño/a</label>
+                            <label className="text-xs text-slate-600 block mb-1">Dueño/a</label>
                             <input
                               type="text"
                               value={tenantForm.ownerName}
                               onChange={(e) => setTenantForm({ ...tenantForm, ownerName: e.target.value })}
-                              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-white"
+                              className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-sm text-[#0F172A]"
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-zinc-400 block mb-1">WhatsApp (con 58)</label>
+                            <label className="text-xs text-slate-600 block mb-1">WhatsApp (con 58)</label>
                             <input
                               type="text"
                               value={tenantForm.whatsappPhone}
                               onChange={(e) => setTenantForm({ ...tenantForm, whatsappPhone: e.target.value })}
-                              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-white"
+                              className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-sm text-[#0F172A]"
                             />
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs text-zinc-400 block mb-1">Slogan de Autor</label>
+                          <label className="text-xs text-slate-600 block mb-1">Slogan de Autor</label>
                           <input
                             type="text"
                             value={tenantForm.slogan}
                             onChange={(e) => setTenantForm({ ...tenantForm, slogan: e.target.value })}
-                            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-sm text-white"
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-sm text-[#0F172A]"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-amber-300 block mb-1">
+                          <label className="text-xs text-amber-900 font-bold block mb-1">
                             Áreas / Cabinas Iniciales (separadas por coma → se crean en `studio_zones`)
                           </label>
                           <input
@@ -1020,11 +1020,11 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                             value={tenantForm.initialZonesCsv}
                             onChange={(e) => setTenantForm({ ...tenantForm, initialZonesCsv: e.target.value })}
                             placeholder="Cejas & Pestañas, Peluquería, Manicure & Spa"
-                            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-xs text-white"
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-xs text-[#0F172A]"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-amber-300 block mb-1">
+                          <label className="text-xs text-amber-900 font-bold block mb-1">
                             Especialistas Iniciales (separadas por coma → se crean en `staff_members`)
                           </label>
                           <input
@@ -1032,20 +1032,20 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                             value={tenantForm.initialStaffCsv}
                             onChange={(e) => setTenantForm({ ...tenantForm, initialStaffCsv: e.target.value })}
                             placeholder="Directora Principal, Especialista 1, Especialista 2"
-                            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-xs text-white"
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-xs text-[#0F172A]"
                           />
                         </div>
                         <div className="flex justify-end gap-2 pt-3">
                           <button
                             type="button"
                             onClick={() => setShowTenantModal(false)}
-                            className="px-4 py-2 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-semibold"
+                            className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
                           >
                             Cancelar
                           </button>
                           <button
                             type="submit"
-                            className="px-4 py-2 rounded-lg bg-amber-500 text-black text-xs font-bold uppercase"
+                            className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold uppercase shadow-xs"
                           >
                             Crear Salón + Zonas + Equipo en 1 Clic
                           </button>
@@ -1061,7 +1061,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             {activeTab === 'docs' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1 space-y-3">
-                  <h3 className="text-base font-bold text-white uppercase tracking-wider">
+                  <h3 className="text-base font-bold text-[#0F172A] uppercase tracking-wider">
                     Documentos en `Desktop\vanesev app`
                   </h3>
                   {(data.docs || []).map((doc: any) => (
@@ -1070,31 +1070,31 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                       onClick={() => setSelectedDoc(doc)}
                       className={`w-full text-left p-4 rounded-xl border transition-all ${
                         selectedDoc?.id === doc.id
-                          ? 'bg-amber-500/15 border-amber-400 text-white'
-                          : 'bg-[#0E0E14] border-zinc-800 text-zinc-300 hover:bg-zinc-900'
+                          ? 'bg-amber-50/80 border-amber-500 text-[#0F172A] ring-1 ring-amber-500/20'
+                          : 'bg-white border-[#E2E8F0] text-slate-700 hover:bg-slate-50'
                       }`}
                     >
-                      <span className="text-[10px] font-mono uppercase text-amber-400">{doc.category} · {doc.version}</span>
-                      <h4 className="text-sm font-bold mt-1">{doc.title}</h4>
-                      <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{doc.summary}</p>
-                      <p className="text-[10px] font-mono text-zinc-500 mt-2 truncate">{doc.local_path}</p>
+                      <span className="text-[10px] font-mono uppercase text-amber-800 font-bold">{doc.category} · {doc.version}</span>
+                      <h4 className="text-sm font-bold mt-1 text-[#0F172A]">{doc.title}</h4>
+                      <p className="text-xs text-slate-600 mt-1 line-clamp-2">{doc.summary}</p>
+                      <p className="text-[10px] font-mono text-slate-400 mt-2 truncate">{doc.local_path}</p>
                     </button>
                   ))}
                 </div>
 
-                <div className="lg:col-span-2 p-6 rounded-2xl bg-[#0E0E14] border border-zinc-800">
+                <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs">
                   {selectedDoc ? (
                     <div className="space-y-4">
-                      <div className="border-b border-zinc-800 pb-4">
-                        <span className="text-xs font-mono text-amber-400">{selectedDoc.local_path}</span>
-                        <h3 className="text-xl font-bold text-white mt-1">{selectedDoc.title}</h3>
+                      <div className="border-b border-[#E2E8F0] pb-4">
+                        <span className="text-xs font-mono text-amber-800 font-semibold">{selectedDoc.local_path}</span>
+                        <h3 className="text-xl font-bold text-[#0F172A] mt-1">{selectedDoc.title}</h3>
                       </div>
-                      <pre className="text-xs sm:text-sm text-zinc-300 font-mono whitespace-pre-wrap leading-relaxed bg-[#09090D] p-5 rounded-xl border border-zinc-800/80 max-h-[600px] overflow-y-auto">
+                      <pre className="text-xs sm:text-sm text-slate-800 font-mono whitespace-pre-wrap leading-relaxed bg-[#F8FAFC] p-5 rounded-xl border border-[#E2E8F0] max-h-[600px] overflow-y-auto">
                         {selectedDoc.content_markdown}
                       </pre>
                     </div>
                   ) : (
-                    <p className="text-sm text-zinc-500">Selecciona un documento a la izquierda para inspeccionarlo.</p>
+                    <p className="text-sm text-slate-500">Selecciona un documento a la izquierda para inspeccionarlo.</p>
                   )}
                 </div>
               </div>

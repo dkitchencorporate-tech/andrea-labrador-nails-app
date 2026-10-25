@@ -129,31 +129,31 @@ export const CentralCompetitors: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* ══ HEADER DE INTELIGENCIA DE GUERRA ══ */}
-      <div className="p-6 rounded-3xl bg-zinc-900 border border-zinc-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="p-6 rounded-3xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-800 border border-amber-200">
               Estrategia Comercial &amp; Cierre de Ventas
             </span>
-            <span className="text-xs text-zinc-500 font-mono">Actualizado Octubre 2026</span>
+            <span className="text-xs text-slate-500 font-mono">Actualizado Octubre 2026</span>
           </div>
-          <h2 className="text-2xl font-serif font-bold text-white">
+          <h2 className="text-2xl font-serif font-bold text-[#0F172A]">
             Radar de Competidores: Virtudes, Trampas y Argumentos de Cierre
           </h2>
-          <p className="text-xs text-zinc-400 mt-1 max-w-2xl">
+          <p className="text-xs text-slate-600 mt-1 max-w-2xl">
             Herramienta interna para auditar el software del mercado, capacitar a nuestro equipo comercial y cerrar salones demostrando por qué VANESEV es superior en diseño de autor y economía sin comisiones.
           </p>
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
           <div className="relative w-full md:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Buscar competidor..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+              className="w-full pl-9 pr-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#0F172A] focus:outline-none focus:border-amber-500 focus:bg-white"
             />
           </div>
         </div>
@@ -169,55 +169,55 @@ export const CentralCompetitors: React.FC = () => {
               onClick={() => setSelectedComp(comp)}
               className={`p-5 rounded-2xl text-left border transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-amber-500/10 border-amber-400 shadow-md shadow-amber-500/10'
-                  : 'bg-zinc-900/60 hover:bg-zinc-900 border-zinc-800'
+                  ? 'bg-amber-50/90 border-amber-500 shadow-sm ring-1 ring-amber-500/20'
+                  : 'bg-white hover:bg-slate-50 border-[#E2E8F0] shadow-xs'
               }`}
             >
               <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-bold text-zinc-300">{comp.category}</span>
-                <span className="text-[10px] text-zinc-500 font-mono">{comp.domain}</span>
+                <span className="text-xs font-bold text-slate-700">{comp.category}</span>
+                <span className="text-[10px] text-slate-400 font-mono">{comp.domain}</span>
               </div>
-              <h3 className="font-serif text-lg font-bold text-white">{comp.name}</h3>
-              <p className="text-[11px] text-zinc-400 mt-1 line-clamp-2">{comp.pricing}</p>
+              <h3 className="font-serif text-lg font-bold text-[#0F172A]">{comp.name}</h3>
+              <p className="text-[11px] text-slate-600 mt-1 line-clamp-2">{comp.pricing}</p>
             </button>
           );
         })}
       </div>
 
       {/* ══ FICHA TÉCNICA DETALLADA DEL COMPETIDOR SELECCIONADO ══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white border border-[#E2E8F0] rounded-3xl p-6 sm:p-8 shadow-xs">
         <div className="lg:col-span-7 space-y-6">
-          <div className="border-b border-zinc-800 pb-4">
-            <div className="flex items-center gap-2 text-xs text-amber-400 font-mono mb-1">
+          <div className="border-b border-[#E2E8F0] pb-4">
+            <div className="flex items-center gap-2 text-xs text-amber-700 font-mono mb-1">
               <span>Auditando: {selectedComp.name}</span>
               <span>&bull;</span>
               <a
                 href={`https://${selectedComp.domain}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 hover:underline text-zinc-400"
+                className="inline-flex items-center gap-1 hover:underline text-slate-500"
               >
                 <span>{selectedComp.domain}</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
-            <h3 className="text-3xl font-serif font-black text-white">{selectedComp.name}</h3>
-            <div className="mt-2 text-xs text-zinc-300 bg-zinc-950 p-3 rounded-xl border border-zinc-800/80">
-              <strong className="text-amber-300">Modelo de Precios:</strong> {selectedComp.pricing}
+            <h3 className="text-3xl font-serif font-black text-[#0F172A]">{selectedComp.name}</h3>
+            <div className="mt-2 text-xs text-slate-700 bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0]">
+              <strong className="text-amber-800">Modelo de Precios:</strong> {selectedComp.pricing}
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Virtudes */}
-            <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-2">
-              <span className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" />
+            <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-2">
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 Virtudes de su Producto
               </span>
-              <ul className="space-y-1.5 text-xs text-zinc-300">
+              <ul className="space-y-1.5 text-xs text-slate-700">
                 {selectedComp.strengths.map((s, idx) => (
                   <li key={idx} className="flex items-start gap-1.5">
-                    <span className="text-emerald-500 font-bold">&bull;</span>
+                    <span className="text-emerald-600 font-bold">&bull;</span>
                     <span>{s}</span>
                   </li>
                 ))}
@@ -225,15 +225,15 @@ export const CentralCompetitors: React.FC = () => {
             </div>
 
             {/* Desventajas Críticas */}
-            <div className="p-4 rounded-2xl bg-zinc-950 border border-rose-900/30 space-y-2">
-              <span className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-                <XCircle className="w-4 h-4" />
+            <div className="p-4 rounded-2xl bg-rose-50/50 border border-rose-200/80 space-y-2">
+              <span className="text-xs font-black uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
+                <XCircle className="w-4 h-4 text-rose-600" />
                 Puntos Débiles (Donde les Ganamos)
               </span>
-              <ul className="space-y-1.5 text-xs text-zinc-300">
+              <ul className="space-y-1.5 text-xs text-slate-700">
                 {selectedComp.weaknesses.map((w, idx) => (
                   <li key={idx} className="flex items-start gap-1.5">
-                    <span className="text-rose-400 font-bold">&bull;</span>
+                    <span className="text-rose-600 font-bold">&bull;</span>
                     <span>{w}</span>
                   </li>
                 ))}
@@ -243,26 +243,26 @@ export const CentralCompetitors: React.FC = () => {
         </div>
 
         {/* ══ SCRIPT DE GUERRA & ARGUMENTO DE CIERRE ══ */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-amber-950/20 via-zinc-950 to-zinc-950 border border-amber-500/30 p-6 rounded-2xl space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-gradient-to-br from-amber-50/70 via-white to-amber-50/40 border border-amber-300/80 p-6 rounded-2xl space-y-4 flex flex-col justify-between shadow-xs">
           <div className="space-y-3">
-            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/40 inline-flex items-center gap-1.5">
-              <Flame className="w-3.5 h-3.5 text-amber-400" />
+            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1.5">
+              <Flame className="w-3.5 h-3.5 text-amber-600" />
               Script de Cierre contra {selectedComp.name}
             </span>
-            <h4 className="text-lg font-serif font-bold text-white">
+            <h4 className="text-lg font-serif font-bold text-[#0F172A]">
               ¿Qué decirle a la dueña del salón cuando te mencione este competidor?
             </h4>
-            <div className="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-200 leading-relaxed italic">
+            <div className="p-4 rounded-xl bg-white border border-amber-200 text-xs text-slate-800 leading-relaxed italic shadow-2xs">
               "{selectedComp.combatArgument}"
             </div>
           </div>
 
-          <div className="pt-3 border-t border-zinc-800 text-[11px] text-zinc-400 space-y-1">
+          <div className="pt-3 border-t border-amber-200/60 text-[11px] text-slate-600 space-y-1">
             <div>
-              <strong className="text-zinc-300">Público Objetivo:</strong> {selectedComp.targetMarket}
+              <strong className="text-slate-800">Público Objetivo:</strong> {selectedComp.targetMarket}
             </div>
-            <div className="text-emerald-400 font-semibold flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5" />
+            <div className="text-emerald-700 font-semibold flex items-center gap-1">
+              <Zap className="w-3.5 h-3.5 text-emerald-600" />
               <span>Factor Decisivo VANESEV: PWA de Autor + 0% Comisiones + Tarjeta VIP 5 Sellos.</span>
             </div>
           </div>
