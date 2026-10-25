@@ -7,24 +7,40 @@ export default {
   theme: {
     extend: {
       colors: {
-        // VANESEV Author Design System (Noir / Cassis / Crema / Tinta)
-        noche: '#0C0A0E',
-        obsidiana: '#141218',
-        carbon: '#1C1922',
-        tinta: '#16151A',
-        grafito: '#3A3742',
-        niebla: '#65626D',
-        ceniza: '#96929F',
-        linea: '#E4DFD7',
-        'linea-fuerte': '#D2CBC0',
-        crema: '#F7F4EF',
-        papel: '#EFECE6',
-        cassis: '#8E1B46',
-        'cassis-hondo': '#6B1233',
-        oro: '#C8A96A',
-        exito: '#1F8A5B',
+        // VANESEV Luminous Luxury Beauty System (Silk Alabaster, Cashmere, Rose Quartz, Champagne, Espresso)
+        seda: '#FAF7F2',
+        perla: '#F4EFEA',
+        cashmere: '#EFE6DF',
+        espresso: '#1E181A',
+        cacao: '#3D3135',
+        taupe: '#6E5D62',
+        bruma: '#9C8B90',
+        borde: '#E6DAD2',
+        'borde-fuerte': '#D5C3B8',
+        rosa: '#B85D6F',
+        'rosa-suave': '#F7E8EB',
+        champagne: '#C89B7B',
+        terracota: '#C96A52',
+        esmeralda: '#227C5D',
 
-        // Scoped legacy tokens ONLY for Andrea Labrador Nails tenant (/andrea-nails)
+        // Legacy tokens kept so existing components don't break
+        noche: '#1E181A',
+        obsidiana: '#292124',
+        carbon: '#362C30',
+        tinta: '#1E181A',
+        grafito: '#4A3E42',
+        niebla: '#6E5D62',
+        ceniza: '#9C8B90',
+        linea: '#E6DAD2',
+        'linea-fuerte': '#D5C3B8',
+        crema: '#FAF7F2',
+        papel: '#F4EFEA',
+        cassis: '#B85D6F',
+        'cassis-hondo': '#964354',
+        oro: '#C89B7B',
+        exito: '#227C5D',
+
+        // Scoped legacy tokens ONLY for external Andrea Labrador Nails client (/andrea-nails)
         sage: {
           50: '#f5f8f6',
           100: '#e5ece7',
@@ -52,16 +68,18 @@ export default {
         }
       },
       fontFamily: {
-        display: ['DM Sans', 'Plus Jakarta Sans', 'sans-serif'],
-        sans: ['Plus Jakarta Sans', 'DM Sans', 'sans-serif'],
-        serif: ['Instrument Serif', 'Georgia', 'serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        sans: ['Plus Jakarta Sans', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
+        vogue: ['Bodoni Moda', 'Georgia', 'serif'],
         andrea: ['Cormorant Garamond', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       boxShadow: {
-        'soft': '0 4px 20px -2px rgba(22, 21, 26, 0.08)',
-        'luxury': '0 20px 50px -12px rgba(12, 10, 14, 0.14)',
-        'card': '0 10px 30px -5px rgba(0, 0, 0, 0.05)',
+        'soft': '0 8px 30px -4px rgba(30, 24, 26, 0.06)',
+        'luxury': '0 24px 60px -12px rgba(30, 24, 26, 0.10)',
+        'card': '0 10px 30px -5px rgba(30, 24, 26, 0.05)',
+        'pill': '0 4px 20px -2px rgba(30, 24, 26, 0.07)',
       }
     },
   },

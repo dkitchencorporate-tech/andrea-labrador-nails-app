@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
   Calendar,
@@ -6,8 +7,6 @@ import {
   Phone,
   Award,
   ShieldCheck,
-  CheckCircle2,
-  Star,
   MapPin,
   ArrowRight,
   QrCode,
@@ -16,24 +15,44 @@ import {
   X,
   Search,
   GraduationCap,
+  Palette,
+  Type,
+  LayoutGrid,
+  CheckCircle2,
+  Gift,
+  Star,
 } from 'lucide-react';
 import { ServiceItem } from '../types';
 import { QREncoder } from '../utils/qrEncoder';
+import { AppStore } from '../services/store';
+import {
+  getSalonThemeConfig,
+  saveSalonThemeConfig,
+  getPaletteById,
+  getTypographyById,
+  SALON_PALETTE_PRESETS,
+  SALON_TYPOGRAPHY_PRESETS,
+  SalonThemeConfig,
+  SalonLayoutId,
+  resolveVerifiedBeautyImage,
+} from '../utils/salonThemeEngine';
 
 interface CapraStudioExperienceProps {
   services: ServiceItem[];
   exchangeRate: number;
+  tenantSlug?: string;
   onOpenBooking: (service?: ServiceItem) => void;
-  onOpenAccountModal: () => void;
+  onOpenAccountModal?: () => void;
+  onOpenAdmin?: () => void;
 }
 
 const CAPRA_CATEGORIES = [
-  { id: 'all', label: 'Carta Completa', code: '00' },
+  { id: 'all', label: 'Toda la Carta', code: '00' },
   { id: 'cejas_pestanas', label: 'Cejas & Pestañas', code: '01' },
   { id: 'estilismo', label: 'Estilismo & Alisados', code: '02' },
-  { id: 'maquillaje', label: 'Maquillaje HD', code: '03' },
-  { id: 'nails', label: 'Nails & Spa Pies', code: '04' },
-  { id: 'depilacion', label: 'Cabina Depilación', code: '05' },
+  { id: 'maquillaje', label: 'Maquillaje & Novias', code: '03' },
+  { id: 'nails', label: 'Manicure & Spa Pies', code: '04' },
+  { id: 'depilacion', label: 'Cabina Estética', code: '05' },
   { id: 'cursos', label: 'Capra Academy', code: '06' },
 ];
 
@@ -44,54 +63,60 @@ const matchesCategoryGroup = (serviceCategory: string, selectedTab: string): boo
     return cat === 'estilismo' || cat === 'estilismo_alisados';
   }
   if (selectedTab === 'nails') {
-    return cat === 'nails' || cat === 'manicure_pedicure' || cat === 'manicure' || cat === 'pedicure';
+    return (
+      cat === 'nails' ||
+      cat === 'unias' ||
+      cat === 'manicure_pedicure' ||
+      cat === 'manicure' ||
+      cat === 'pedicure'
+    );
   }
   return cat === selectedTab;
 };
 
-const getDepartmentTitle = (catId: string): { title: string; subtitle: string; code: string } => {
+const getDepartmentMeta = (catId: string): { title: string; subtitle: string; code: string } => {
   switch (catId) {
     case 'cejas_pestanas':
       return {
         code: '01',
         title: 'Arquitectura de Miradas · Cejas & Pestañas',
-        subtitle: 'Visagismo facial, laminado nutritivo con keratina y extensiones pelo a pelo en fibras de seda.',
+        subtitle: 'Visagismo facial milimétrico, sombreado Glance Henna, Brow Lamination con botox, lifting y extensiones de seda.',
       };
     case 'estilismo':
       return {
         code: '02',
-        title: 'Hair Couture · Alisados Orgánicos & Brushing',
-        subtitle: 'Fórmulas botánicas libres de formol, sellado térmico con brillo espejo y ondas editoriales.',
+        title: 'Hair Couture · Alisados Orgánicos & Peinados de Gala',
+        subtitle: 'Alisado progresivo efecto espejo libre de formol agresivo, ondas Hollywood y peinados de alta duración.',
       };
     case 'maquillaje':
       return {
         code: '03',
         title: 'Maquillaje Profesional & Piel Blindada HD',
-        subtitle: 'Preparación dermo-cosmética resistente a clima húmedo, lágrimas y fotografía de alta resolución.',
+        subtitle: 'Preparación dermo-cosmética luminosa resistente a clima, lágrimas y fotografía 4K para eventos y novias.',
       };
     case 'nails':
       return {
         code: '04',
-        title: 'Nails Atelier & Ritual Spa Botánico',
-        subtitle: 'Manicura rusa combinada con instrumental esterilizado en autoclave y nivelación rubber.',
+        title: 'Nails Atelier & Ritual Pedicure Spa',
+        subtitle: 'Manicura rusa combinada con instrumental esterilizado, sistemas estructurales French y terapia podal botánica.',
       };
     case 'depilacion':
       return {
         code: '05',
-        title: 'Cabina Privada de Depilación Corporal',
-        subtitle: 'Protocolo higiénico descartable con cera miel y española + loción calmante post-depilatoria.',
+        title: 'Cabina Estética de Depilación Delicada',
+        subtitle: 'Protocolo hipoalergénico de baja temperatura con loción descongestiva post-epilación para piel de seda.',
       };
     case 'cursos':
       return {
         code: '06',
         title: 'Capra Academy · Formación Profesional Certificada',
-        subtitle: 'Masterclasses teórico-prácticas dirigidas por María Giovanna Capra con materiales y guía incluidos.',
+        subtitle: 'Capacitación intensiva teórico-práctica con guía impresa, materiales incluidos en mesa y certificado oficial.',
       };
     default:
       return {
         code: '00',
-        title: 'Servicios de Autor',
-        subtitle: 'Protocolos personalizados en San Cristóbal.',
+        title: 'Especialidades del Estudio',
+        subtitle: 'Protocolos personalizados de belleza y bienestar.',
       };
   }
 };
@@ -99,28 +124,76 @@ const getDepartmentTitle = (catId: string): { title: string; subtitle: string; c
 export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
   services,
   exchangeRate,
+  tenantSlug = 'capra-studio',
   onOpenBooking,
-  onOpenAccountModal,
 }) => {
+  const [themeConfig, setThemeConfig] = useState<SalonThemeConfig>(() =>
+    getSalonThemeConfig(tenantSlug)
+  );
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showVipModal, setShowVipModal] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+
+  // VIP Loyalty Passport interactive state
+  const [vipPhoneInput, setVipPhoneInput] = useState('');
+  const [vipClientData, setVipClientData] = useState<{
+    name: string;
+    stamps: number;
+    visits: number;
+  } | null>(null);
+
+  useEffect(() => {
+    setThemeConfig(getSalonThemeConfig(tenantSlug));
+    const handleUpdate = (e: any) => {
+      if (e.detail && e.detail.tenantSlug === tenantSlug) {
+        setThemeConfig(e.detail);
+      } else {
+        setThemeConfig(getSalonThemeConfig(tenantSlug));
+      }
+    };
+    window.addEventListener('vanesev-theme-updated', handleUpdate);
+    return () => window.removeEventListener('vanesev-theme-updated', handleUpdate);
+  }, [tenantSlug]);
+
+  const palette = getPaletteById(themeConfig.paletteId);
+  const typography = getTypographyById(themeConfig.typographyId);
+
+  const updateThemeField = <K extends keyof SalonThemeConfig>(
+    key: K,
+    value: SalonThemeConfig[K]
+  ) => {
+    const next = { ...themeConfig, [key]: value };
+    setThemeConfig(next);
+    saveSalonThemeConfig(next);
+  };
+
+  // Normalize all incoming services so every single item has a 100% verified beauty photo
+  const normalizedServices = React.useMemo(
+    () =>
+      services.map((s) => ({
+        ...s,
+        imageUrl: resolveVerifiedBeautyImage(s.id, s.category, s.name, s.imageUrl),
+      })),
+    [services]
+  );
 
   const qrSvgString = React.useMemo(() => {
     try {
-      const matrix = QREncoder.generateMatrix('https://vanesev.com/r/capra-menu');
+      const matrix = QREncoder.generateMatrix(`https://vanesev.com/m/${tenantSlug}`);
       return QREncoder.toSVG(matrix, {
-        fgColor: '#8E4A59',
+        fgColor: palette.accentPrimary,
         bgColor: '#FFFFFF',
-        centerText: 'CAPRA',
+        centerText: themeConfig.businessName.slice(0, 5).toUpperCase(),
       });
     } catch {
       return '';
     }
-  }, []);
+  }, [tenantSlug, palette.accentPrimary, themeConfig.businessName]);
 
-  const filteredServices = services.filter((s) => {
+  const filteredServices = normalizedServices.filter((s) => {
     const matchesCat = matchesCategoryGroup(s.category, selectedCategory);
     const matchesSearch =
       !searchQuery.trim() ||
@@ -130,199 +203,373 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
     return matchesCat && matchesSearch;
   });
 
-  // Featured recommendation ("Hoy recomendamos en el Atelier")
   const featuredService =
-    services.find((s) => s.id === 'capra-alisado-org') ||
-    services.find((s) => s.id === 'capra-cejas-lam') ||
-    services[0];
+    normalizedServices.find((s) => s.id === 'capra-srv-5' || s.id === 'capra-alisado-org') ||
+    normalizedServices.find((s) => s.id === 'capra-srv-2' || s.id === 'capra-cejas-lam') ||
+    normalizedServices[0];
 
-  // Academy courses
-  const academyCourses = services.filter((s) => s.category === 'cursos');
+  const academyCourses = normalizedServices.filter((s) => s.category === 'cursos');
 
-  // Active category sections to render in structured editorial blocks
   const activeSectionIds =
     selectedCategory === 'all'
       ? ['cejas_pestanas', 'estilismo', 'maquillaje', 'nails', 'depilacion', 'cursos']
       : [selectedCategory];
 
-  return (
-    <div className="min-h-screen bg-[#FAF6F3] text-[#191215] font-sans selection:bg-[#8E4A59]/20 selection:text-[#191215] flex flex-col pb-24 sm:pb-12">
-      {/* ══ 1. CABECERA ATMOSFÉRICA DE AUTOR (INSPIRADA EN CARTA INTERACTIVA DE ALTA GAMA) ══ */}
-      <header className="relative bg-[#191215] text-[#FAF6F3] overflow-hidden border-b border-[#C8A97E]/20">
-        {/* Ambient radial lighting */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-85"
-          style={{
-            background:
-              'radial-gradient(circle at 18% 20%, rgba(142, 74, 89, 0.38) 0%, transparent 52%), radial-gradient(circle at 85% 75%, rgba(200, 169, 126, 0.22) 0%, transparent 48%)',
-          }}
-        />
+  const handleLookupVip = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = vipPhoneInput.replace(/\D/g, '');
+    if (clean.length < 7) return;
+    const cards = Object.values(AppStore.getLoyaltyCards());
+    const found = cards.find((c) => (c.phone || '').replace(/\D/g, '').includes(clean.slice(-7)));
+    if (found) {
+      setVipClientData({
+        name: found.clientName,
+        stamps: found.stampsCount || 1,
+        visits: found.stampsCount || 1,
+      });
+    } else {
+      setVipClientData({
+        name: 'Clienta Invitada VIP',
+        stamps: 1,
+        visits: 1,
+      });
+    }
+  };
 
-        {/* Top bar */}
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 pt-4 pb-3 flex items-center justify-between gap-3 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#8E4A59] border border-[#C8A97E]/60 flex items-center justify-center text-[#FAF6F3] font-serif italic text-lg shadow-sm shrink-0">
-              C
+  return (
+    <div
+      className={`min-h-screen ${typography.bodyClass} flex flex-col pb-24 sm:pb-12 transition-colors duration-300`}
+      style={{
+        backgroundColor: palette.canvasBg,
+        color: palette.textPrimary,
+      }}
+    >
+      {/* ══ 1. FLOATING LUMINOUS LUXURY TOP NAVIGATION (VERTIX / HAUTE COUTURE INSPIRED) ══ */}
+      <div className="sticky top-0 z-40 px-3 sm:px-6 pt-3 pb-2 pointer-events-none">
+        <div
+          className="max-w-6xl mx-auto rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-pill border backdrop-blur-xl pointer-events-auto transition-all"
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.90)',
+            borderColor: palette.borderSubtle,
+          }}
+        >
+          {/* Studio Brand Identity */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${typography.headingClass} text-base font-bold shadow-xs shrink-0`}
+              style={{ background: palette.gradientCss }}
+            >
+              {themeConfig.businessName
+                .split(' ')
+                .map((w) => w[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase()}
             </div>
-            <div>
+            <div className="truncate">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#C8A97E]">
-                  CARTA DE SERVICIOS &amp; RESERVAS
+                <span
+                  className={`${typography.headingClass} text-base sm:text-lg font-semibold tracking-tight truncate`}
+                  style={{ color: palette.textPrimary }}
+                >
+                  {themeConfig.businessName}
+                </span>
+                <span
+                  className="hidden md:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider"
+                  style={{
+                    backgroundColor: palette.badgeBg,
+                    color: palette.badgeText,
+                  }}
+                >
+                  {themeConfig.instagramHandle}
                 </span>
               </div>
-              <p className="text-xs text-[#FAF6F3]/75">
-                San Cristóbal, Estado Táchira · Atención con Cita Previa
+              <p className="text-[11px] truncate" style={{ color: palette.textSecondary }}>
+                {themeConfig.city} · Tasa BCV: Bs. {exchangeRate.toFixed(2)}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Action Pills */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              onClick={() => setShowCustomizer(true)}
+              className="px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border hover:scale-[1.02]"
+              style={{
+                backgroundColor: palette.softSurfaceBg,
+                color: palette.textPrimary,
+                borderColor: palette.borderSubtle,
+              }}
+              title="Personalizar Estilo, Paleta y Tipografía del Catálogo"
+            >
+              <Palette className="w-3.5 h-3.5" style={{ color: palette.accentPrimary }} />
+              <span className="hidden sm:inline">Estilo</span>
+            </button>
+
             <button
               onClick={() => setShowQrModal(true)}
-              className="px-3 py-1.5 rounded-full bg-white/8 hover:bg-white/15 text-[#FAF6F3] border border-white/15 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Código QR Oficial de Capra Studio"
+              className="px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border hover:scale-[1.02]"
+              style={{
+                backgroundColor: '#FFFFFF',
+                color: palette.textPrimary,
+                borderColor: palette.borderSubtle,
+              }}
+              title="Código QR Oficial del Estudio"
             >
-              <QrCode className="w-3.5 h-3.5 text-[#C8A97E]" />
-              <span className="hidden sm:inline">QR Salón</span>
+              <QrCode className="w-3.5 h-3.5" style={{ color: palette.accentPrimary }} />
+              <span className="hidden md:inline">QR Salón</span>
             </button>
+
             <button
-              onClick={onOpenAccountModal}
-              className="px-3.5 py-1.5 rounded-full bg-white/8 hover:bg-white/15 text-[#FAF6F3] border border-[#C8A97E]/35 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+              onClick={() => setShowVipModal(true)}
+              className="px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border hover:scale-[1.02]"
+              style={{
+                backgroundColor: palette.badgeBg,
+                color: palette.badgeText,
+                borderColor: palette.borderSubtle,
+              }}
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#C8A97E]" />
-              <span>Capra Privé</span>
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Pasaporte VIP</span>
+              <span className="sm:hidden">VIP</span>
+            </button>
+
+            <button
+              onClick={() => onOpenBooking()}
+              className="px-4 sm:px-5 py-2 rounded-full text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm hover:opacity-95 transition-all cursor-pointer"
+              style={{ backgroundColor: palette.accentPrimary }}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Reservar</span>
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Hero Editorial Identity */}
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 py-10 sm:py-14">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-7 space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/8 border border-[#C8A97E]/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#C8A97E]" />
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#C8A97E]">
-                  BY MARÍA GIOVANNA CAPRA · @CAPRASTUDIO_
+      {/* ══ 2. LUMINOUS HAUTE-COUTURE HERO SHOWCASE (NO MASSIVE BLACK, WARM EDITORIAL LUXURY) ══ */}
+      <header className="max-w-6xl mx-auto w-full px-4 sm:px-6 pt-4 pb-6">
+        <div
+          className="rounded-[32px] p-6 sm:p-10 lg:p-12 border relative overflow-hidden shadow-soft"
+          style={{
+            backgroundColor: palette.softSurfaceBg,
+            borderColor: palette.borderSubtle,
+          }}
+        >
+          {/* Soft silk radial glow */}
+          <div
+            className="absolute -top-24 -right-24 w-96 h-96 rounded-full pointer-events-none opacity-45 blur-3xl"
+            style={{ background: palette.gradientCss }}
+          />
+
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="lg:col-span-7 space-y-5"
+            >
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/85 border shadow-2xs" style={{ borderColor: palette.borderSubtle }}>
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: palette.accentPrimary }}
+                />
+                <span
+                  className="text-[11px] font-semibold uppercase tracking-[0.16em]"
+                  style={{ color: palette.accentPrimary }}
+                >
+                  BY {themeConfig.directorName.toUpperCase()} · {themeConfig.tagline.toUpperCase()}
                 </span>
               </div>
 
-              <h1 className="font-serif text-4xl sm:text-6xl leading-[1.03] tracking-tight text-[#FAF6F3]">
-                Capra Studio{' '}
-                <span className="italic font-normal text-[#E5C3CE]">
-                  Beauty Atelier &amp; Academy.
+              <h1
+                className={`${typography.headingClass} text-3xl sm:text-5xl lg:text-[54px] leading-[1.06] tracking-tight`}
+                style={{ color: palette.textPrimary }}
+              >
+                {themeConfig.businessName}:{' '}
+                <span className="italic font-normal" style={{ color: palette.accentPrimary }}>
+                  excelencia estética y bienestar a tu medida.
                 </span>
               </h1>
 
-              <p className="text-sm sm:text-base text-[#FAF6F3]/80 max-w-xl leading-relaxed">
-                Arquitectura de cejas y pestañas, alisados orgánicos con brillo espejo, maquillaje blindado HD, manicura rusa y formación certificada en San Cristóbal.
+              <p
+                className="text-sm sm:text-base leading-relaxed max-w-xl"
+                style={{ color: palette.textSecondary }}
+              >
+                {themeConfig.subline}
               </p>
 
-              {/* Action & Rating Bar (Matching Author Digital Menu Pattern) */}
-              <div className="pt-2 flex flex-wrap items-center gap-2.5">
-                <button
+              {/* Interactive Action & Trust Row */}
+              <div className="pt-1 flex flex-wrap items-center gap-3">
+                <motion.button
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => onOpenBooking()}
-                  className="px-6 py-3 rounded-full bg-[#8E4A59] hover:bg-[#9f5465] text-white font-semibold text-sm flex items-center gap-2 shadow-lg shadow-[#8E4A59]/30 transition-all cursor-pointer"
+                  className="px-6 py-3.5 rounded-full text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-md cursor-pointer"
+                  style={{ background: palette.gradientCss }}
                 >
-                  <Calendar className="w-4 h-4 text-[#F3D8DF]" />
-                  <span>Reservar cita ahora</span>
-                </button>
+                  <Calendar className="w-4 h-4" />
+                  <span>Agendar cita en 15 segundos</span>
+                </motion.button>
 
                 <a
-                  href="https://wa.me/584247429530?text=Hola%20María%20Capra,%20deseo%20consultar%20disponibilidad%20en%20Capra%20Studio"
+                  href={`https://wa.me/${themeConfig.whatsappPhone}?text=${encodeURIComponent(
+                    `Hola ${themeConfig.businessName}, deseo consultar disponibilidad para una cita.`
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-3 rounded-full bg-white/8 hover:bg-white/14 text-[#FAF6F3] border border-white/15 text-xs font-medium flex items-center gap-2 transition-colors"
+                  className="px-5 py-3.5 rounded-full bg-white hover:bg-white/90 text-xs sm:text-sm font-semibold flex items-center gap-2 border shadow-2xs transition-all"
+                  style={{
+                    color: palette.textPrimary,
+                    borderColor: palette.borderSubtle,
+                  }}
                 >
-                  <Phone className="w-3.5 h-3.5 text-[#C8A97E]" />
-                  <span>WhatsApp Concierge</span>
+                  <Phone className="w-3.5 h-3.5" style={{ color: palette.accentPrimary }} />
+                  <span>Atención Directa WhatsApp</span>
                 </a>
+              </div>
 
-                <div className="px-3.5 py-2.5 rounded-full bg-white/6 border border-white/10 text-xs text-[#FAF6F3]/90 flex items-center gap-1.5 tabular-nums">
-                  <span className="text-[#C8A97E] tracking-tight">★★★★★</span>
-                  <span className="font-semibold">4.9</span>
-                  <span className="text-[#FAF6F3]/60">· Tasa BCV: Bs. {exchangeRate.toFixed(2)}</span>
+              {/* Micro-metrics row */}
+              <div className="pt-2 grid grid-cols-3 gap-3 max-w-lg tabular-nums">
+                <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-3 border" style={{ borderColor: palette.borderSubtle }}>
+                  <span className="text-xs font-bold block" style={{ color: palette.accentPrimary }}>
+                    ★★★★★ 4.9
+                  </span>
+                  <span className="text-[11px]" style={{ color: palette.textSecondary }}>
+                    Calificación verificada
+                  </span>
+                </div>
+                <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-3 border" style={{ borderColor: palette.borderSubtle }}>
+                  <span className="text-xs font-bold block" style={{ color: palette.textPrimary }}>
+                    {themeConfig.loyaltyStampsTarget} Visitas VIP
+                  </span>
+                  <span className="text-[11px] truncate block" style={{ color: palette.textSecondary }}>
+                    {themeConfig.loyaltyRewardTitle}
+                  </span>
+                </div>
+                <div className="bg-white/80 backdrop-blur-xs rounded-2xl p-3 border" style={{ borderColor: palette.borderSubtle }}>
+                  <span className="text-xs font-bold block" style={{ color: palette.textPrimary }}>
+                    Bs. {exchangeRate.toFixed(2)}
+                  </span>
+                  <span className="text-[11px]" style={{ color: palette.textSecondary }}>
+                    Tasa Oficial BCV
+                  </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Right Editorial Portrait Composition */}
-            <div className="lg:col-span-5">
-              <div className="relative rounded-2xl overflow-hidden border border-[#C8A97E]/30 bg-[#23191D] shadow-2xl">
+            {/* Right Editorial Showcase & Loyalty Card Preview */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.55, delay: 0.1 }}
+              className="lg:col-span-5"
+            >
+              <div
+                className="relative rounded-3xl overflow-hidden border bg-white shadow-luxury"
+                style={{ borderColor: palette.borderSubtle }}
+              >
                 <img
-                  src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1000&q=85"
-                  alt="Capra Studio Atelier San Cristóbal"
-                  className="w-full h-56 sm:h-64 object-cover object-center opacity-90"
+                  src="/capra/brow-lamination.jpg"
+                  alt={themeConfig.businessName}
+                  className="w-full h-64 sm:h-72 object-cover object-center"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#191215] via-[#191215]/30 to-transparent" />
-                <div className="absolute bottom-3 inset-x-3 p-3.5 rounded-xl bg-[#191215]/85 backdrop-blur-md border border-white/10 flex items-center justify-between gap-3">
+                <div className="p-4 sm:p-5 bg-white flex items-center justify-between gap-3">
                   <div>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#C8A97E] block">
-                      PASAPORTE DE FIDELIDAD
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-widest block"
+                      style={{ color: palette.accentPrimary }}
+                    >
+                      PASAPORTE DE FIDELIDAD ACTIVO
                     </span>
-                    <p className="text-xs font-semibold text-white">
-                      Acumula 5 sellos verificados = Tratamiento VIP de Cortesía
+                    <p className="text-xs sm:text-sm font-semibold mt-0.5" style={{ color: palette.textPrimary }}>
+                      Completa {themeConfig.loyaltyStampsTarget} sellos = {themeConfig.loyaltyRewardTitle}
                     </p>
                   </div>
                   <button
-                    onClick={onOpenAccountModal}
-                    className="px-3 py-1.5 rounded-lg bg-[#C8A97E] text-[#191215] font-bold text-[11px] shrink-0 cursor-pointer"
+                    onClick={() => setShowVipModal(true)}
+                    className="px-3.5 py-2 rounded-xl text-white text-xs font-semibold shrink-0 cursor-pointer"
+                    style={{ backgroundColor: palette.accentPrimary }}
                   >
-                    Ver Sellos
+                    Mis Sellos
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </header>
 
-      {/* ══ 2. BLOQUE DESTACADO: "HOY RECOMENDAMOS EN EL ATELIER" (PATRÓN CARTA DE AUTOR) ══ */}
+      {/* ══ 3. RECOMENDACIÓN ESTRELLA DE LA DIRECTORA ══ */}
       {featuredService && (
-        <section className="max-w-6xl mx-auto w-full px-4 sm:px-8 pt-6 pb-2">
-          <div className="rounded-2xl border-2 border-dashed border-[#8E4A59]/35 bg-[#FDFBF9] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <section className="max-w-6xl mx-auto w-full px-4 sm:px-6 pb-4">
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="rounded-3xl bg-white border p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-card"
+            style={{ borderColor: palette.borderSubtle }}
+          >
             <div className="flex items-center gap-4">
               <img
                 src={featuredService.imageUrl}
                 alt={featuredService.name}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-[#8E4A59]/20 shrink-0"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border shrink-0"
+                style={{ borderColor: palette.borderSubtle }}
               />
               <div>
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-[#8E4A59] font-semibold mb-0.5">
+                <div
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-1"
+                  style={{
+                    backgroundColor: palette.badgeBg,
+                    color: palette.badgeText,
+                  }}
+                >
                   <Sparkles className="w-3 h-3" />
-                  <span>RECOMENDACIÓN DE LA DIRECTORA · HOY EN EL ATELIER</span>
+                  <span>RECOMENDACIÓN DE LA DIRECTORA · TRATAMIENTO ESTRELLA</span>
                 </div>
-                <h2 className="font-serif text-lg sm:text-xl text-[#191215] leading-snug">
+                <h2
+                  className={`${typography.headingClass} text-lg sm:text-2xl leading-snug`}
+                  style={{ color: palette.textPrimary }}
+                >
                   {featuredService.name}
                 </h2>
-                <p className="text-xs text-[#6B565C] line-clamp-1 mt-0.5">
+                <p className="text-xs sm:text-sm line-clamp-2 mt-0.5" style={{ color: palette.textSecondary }}>
                   {featuredService.shortDescription}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#8E4A59]/10">
-              <div className="text-left sm:text-right tabular-nums">
-                <span className="text-lg font-bold text-[#191215] block leading-none">
+            <div
+              className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 pt-3 sm:pt-0 border-t sm:border-t-0 shrink-0 tabular-nums"
+              style={{ borderColor: palette.borderSubtle }}
+            >
+              <div className="text-left sm:text-right">
+                <span className="text-xl font-bold block leading-none" style={{ color: palette.textPrimary }}>
                   ${featuredService.priceUSD} USD
                 </span>
-                <span className="text-[11px] text-[#7A6268] font-mono">
+                <span className="text-[11px] font-mono mt-1 block" style={{ color: palette.textSecondary }}>
                   Bs. {(featuredService.priceUSD * exchangeRate).toFixed(2)} · {featuredService.durationMinutes} min
                 </span>
               </div>
               <button
                 onClick={() => onOpenBooking(featuredService)}
-                className="px-4 py-2.5 rounded-xl bg-[#191215] hover:bg-[#8E4A59] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                className="px-5 py-3 rounded-2xl text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                style={{ backgroundColor: palette.accentPrimary }}
               >
-                <span>Agendar</span>
+                <span>Reservar</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
-          </div>
+          </motion.div>
         </section>
       )}
 
-      {/* ══ 3. NAVEGACIÓN STICKY DE ESPECIALIDADES + BUSCADOR EN TIEMPO REAL ══ */}
-      <div className="sticky top-0 z-30 bg-[#FAF6F3]/95 backdrop-blur-md border-b border-[#8E4A59]/15 py-3 px-4 sm:px-8 mt-4">
+      {/* ══ 4. BARRA DE ESPECIALIDADES + BUSCADOR + SELECTOR DE VISTA ══ */}
+      <div
+        className="sticky top-[68px] z-30 backdrop-blur-md border-y py-3 px-4 sm:px-6"
+        style={{
+          backgroundColor: `${palette.canvasBg}EE`,
+          borderColor: palette.borderSubtle,
+        }}
+      >
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Category Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
@@ -332,173 +579,318 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className="px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border"
+                  style={
                     active
-                      ? 'bg-[#191215] text-[#FAF6F3] shadow-xs'
-                      : 'bg-white text-[#5E474D] hover:bg-[#F2E8EC] border border-[#8E4A59]/15'
-                  }`}
+                      ? {
+                          backgroundColor: palette.accentPrimary,
+                          color: '#FFFFFF',
+                          borderColor: palette.accentPrimary,
+                        }
+                      : {
+                          backgroundColor: '#FFFFFF',
+                          color: palette.textSecondary,
+                          borderColor: palette.borderSubtle,
+                        }
+                  }
                 >
-                  <span className={`font-mono text-[10px] ${active ? 'text-[#C8A97E]' : 'text-[#8E4A59]/70'}`}>
-                    {cat.code}
-                  </span>
+                  <span className="font-mono text-[10px] opacity-75">{cat.code}</span>
                   <span>{cat.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Search input */}
-          <div className="relative w-full md:w-64 shrink-0">
-            <Search className="w-3.5 h-3.5 text-[#8E4A59] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar servicio o curso..."
-              className="w-full pl-9 pr-8 py-2 rounded-full bg-white border border-[#8E4A59]/20 text-xs text-[#191215] placeholder-[#8E757B] focus:outline-none focus:border-[#8E4A59]"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8E757B] hover:text-[#191215] cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+          {/* Search & Layout Switcher */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="relative flex-1 md:w-60">
+              <Search
+                className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: palette.accentPrimary }}
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar tratamiento o curso..."
+                className="w-full pl-9 pr-8 py-2 rounded-full bg-white border text-xs focus:outline-none"
+                style={{
+                  borderColor: palette.borderSubtle,
+                  color: palette.textPrimary,
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+                  style={{ color: palette.textSecondary }}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ══ 4. CARTA ESTRUCTURADA POR DEPARTAMENTOS (DISEÑO EDITORIAL NUMERADO) ══ */}
-      <main className="max-w-6xl mx-auto w-full px-4 sm:px-8 py-8 space-y-12 flex-1">
+      {/* ══ 5. CATÁLOGO DE ESPECIALIDADES (CON FOTOGRAFÍA 100% VERIFICADA Y 3 MODOS DE LAYOUT) ══ */}
+      <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-12 flex-1">
         {filteredServices.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center border border-[#8E4A59]/15">
-            <p className="font-serif text-xl text-[#191215] mb-1">
+          <div
+            className="bg-white rounded-3xl p-10 text-center border"
+            style={{ borderColor: palette.borderSubtle }}
+          >
+            <p className={`${typography.headingClass} text-xl mb-1`} style={{ color: palette.textPrimary }}>
               No encontramos servicios con "{searchQuery}"
             </p>
-            <p className="text-xs text-[#6B565C] mb-4">
-              Prueba con otra palabra clave o explora todas las especialidades del estudio.
+            <p className="text-xs mb-4" style={{ color: palette.textSecondary }}>
+              Explora todas las especialidades de {themeConfig.businessName}.
             </p>
             <button
               onClick={() => {
                 setSelectedCategory('all');
                 setSearchQuery('');
               }}
-              className="px-5 py-2.5 rounded-full bg-[#191215] text-white text-xs font-semibold cursor-pointer"
+              className="px-5 py-2.5 rounded-full text-white text-xs font-semibold cursor-pointer"
+              style={{ backgroundColor: palette.accentPrimary }}
             >
-              Mostrar toda la carta
+              Ver toda la carta
             </button>
           </div>
         ) : (
           activeSectionIds.map((secId) => {
-            const sectionItems = filteredServices.filter((s) => matchesCategoryGroup(s.category, secId));
+            const sectionItems = filteredServices.filter((s) =>
+              matchesCategoryGroup(s.category, secId)
+            );
             if (sectionItems.length === 0) return null;
-            const dept = getDepartmentTitle(secId);
+            const dept = getDepartmentMeta(secId);
 
             return (
               <section key={secId} className="space-y-5">
                 {/* Department Header */}
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-3 border-b border-[#8E4A59]/20">
+                <div
+                  className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 pb-3 border-b"
+                  style={{ borderColor: palette.borderSubtle }}
+                >
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-[#8E4A59]">
+                      <span
+                        className="font-mono text-xs font-bold"
+                        style={{ color: palette.accentPrimary }}
+                      >
                         /{dept.code}
                       </span>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#7A6268]">
+                      <span
+                        className="font-mono text-[10px] uppercase tracking-[0.18em]"
+                        style={{ color: palette.textSecondary }}
+                      >
                         DEPARTAMENTO ESPECIALIZADO
                       </span>
                     </div>
-                    <h3 className="font-serif text-2xl sm:text-3xl text-[#191215] mt-0.5">
+                    <h3
+                      className={`${typography.headingClass} text-2xl sm:text-3xl mt-0.5`}
+                      style={{ color: palette.textPrimary }}
+                    >
                       {dept.title}
                     </h3>
                   </div>
-                  <p className="text-xs text-[#6B565C] max-w-md">
+                  <p className="text-xs max-w-md" style={{ color: palette.textSecondary }}>
                     {dept.subtitle}
                   </p>
                 </div>
 
-                {/* Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Cards Grid — Adapts to themeConfig.layoutId */}
+                <div
+                  className={
+                    themeConfig.layoutId === 'boutique-grid'
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'
+                      : 'grid grid-cols-1 md:grid-cols-2 gap-5'
+                  }
+                >
                   {sectionItems.map((svc, idx) => {
                     const priceBs = (svc.priceUSD * exchangeRate).toFixed(2);
                     const isCourse = svc.category === 'cursos';
 
-                    return (
-                      <article
-                        key={svc.id}
-                        className="group bg-white rounded-2xl border border-[#8E4A59]/15 hover:border-[#8E4A59]/45 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col sm:flex-row"
-                      >
-                        {/* Thumbnail */}
-                        <div className="sm:w-44 h-48 sm:h-auto relative overflow-hidden bg-[#191215] shrink-0">
+                    if (themeConfig.layoutId === 'minimal-menu') {
+                      return (
+                        <motion.article
+                          key={svc.id}
+                          whileHover={{ y: -3 }}
+                          className="bg-white rounded-2xl p-4 sm:p-5 border shadow-2xs flex items-center gap-4 justify-between transition-all"
+                          style={{ borderColor: palette.borderSubtle }}
+                        >
                           <img
                             src={svc.imageUrl}
                             alt={svc.name}
                             loading="lazy"
+                            className="w-20 h-20 rounded-2xl object-cover shrink-0 border"
+                            style={{ borderColor: palette.borderSubtle }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span
+                              className="font-mono text-[10px] font-semibold"
+                              style={{ color: palette.accentPrimary }}
+                            >
+                              {dept.code}.{String(idx + 1).padStart(2, '0')} · {svc.durationMinutes} min
+                            </span>
+                            <h4
+                              className={`${typography.headingClass} text-base sm:text-lg leading-snug truncate`}
+                              style={{ color: palette.textPrimary }}
+                            >
+                              {svc.name}
+                            </h4>
+                            <p
+                              className="text-xs line-clamp-2 mt-0.5"
+                              style={{ color: palette.textSecondary }}
+                            >
+                              {svc.shortDescription}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0 space-y-2 tabular-nums">
+                            <div>
+                              <span
+                                className="text-base font-bold block"
+                                style={{ color: palette.textPrimary }}
+                              >
+                                ${svc.priceUSD} USD
+                              </span>
+                              <span
+                                className="text-[10px] font-mono block"
+                                style={{ color: palette.textSecondary }}
+                              >
+                                Bs. {priceBs}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => onOpenBooking(svc)}
+                              className="px-3.5 py-1.5 rounded-xl text-white text-xs font-semibold cursor-pointer"
+                              style={{ backgroundColor: palette.accentPrimary }}
+                            >
+                              Reservar
+                            </button>
+                          </div>
+                        </motion.article>
+                      );
+                    }
+
+                    const isVerticalCard = themeConfig.layoutId === 'boutique-grid';
+
+                    return (
+                      <motion.article
+                        key={svc.id}
+                        whileHover={{ y: -4 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                        className={`group bg-white rounded-3xl border overflow-hidden shadow-card hover:shadow-luxury transition-all flex ${
+                          isVerticalCard ? 'flex-col' : 'flex-col sm:flex-row'
+                        }`}
+                        style={{ borderColor: palette.borderSubtle }}
+                      >
+                        {/* Verified Beauty Image Container */}
+                        <div
+                          className={`${
+                            isVerticalCard ? 'w-full h-52' : 'w-full sm:w-48 h-52 sm:h-auto'
+                          } relative overflow-hidden shrink-0`}
+                          style={{ backgroundColor: palette.softSurfaceBg }}
+                        >
+                          <img
+                            src={svc.imageUrl}
+                            alt={svc.name}
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = '/capra/brow-lamination.jpg';
+                            }}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#191215]/70 via-transparent to-transparent sm:hidden" />
 
                           {/* Top badge */}
                           <span
-                            className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold text-white shadow-xs ${
-                              isCourse ? 'bg-[#B8925A]' : 'bg-[#8E4A59]'
-                            }`}
+                            className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white shadow-xs"
+                            style={{
+                              backgroundColor: isCourse
+                                ? palette.accentSecondary
+                                : palette.accentPrimary,
+                            }}
                           >
                             {svc.badgeText || (isCourse ? 'Capra Academy' : 'Signature')}
                           </span>
 
                           {/* Duration pill */}
-                          <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-[#191215]/80 backdrop-blur-xs text-white text-[10px] font-mono flex items-center gap-1 tabular-nums">
-                            <Clock className="w-3 h-3 text-[#C8A97E]" />
+                          <span className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px] font-mono flex items-center gap-1 tabular-nums">
+                            <Clock className="w-3 h-3 text-amber-200" />
                             {svc.durationMinutes} min
                           </span>
                         </div>
 
-                        {/* Content */}
-                        <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+                        {/* Card Content — Safe padding so price never clips on mobile */}
+                        <div className="p-5 flex-1 flex flex-col justify-between">
                           <div>
-                            <div className="flex items-start justify-between gap-2 mb-1.5">
-                              <span className="font-mono text-[10px] text-[#8E4A59] font-semibold">
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <span
+                                className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-md"
+                                style={{
+                                  backgroundColor: palette.badgeBg,
+                                  color: palette.badgeText,
+                                }}
+                              >
                                 {dept.code}.{String(idx + 1).padStart(2, '0')}
                               </span>
                               <div className="text-right tabular-nums shrink-0">
-                                <span className="text-lg font-bold text-[#191215] whitespace-nowrap">
+                                <span
+                                  className="text-lg sm:text-xl font-bold block leading-none"
+                                  style={{ color: palette.textPrimary }}
+                                >
                                   ${svc.priceUSD} USD
                                 </span>
-                                <span className="block text-[10px] font-mono text-[#7A6268] whitespace-nowrap">
+                                <span
+                                  className="block text-[10px] font-mono mt-1"
+                                  style={{ color: palette.textSecondary }}
+                                >
                                   Bs. {priceBs}
                                 </span>
                               </div>
                             </div>
 
-                            <h4 className="font-serif text-lg sm:text-xl text-[#191215] leading-snug mb-1.5">
+                            <h4
+                              className={`${typography.headingClass} text-lg sm:text-xl leading-snug mb-1.5`}
+                              style={{ color: palette.textPrimary }}
+                            >
                               {svc.name}
                             </h4>
 
-                            <p className="text-xs text-[#5E474D] leading-relaxed mb-3">
+                            <p
+                              className="text-xs leading-relaxed mb-4"
+                              style={{ color: palette.textSecondary }}
+                            >
                               {svc.fullDescription || svc.shortDescription}
                             </p>
                           </div>
 
-                          <div className="pt-3 border-t border-[#FAF6F3] flex items-center justify-between gap-2">
-                            <span className="text-[11px] text-[#7A6268] truncate">
+                          <div
+                            className="pt-3 border-t flex items-center justify-between gap-3"
+                            style={{ borderColor: palette.borderSubtle }}
+                          >
+                            <span
+                              className="text-[11px] truncate"
+                              style={{ color: palette.textSecondary }}
+                            >
                               {svc.idealFor}
                             </span>
 
                             <button
                               onClick={() => onOpenBooking(svc)}
-                              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
-                                isCourse
-                                  ? 'bg-[#B8925A] hover:bg-[#9e7b47] text-white'
-                                  : 'bg-[#191215] hover:bg-[#8E4A59] text-white'
-                              }`}
+                              className="px-4 py-2.5 rounded-xl text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs hover:opacity-95 transition-all cursor-pointer shrink-0"
+                              style={{
+                                backgroundColor: isCourse
+                                  ? palette.accentSecondary
+                                  : palette.accentPrimary,
+                              }}
                             >
                               <span>{isCourse ? 'Inscribirme' : 'Reservar'}</span>
                               <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
-                      </article>
+                      </motion.article>
                     );
                   })}
                 </div>
@@ -507,36 +899,55 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
           })
         )}
 
-        {/* ══ 5. SECCIÓN ESPECIAL: CAPRA ACADEMY (FORMACIÓN PRESENCIAL CERTIFICADA) ══ */}
+        {/* ══ 6. SECCIÓN ESPECIAL: CAPRA ACADEMY (FORMACIÓN PRESENCIAL CERTIFICADA) ══ */}
         {academyCourses.length > 0 && selectedCategory !== 'cursos' && (
-          <section className="rounded-3xl bg-[#191215] text-[#FAF6F3] p-6 sm:p-10 border border-[#C8A97E]/30 relative overflow-hidden">
-            <div
-              className="absolute inset-0 pointer-events-none opacity-60"
-              style={{
-                background:
-                  'radial-gradient(circle at 85% 20%, rgba(200, 169, 126, 0.25) 0%, transparent 50%), radial-gradient(circle at 10% 80%, rgba(142, 74, 89, 0.35) 0%, transparent 50%)',
-              }}
-            />
+          <section
+            className="rounded-[32px] p-6 sm:p-10 border relative overflow-hidden shadow-soft"
+            style={{
+              backgroundColor: palette.softSurfaceBg,
+              borderColor: palette.borderSubtle,
+            }}
+          >
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-6 space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-[#C8A97E]/40 text-[#C8A97E] text-[10px] font-mono uppercase tracking-[0.2em]">
+                <div
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border text-[10px] font-mono uppercase tracking-[0.18em] font-semibold"
+                  style={{
+                    borderColor: palette.borderSubtle,
+                    color: palette.accentPrimary,
+                  }}
+                >
                   <GraduationCap className="w-3.5 h-3.5" />
-                  <span>CAPRA ACADEMY · SAN CRISTÓBAL</span>
+                  <span>CAPRA ACADEMY · FORMACIÓN PROFESIONAL</span>
                 </div>
-                <h3 className="font-serif text-3xl sm:text-4xl leading-tight">
-                  Formación intensiva para futuras especialistas en belleza.
+                <h3
+                  className={`${typography.headingClass} text-3xl sm:text-4xl leading-tight`}
+                  style={{ color: palette.textPrimary }}
+                >
+                  Capacitación presencial certificada por {themeConfig.directorName}.
                 </h3>
-                <p className="text-xs sm:text-sm text-[#FAF6F3]/80 leading-relaxed">
-                  Aprende las técnicas exactas de nuestro estudio con práctica en modelo real, materiales incluidos en mesa, guía impresa y certificado avalado por María Giovanna Capra.
+                <p
+                  className="text-xs sm:text-sm leading-relaxed"
+                  style={{ color: palette.textSecondary }}
+                >
+                  Domina las técnicas exactas de nuestro estudio con práctica en modelo real, materiales incluidos en mesa, guía impresa y certificado avalado.
                 </p>
                 <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div className="p-3 rounded-xl bg-white/6 border border-white/10">
-                    <span className="font-mono text-[10px] text-[#C8A97E] uppercase block">MODALIDAD</span>
-                    <span className="text-xs font-semibold text-white">Grupos Reducidos VIP (100% Práctico)</span>
+                  <div className="p-3.5 rounded-2xl bg-white border" style={{ borderColor: palette.borderSubtle }}>
+                    <span className="font-mono text-[10px] uppercase block" style={{ color: palette.accentPrimary }}>
+                      MODALIDAD
+                    </span>
+                    <span className="text-xs font-semibold" style={{ color: palette.textPrimary }}>
+                      Grupos VIP Reducidos (Práctica Real)
+                    </span>
                   </div>
-                  <div className="p-3 rounded-xl bg-white/6 border border-white/10">
-                    <span className="font-mono text-[10px] text-[#C8A97E] uppercase block">RESERVA DE CUPO</span>
-                    <span className="text-xs font-semibold text-white">50% de abono inicial y resto el día del curso</span>
+                  <div className="p-3.5 rounded-2xl bg-white border" style={{ borderColor: palette.borderSubtle }}>
+                    <span className="font-mono text-[10px] uppercase block" style={{ color: palette.accentPrimary }}>
+                      INSCRIPCIÓN
+                    </span>
+                    <span className="text-xs font-semibold" style={{ color: palette.textPrimary }}>
+                      Reserva tu cupo con el 50%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -545,26 +956,42 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
                 {academyCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="p-4 rounded-2xl bg-white/8 hover:bg-white/12 border border-white/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors"
+                    className="p-4 sm:p-5 rounded-2xl bg-white border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs"
+                    style={{ borderColor: palette.borderSubtle }}
                   >
-                    <div>
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#C8A97E] block">
-                        CERTIFICACIÓN PRESENCIAL · {course.durationMinutes / 60} HORAS
-                      </span>
-                      <h4 className="font-serif text-lg text-white mt-0.5">
-                        {course.name}
-                      </h4>
-                      <p className="text-xs text-white/70 mt-0.5">
-                        {course.shortDescription}
-                      </p>
+                    <div className="flex items-center gap-3.5">
+                      <img
+                        src={course.imageUrl}
+                        alt={course.name}
+                        className="w-16 h-16 rounded-xl object-cover shrink-0 border"
+                        style={{ borderColor: palette.borderSubtle }}
+                      />
+                      <div>
+                        <span
+                          className="text-[10px] font-mono uppercase tracking-widest font-semibold block"
+                          style={{ color: palette.accentPrimary }}
+                        >
+                          CERTIFICACIÓN · {course.durationMinutes / 60} HORAS
+                        </span>
+                        <h4
+                          className={`${typography.headingClass} text-base sm:text-lg mt-0.5`}
+                          style={{ color: palette.textPrimary }}
+                        >
+                          {course.name}
+                        </h4>
+                        <p className="text-xs mt-0.5 line-clamp-1" style={{ color: palette.textSecondary }}>
+                          {course.shortDescription}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0 tabular-nums">
-                      <span className="text-lg font-bold text-[#C8A97E] whitespace-nowrap">
+                      <span className="text-lg font-bold" style={{ color: palette.textPrimary }}>
                         ${course.priceUSD} USD
                       </span>
                       <button
                         onClick={() => onOpenBooking(course)}
-                        className="px-4 py-2 rounded-xl bg-[#C8A97E] hover:bg-[#d8bc93] text-[#191215] font-bold text-xs cursor-pointer whitespace-nowrap"
+                        className="px-4 py-2 rounded-xl text-white font-semibold text-xs cursor-pointer whitespace-nowrap"
+                        style={{ backgroundColor: palette.accentPrimary }}
                       >
                         Apartar Cupo
                       </button>
@@ -576,161 +1003,524 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
           </section>
         )}
 
-        {/* ══ 6. INFORMACIÓN DEL ESTUDIO, POLÍTICAS CLARAS & MÉTODOS DE PAGO ══ */}
+        {/* ══ 7. GARANTÍA, UBICACIÓN Y MÉTODOS DE PAGO ══ */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
-          <div className="bg-white rounded-2xl p-5 border border-[#8E4A59]/15 space-y-2">
-            <div className="flex items-center gap-2 text-[#8E4A59] font-mono text-[11px] uppercase tracking-wider font-semibold">
+          <div
+            className="bg-white rounded-3xl p-5 border space-y-2 shadow-2xs"
+            style={{ borderColor: palette.borderSubtle }}
+          >
+            <div
+              className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider font-semibold"
+              style={{ color: palette.accentPrimary }}
+            >
               <MapPin className="w-4 h-4" />
               <span>01 · Ubicación &amp; Horario</span>
             </div>
-            <h4 className="font-serif text-lg text-[#191215]">San Cristóbal, Táchira</h4>
-            <p className="text-xs text-[#5E474D] leading-relaxed">
-              Atención de Lunes a Sábado de 8:30 AM a 6:30 PM bajo cita programada. Ambiente climatizado, Wi-Fi y café de cortesía.
+            <h4 className={`${typography.headingClass} text-lg`} style={{ color: palette.textPrimary }}>
+              {themeConfig.city}
+            </h4>
+            <p className="text-xs leading-relaxed" style={{ color: palette.textSecondary }}>
+              Atención personalizada de Lunes a Sábado de 8:30 AM a 6:30 PM bajo cita previa. Ambiente climatizado y confort VIP.
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-[#8E4A59]/15 space-y-2">
-            <div className="flex items-center gap-2 text-[#8E4A59] font-mono text-[11px] uppercase tracking-wider font-semibold">
+          <div
+            className="bg-white rounded-3xl p-5 border space-y-2 shadow-2xs"
+            style={{ borderColor: palette.borderSubtle }}
+          >
+            <div
+              className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider font-semibold"
+              style={{ color: palette.accentPrimary }}
+            >
               <ShieldCheck className="w-4 h-4" />
-              <span>02 · Garantía &amp; Puntualidad</span>
+              <span>02 · Reserva Garantizada</span>
             </div>
-            <h4 className="font-serif text-lg text-[#191215]">Reserva Protegida</h4>
-            <p className="text-xs text-[#5E474D] leading-relaxed">
-              Tolerancia máxima de 15 minutos por respeto a la agenda de cada clienta. Los cursos de Capra Academy se reservan con el 50%.
+            <h4 className={`${typography.headingClass} text-lg`} style={{ color: palette.textPrimary }}>
+              Puntualidad &amp; Cuidado
+            </h4>
+            <p className="text-xs leading-relaxed" style={{ color: palette.textSecondary }}>
+              Tu turno queda bloqueado exclusivamente para ti con la especialista seleccionada. Tolerancia de 15 minutos entre citas.
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-[#8E4A59]/15 space-y-2">
-            <div className="flex items-center gap-2 text-[#8E4A59] font-mono text-[11px] uppercase tracking-wider font-semibold">
+          <div
+            className="bg-white rounded-3xl p-5 border space-y-2 shadow-2xs"
+            style={{ borderColor: palette.borderSubtle }}
+          >
+            <div
+              className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider font-semibold"
+              style={{ color: palette.accentPrimary }}
+            >
               <Award className="w-4 h-4" />
-              <span>03 · Métodos de Pago</span>
+              <span>03 · Facilidades de Pago</span>
             </div>
-            <h4 className="font-serif text-lg text-[#191215]">Multi-Divisa sin Fricción</h4>
-            <p className="text-xs text-[#5E474D] leading-relaxed tabular-nums">
+            <h4 className={`${typography.headingClass} text-lg`} style={{ color: palette.textPrimary }}>
+              Multi-Divisa sin Fricción
+            </h4>
+            <p className="text-xs leading-relaxed tabular-nums" style={{ color: palette.textSecondary }}>
               Efectivo (USD / COP), Zelle, Binance Pay (USDT) y Pago Móvil a tasa oficial BCV del día (Bs. {exchangeRate.toFixed(2)}).
             </p>
           </div>
         </section>
       </main>
 
-      {/* ══ FOOTER DE AUTOR CAPRA STUDIO ══ */}
-      <footer className="bg-[#191215] text-[#FAF6F3]/70 border-t border-white/10 py-8 px-4 sm:px-8 text-xs">
+      {/* ══ FOOTER LUMÍNICO DE AUTOR ══ */}
+      <footer
+        className="bg-white border-t py-8 px-4 sm:px-8 text-xs"
+        style={{ borderColor: palette.borderSubtle, color: palette.textSecondary }}
+      >
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#8E4A59] text-white font-serif italic flex items-center justify-center text-sm">
-              C
+            <div
+              className={`w-8 h-8 rounded-full text-white ${typography.headingClass} flex items-center justify-center text-xs font-bold`}
+              style={{ background: palette.gradientCss }}
+            >
+              {themeConfig.businessName[0]}
             </div>
             <div>
-              <p className="font-semibold text-white">Capra Studio · By María Giovanna Capra</p>
-              <p className="text-[11px] text-white/55">San Cristóbal, Estado Táchira · Venezuela</p>
+              <p className="font-semibold" style={{ color: palette.textPrimary }}>
+                {themeConfig.businessName} · {themeConfig.tagline}
+              </p>
+              <p className="text-[11px]">{themeConfig.city}</p>
             </div>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
+            <button
+              onClick={() => setShowCustomizer(true)}
+              className="hover:underline font-semibold cursor-pointer"
+              style={{ color: palette.accentPrimary }}
+            >
+              Personalizar Estilo de Carta
+            </button>
+            <span>·</span>
             <a
               href="/"
-              className="text-[#C8A97E] hover:underline font-mono uppercase tracking-wider"
+              className="hover:underline font-mono uppercase tracking-wider font-semibold"
+              style={{ color: palette.textPrimary }}
             >
-              Tecnología por VANESEV
+              Experiencia impulsada por VANESEV
             </a>
           </div>
         </div>
       </footer>
 
-      {/* ══ BARRA FLOTANTE INFERIOR EN MÓVIL (SAFE-AREA SUPPORT) ══ */}
-      <div className="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-[#191215]/95 backdrop-blur-md border-t border-white/15 px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] flex items-center justify-between gap-2">
+      {/* ══ BARRA FLOTANTE INFERIOR EN MÓVIL (LUMINOUS GLASS CAPSULE) ══ */}
+      <div
+        className="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-white/95 backdrop-blur-xl border-t px-4 pt-2.5 pb-[max(12px,env(safe-area-inset-bottom))] flex items-center justify-between gap-2 shadow-luxury"
+        style={{ borderColor: palette.borderSubtle }}
+      >
         <button
-          onClick={onOpenAccountModal}
-          className="px-3 py-2.5 rounded-xl bg-white/10 text-[#FAF6F3] text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+          onClick={() => setShowVipModal(true)}
+          className="px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer border"
+          style={{
+            backgroundColor: palette.badgeBg,
+            color: palette.badgeText,
+            borderColor: palette.borderSubtle,
+          }}
         >
-          <Sparkles className="w-3.5 h-3.5 text-[#C8A97E]" />
-          <span>Capra Privé</span>
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Sellos VIP</span>
         </button>
 
         <a
-          href="https://wa.me/584247429530"
+          href={`https://wa.me/${themeConfig.whatsappPhone}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-3 py-2.5 rounded-xl bg-white/10 text-[#FAF6F3] text-xs font-medium flex items-center gap-1.5"
+          className="px-3 py-2.5 rounded-xl bg-white text-xs font-semibold flex items-center gap-1.5 border"
+          style={{
+            color: palette.textPrimary,
+            borderColor: palette.borderSubtle,
+          }}
         >
-          <Phone className="w-3.5 h-3.5 text-[#C8A97E]" />
+          <Phone className="w-3.5 h-3.5" style={{ color: palette.accentPrimary }} />
           <span>WhatsApp</span>
         </a>
 
         <button
           onClick={() => onOpenBooking()}
-          className="flex-1 py-2.5 px-4 rounded-xl bg-[#8E4A59] text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+          className="flex-1 py-2.5 px-4 rounded-xl text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+          style={{ backgroundColor: palette.accentPrimary }}
         >
           <Calendar className="w-3.5 h-3.5" />
           <span>Reservar Cita</span>
         </button>
       </div>
 
-      {/* ══ MODAL QR DINÁMICO DE CAPRA STUDIO ══ */}
-      {showQrModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setShowQrModal(false)}
-        >
-          <div
-            className="bg-[#FAF6F3] border border-[#8E4A59]/30 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center relative"
-            onClick={(e) => e.stopPropagation()}
+      {/* ══ MODAL PASAPORTE VIP PROPIO DEL SALÓN (VERTIX REWARDS CARD INSPIRED — ZERO ANDREA NAILS) ══ */}
+      <AnimatePresence>
+        {showVipModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+            onClick={() => setShowVipModal(false)}
           >
-            <button
-              onClick={() => setShowQrModal(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#191215]/10 hover:bg-[#191215]/20 flex items-center justify-center text-[#191215] cursor-pointer"
+            <motion.div
+              initial={{ scale: 0.95, y: 12 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 12 }}
+              className="bg-white rounded-[32px] max-w-lg w-full p-6 sm:p-7 shadow-2xl border relative overflow-hidden"
+              style={{ borderColor: palette.borderSubtle }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <X className="w-4 h-4" />
-            </button>
+              <button
+                onClick={() => setShowVipModal(false)}
+                className="absolute top-5 right-5 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
 
-            <span className="inline-block px-3 py-1 rounded-full bg-[#8E4A59]/15 text-[#8E4A59] text-[10px] font-mono font-bold uppercase tracking-widest mb-2">
-              QR Oficial de Recepción
-            </span>
-            <h3 className="font-serif text-2xl text-[#191215]">
-              Capra Studio
-            </h3>
-            <p className="text-xs text-[#6B565C] mb-4">
-              Escanea con la cámara para abrir la carta interactiva y agendar sin esperas
-            </p>
+              <span
+                className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold block mb-1"
+                style={{ color: palette.accentPrimary }}
+              >
+                PROGRAMA DE RECOMPENSAS · {themeConfig.businessName.toUpperCase()}
+              </span>
+              <h3 className={`${typography.headingClass} text-2xl sm:text-3xl mb-4`} style={{ color: palette.textPrimary }}>
+                Pasaporte de Fidelidad VIP
+              </h3>
 
-            <div className="bg-white p-4 rounded-2xl border border-[#8E4A59]/25 inline-block shadow-inner mb-4">
-              {qrSvgString ? (
+              {/* Luminous Gradient Loyalty Card (Inspired by Vertix Rewards Card in User Reference) */}
+              <div
+                className="rounded-3xl p-6 text-white shadow-lg mb-6 relative overflow-hidden"
+                style={{ background: palette.gradientCss }}
+              >
+                <div className="flex items-center justify-between text-xs opacity-90 mb-4">
+                  <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-xs font-semibold flex items-center gap-1.5">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span>Miembro Privé</span>
+                  </span>
+                  <span className="font-mono text-[11px]">{themeConfig.businessName}</span>
+                </div>
+
+                <div className="tabular-nums mb-4">
+                  <span className="text-4xl font-bold tracking-tight">
+                    {vipClientData ? vipClientData.stamps : 1} / {themeConfig.loyaltyStampsTarget}
+                  </span>
+                  <span className="text-sm ml-2 opacity-90">sellos verificados</span>
+                </div>
+
+                {/* Stamp circles progress */}
+                <div className="grid grid-cols-5 gap-2 mb-4">
+                  {Array.from({ length: themeConfig.loyaltyStampsTarget }).map((_, idx) => {
+                    const earned = idx < (vipClientData ? vipClientData.stamps : 1);
+                    return (
+                      <div
+                        key={idx}
+                        className={`h-11 rounded-2xl flex items-center justify-center font-mono text-xs font-bold border transition-all ${
+                          earned
+                            ? 'bg-white text-[#1E181A] border-white shadow-xs'
+                            : 'bg-white/15 text-white/80 border-white/30'
+                        }`}
+                      >
+                        {earned ? <Check className="w-4 h-4 stroke-[2.5]" /> : idx + 1}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-white/20">
+                  <span>Recompensa al completar:</span>
+                  <span className="font-bold">{themeConfig.loyaltyRewardTitle}</span>
+                </div>
+              </div>
+
+              {/* Phone lookup form */}
+              <form onSubmit={handleLookupVip} className="space-y-3">
+                <label className="block text-xs font-semibold" style={{ color: palette.textPrimary }}>
+                  Consulta tus sellos acumulados con tu número de WhatsApp:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    placeholder="Ej: 0424-7429530"
+                    value={vipPhoneInput}
+                    onChange={(e) => setVipPhoneInput(e.target.value)}
+                    className="flex-1 px-4 py-2.5 rounded-2xl border text-xs focus:outline-none"
+                    style={{ borderColor: palette.borderSubtle }}
+                  />
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-2xl text-white text-xs font-semibold cursor-pointer"
+                    style={{ backgroundColor: palette.accentPrimary }}
+                  >
+                    Consultar
+                  </button>
+                </div>
+              </form>
+
+              {vipClientData && (
                 <div
-                  className="w-48 h-48 mx-auto"
-                  dangerouslySetInnerHTML={{ __html: qrSvgString }}
-                />
-              ) : (
-                <div className="w-48 h-48 flex items-center justify-center text-xs text-gray-400">
-                  Generando QR...
+                  className="mt-4 p-4 rounded-2xl border flex items-center justify-between gap-3"
+                  style={{
+                    backgroundColor: palette.softSurfaceBg,
+                    borderColor: palette.borderSubtle,
+                  }}
+                >
+                  <div>
+                    <p className="text-xs font-bold" style={{ color: palette.textPrimary }}>
+                      {vipClientData.name}
+                    </p>
+                    <p className="text-[11px]" style={{ color: palette.textSecondary }}>
+                      Cada cita agendada suma automáticamente 1 sello a tu ficha digital.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowVipModal(false);
+                      onOpenBooking();
+                    }}
+                    className="px-3.5 py-2 rounded-xl text-white text-xs font-semibold shrink-0 cursor-pointer"
+                    style={{ backgroundColor: palette.accentPrimary }}
+                  >
+                    Sumar Sello
+                  </button>
                 </div>
               )}
-            </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            <div className="bg-white rounded-xl p-2.5 border border-[#8E4A59]/20 flex items-center justify-between gap-2 mb-4">
-              <span className="text-[11px] font-mono text-[#191215] truncate pl-1">
-                https://vanesev.com/m/capra-studio
-              </span>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText('https://vanesev.com/m/capra-studio');
-                  setIsCopied(true);
-                  setTimeout(() => setIsCopied(false), 2000);
-                }}
-                className="px-2.5 py-1 rounded-lg bg-[#8E4A59] text-white text-[10px] font-bold flex items-center gap-1 shrink-0 cursor-pointer"
-              >
-                {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                <span>{isCopied ? 'Copiado' : 'Copiar'}</span>
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowQrModal(false)}
-              className="w-full py-2.5 rounded-xl bg-[#191215] text-white text-xs font-bold cursor-pointer"
+      {/* ══ DRAWER INTERACTIVO DE PERSONALIZACIÓN DE ESTILO (PALETA, TIPOGRAFÍA Y LAYOUT EN VIVO) ══ */}
+      <AnimatePresence>
+        {showCustomizer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs flex justify-end"
+            onClick={() => setShowCustomizer(false)}
+          >
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="w-full max-w-md bg-white h-full overflow-y-auto p-6 shadow-2xl space-y-6"
+              onClick={(e) => e.stopPropagation()}
             >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-rose-700 font-bold block">
+                    STUDIO DESIGN ENGINE · EN VIVO
+                  </span>
+                  <h3 className="font-serif text-xl text-stone-900">
+                    Personalizar Identidad del Catálogo
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowCustomizer(false)}
+                  className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* 1. Paletas de Color Curadas */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
+                  <Palette className="w-3.5 h-3.5 text-rose-700" />
+                  <span>1. Paleta de Colores Sugerida</span>
+                </label>
+                <div className="grid grid-cols-1 gap-2.5">
+                  {SALON_PALETTE_PRESETS.map((preset) => {
+                    const active = themeConfig.paletteId === preset.id;
+                    return (
+                      <button
+                        key={preset.id}
+                        onClick={() => updateThemeField('paletteId', preset.id)}
+                        className={`p-3.5 rounded-2xl border text-left transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                          active
+                            ? 'border-stone-900 bg-stone-50 shadow-xs ring-1 ring-stone-900'
+                            : 'border-stone-200 hover:border-stone-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-9 h-9 rounded-xl shadow-xs border border-black/10 shrink-0"
+                            style={{ background: preset.gradientCss }}
+                          />
+                          <div>
+                            <p className="text-xs font-bold text-stone-900">{preset.name}</p>
+                            <p className="text-[11px] text-stone-500">{preset.idealSector}</p>
+                          </div>
+                        </div>
+                        {active && <CheckCircle2 className="w-4 h-4 text-stone-900 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Tipografía Editorial */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
+                  <Type className="w-3.5 h-3.5 text-rose-700" />
+                  <span>2. Tipografía de Autor</span>
+                </label>
+                <div className="space-y-2">
+                  {SALON_TYPOGRAPHY_PRESETS.map((typo) => {
+                    const active = themeConfig.typographyId === typo.id;
+                    return (
+                      <button
+                        key={typo.id}
+                        onClick={() => updateThemeField('typographyId', typo.id)}
+                        className={`w-full p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                          active
+                            ? 'border-stone-900 bg-stone-50 ring-1 ring-stone-900'
+                            : 'border-stone-200 hover:border-stone-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`${typo.headingClass} text-base text-stone-900`}>
+                            {typo.name}
+                          </span>
+                          {active && <CheckCircle2 className="w-4 h-4 text-stone-900" />}
+                        </div>
+                        <p className="text-[11px] text-stone-500 mt-0.5">{typo.subtitle}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Disposición de Tarjetas */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5">
+                  <LayoutGrid className="w-3.5 h-3.5 text-rose-700" />
+                  <span>3. Formato Visual del Catálogo</span>
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      { id: 'editorial-magazine', label: 'Editorial' },
+                      { id: 'boutique-grid', label: 'Escaparate' },
+                      { id: 'minimal-menu', label: 'Compacto' },
+                    ] as { id: SalonLayoutId; label: string }[]
+                  ).map((lay) => {
+                    const active = themeConfig.layoutId === lay.id;
+                    return (
+                      <button
+                        key={lay.id}
+                        onClick={() => updateThemeField('layoutId', lay.id)}
+                        className={`py-2.5 px-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                          active
+                            ? 'bg-stone-900 text-white border-stone-900'
+                            : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
+                        }`}
+                      >
+                        {lay.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-stone-200">
+                <button
+                  onClick={() => setShowCustomizer(false)}
+                  className="w-full py-3 rounded-2xl text-white text-xs font-semibold shadow-md cursor-pointer"
+                  style={{ backgroundColor: palette.accentPrimary }}
+                >
+                  Guardar y Aplicar Diseño en Vivo
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══ MODAL QR DINÁMICO ══ */}
+      <AnimatePresence>
+        {showQrModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+            onClick={() => setShowQrModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-white border rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center relative"
+              style={{ borderColor: palette.borderSubtle }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <span
+                className="inline-block px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest mb-2"
+                style={{
+                  backgroundColor: palette.badgeBg,
+                  color: palette.badgeText,
+                }}
+              >
+                QR Oficial de Recepción
+              </span>
+              <h3 className={`${typography.headingClass} text-2xl`} style={{ color: palette.textPrimary }}>
+                {themeConfig.businessName}
+              </h3>
+              <p className="text-xs mb-4" style={{ color: palette.textSecondary }}>
+                Escanea con la cámara para abrir la carta interactiva y agendar sin esperas
+              </p>
+
+              <div
+                className="bg-white p-4 rounded-2xl border inline-block shadow-inner mb-4"
+                style={{ borderColor: palette.borderSubtle }}
+              >
+                {qrSvgString ? (
+                  <div
+                    className="w-48 h-48 mx-auto"
+                    dangerouslySetInnerHTML={{ __html: qrSvgString }}
+                  />
+                ) : (
+                  <div className="w-48 h-48 flex items-center justify-center text-xs text-gray-400">
+                    Generando QR...
+                  </div>
+                )}
+              </div>
+
+              <div
+                className="bg-stone-50 rounded-xl p-2.5 border flex items-center justify-between gap-2 mb-4"
+                style={{ borderColor: palette.borderSubtle }}
+              >
+                <span className="text-[11px] font-mono truncate pl-1" style={{ color: palette.textPrimary }}>
+                  https://vanesev.com/m/{tenantSlug}
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://vanesev.com/m/${tenantSlug}`);
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                  }}
+                  className="px-2.5 py-1 rounded-lg text-white text-[10px] font-bold flex items-center gap-1 shrink-0 cursor-pointer"
+                  style={{ backgroundColor: palette.accentPrimary }}
+                >
+                  {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  <span>{isCopied ? 'Copiado' : 'Copiar'}</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="w-full py-2.5 rounded-xl text-white text-xs font-bold cursor-pointer"
+                style={{ backgroundColor: palette.textPrimary }}
+              >
+                Cerrar
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

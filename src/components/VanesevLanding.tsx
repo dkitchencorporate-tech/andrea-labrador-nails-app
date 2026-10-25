@@ -1,864 +1,566 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-  ArrowRight,
-  Check,
-  QrCode,
-  Calendar,
-  Award,
   Sparkles,
-  ExternalLink,
-  X,
-  Menu,
+  Calendar,
+  QrCode,
   ShieldCheck,
+  ArrowRight,
+  ArrowUpRight,
+  Check,
   Clock,
   Star,
-  MapPin,
-  ChevronRight,
+  Users,
+  Heart,
+  Palette,
+  Sliders,
   Smartphone,
-  CreditCard,
-  Building2,
-  Zap,
-  BookOpen,
+  Award,
+  TrendingUp,
+  MessageCircle,
+  Layers,
+  Eye,
+  ChevronRight,
+  Menu,
+  X,
+  CheckCircle2,
+  MapPin,
+  Crown,
 } from 'lucide-react';
-import { QREncoder } from '../utils/qrEncoder';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import {
+  SALON_PALETTES,
+  SALON_TYPOGRAPHIES,
+  SALON_LAYOUTS,
+  SalonPaletteId,
+  SalonTypographyId,
+  SalonCardLayoutId,
+  getPaletteById,
+  getTypographyById,
+} from '../utils/salonThemeEngine';
 
 interface VanesevLandingProps {
+  onOpenCapraDemo: () => void;
+  onOpenCapraAdmin: () => void;
+  onOpenAndreaDemo: () => void;
   onOpenCentral: () => void;
-  onSelectTenant: (slug: 'andrea-nails' | 'capra-studio') => void;
 }
 
-interface NicheSpec {
-  id: 'hair' | 'nails' | 'barber' | 'medspa' | 'academy';
-  label: string;
-  shortLabel: string;
-  badge: string;
-  headlineAccent: string;
-  painTitle: string;
-  painDetail: string;
-  solutionTitle: string;
-  solutionDetail: string;
-  heroImage: string;
-  demoBrandName: string;
-  demoBrandSub: string;
-  demoAccent: string;
-  demoRecommendation: { name: string; price: string; duration: string };
-  demoServices: { name: string; desc: string; price: string; duration: string; image: string }[];
-  metrics: { value: string; label: string }[];
-}
-
-const NICHES: Record<NicheSpec['id'], NicheSpec> = {
-  hair: {
-    id: 'hair',
-    label: 'Peluquería & Color',
-    shortLabel: 'Peluquería',
-    badge: 'Especialistas en Balayage, Alisados y Estilismo',
-    headlineAccent: 'peluquería de autor',
-    painTitle: 'Sillas vacías por cancelaciones de última hora y comisiones confusas',
-    painDetail:
-      'Los trabajos técnicos de 3 o 4 horas bloquean media jornada. Si una clienta no avisa o dos estilistas reservan el mismo lavacabezas a la vez, el salón pierde cientos de dólares esa semana.',
-    solutionTitle: 'Asignación inteligente de tocadores, tiempos de pose y liquidación de equipo',
-    solutionDetail:
-      'Tu carta QR muestra cada tratamiento capilar con diagnóstico previo, bloquea tocador y estilista automáticamente y calcula la comisión exacta de cada profesional al cerrar la cita.',
-    heroImage: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1400&q=85',
-    demoBrandName: 'Atelier Lumière',
-    demoBrandSub: 'Alta Peluquería & Colorimetría Orgánica',
-    demoAccent: '#8E1B46',
-    demoRecommendation: {
-      name: 'Alisado Orgánico Efecto Espejo',
-      price: '$45',
-      duration: '150 min',
-    },
-    demoServices: [
-      {
-        name: 'Balayage Contouring + Olaplex',
-        desc: 'Diseño de iluminación a mano alzada con protección de enlaces y matiz.',
-        price: '$65',
-        duration: '180 min',
-        image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        name: 'Brushing Editorial & Ondas Seda',
-        desc: 'Lavado spa detox, termoprotección y estilizado de larga duración.',
-        price: '$18',
-        duration: '50 min',
-        image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=500&q=80',
-      },
-    ],
-    metrics: [
-      { value: '+38%', label: 'Ticket medio con tratamientos adicionales en reserva' },
-      { value: '0%', label: 'Comisiones cedidas a directorios externos' },
-      { value: '21 días', label: 'Frecuencia de retorno con tarjeta VIP digital' },
-    ],
-  },
-  nails: {
-    id: 'nails',
-    label: 'Uñas & Nails Bar',
-    shortLabel: 'Nails & Spa',
-    badge: 'Manicura Rusa, Nivelación Rubber, Polygel y Pedi Spa',
-    headlineAccent: 'estudio de uñas',
-    painTitle: 'Noches enteras respondiendo precios por WhatsApp y clientas que olvidan el retoque',
-    painDetail:
-      'Explicar por chat la diferencia entre Rubber, Polygel y Jelly Tips consume horas. Y sin un sistema de fidelización en su móvil, la clienta deja pasar 5 semanas o prueba otro estudio.',
-    solutionTitle: 'Catálogo visual con extras (Manos + Pies) y Tarjeta VIP de 5 sellos',
-    solutionDetail:
-      'La clienta elige sistema, largo y decoración desde su móvil viendo fotos reales y precios tanto en dólares como en moneda local. Al 5.º sello desbloquea su obsequio y nunca abandona tu mesa.',
-    heroImage: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=1400&q=85',
-    demoBrandName: 'Maison Vernis',
-    demoBrandSub: 'Nails Bar & Pedicure Spa Clínico',
-    demoAccent: '#9A2B52',
-    demoRecommendation: {
-      name: 'Nivelación Base Rubber + Manicura Rusa',
-      price: '$18',
-      duration: '75 min',
-    },
-    demoServices: [
-      {
-        name: 'Extensiones Soft Gel / Jelly Tips',
-        desc: 'Estructura ultraligera de acabado natural con esmaltado en gel.',
-        price: '$22',
-        duration: '90 min',
-        image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        name: 'Pedicure Spa Botánico Integral',
-        desc: 'Exfoliación profunda, sales relajantes, retiro de durezas y gel.',
-        price: '$16',
-        duration: '60 min',
-        image: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&w=500&q=80',
-      },
-    ],
-    metrics: [
-      { value: '+46%', label: 'Retención en ciclos exactos de mantenimiento de 21 días' },
-      { value: '1 toque', label: 'Selección combinada de Manos + Pies en la misma cita' },
-      { value: '100%', label: 'Propiedad total de tu cartera de clientas' },
-    ],
-  },
-  barber: {
-    id: 'barber',
-    label: 'Barbería & Grooming',
-    shortLabel: 'Barbería',
-    badge: 'Cortes de Autor, Perfilado a Navaja y Ritual de Barba',
-    headlineAccent: 'barbería clásica',
-    painTitle: 'Colas sin control los viernes y clientes que se marchan al ver espera',
-    painDetail:
-      'En barbería la velocidad lo es todo. Si reservar requiere descargar una app con registro obligatorio de correo y contraseña, el cliente desiste o entra a otra barbería de paso.',
-    solutionTitle: 'Reserva exprés en 15 segundos por sillón y barbero favorito',
-    solutionDetail:
-      'Escanean el QR del sillón antes de salir y dejan agendado su corte para dentro de 15 días. El club de 5 cortes premia la constancia con perfilado de barba o bebida de cortesía.',
-    heroImage: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1400&q=85',
-    demoBrandName: 'Vanguardia Barber Club',
-    demoBrandSub: 'Sastrería Capilar & Ritual de Toalla Caliente',
-    demoAccent: '#B45309',
-    demoRecommendation: {
-      name: 'Corte Ejecutivo + Ritual Barba Vapor',
-      price: '$24',
-      duration: '50 min',
-    },
-    demoServices: [
-      {
-        name: 'Skin Fade / Degradado de Precisión',
-        desc: 'Corte a tijera y máquina con acabado a navaja y lavado refrescante.',
-        price: '$15',
-        duration: '35 min',
-        image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        name: 'Esculpido de Barba & Toalla Caliente',
-        desc: 'Aceites esenciales, vapor de ozono, afeitado tradicional y aftershave.',
-        price: '$14',
-        duration: '30 min',
-        image: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=500&q=80',
-      },
-    ],
-    metrics: [
-      { value: '15 seg', label: 'Tiempo medio para reservar sillón desde el móvil' },
-      { value: '+52%', label: 'Ocupación en martes y miércoles de menor tráfico' },
-      { value: '0%', label: 'Fricción: sin contraseñas ni descargas en tienda' },
-    ],
-  },
-  medspa: {
-    id: 'medspa',
-    label: 'Clínica Estética & MedSpa',
-    shortLabel: 'Estética & Spa',
-    badge: 'Armonización Facial, Aparatología, Láser y Cabinas',
-    headlineAccent: 'clínica estética',
-    painTitle: 'Cruce de aparatología entre cabinas y pacientes que abandonan sus sesiones',
-    painDetail:
-      'Cuando tienes dos cabinas pero un solo equipo de radiofrecuencia o láser, una agenda convencional provoca solapamientos críticos. Además, los tratamientos por sesiones suelen quedar a medias.',
-    solutionTitle: 'Sincronización de cabina + equipo médico y seguimiento de paquetes',
-    solutionDetail:
-      'Cada protocolo reserva simultáneamente al especialista y la cabina equipada. La ficha digital registra el avance de las 5 sesiones del paciente con privacidad absoluta.',
-    heroImage: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=1400&q=85',
-    demoBrandName: 'Clinique Aura',
-    demoBrandSub: 'Medicina Estética, Dermo-Cosmética & Láser',
-    demoAccent: '#0F766E',
-    demoRecommendation: {
-      name: 'HydraFacial MD + Bioestimulación LED',
-      price: '$55',
-      duration: '60 min',
-    },
-    demoServices: [
-      {
-        name: 'Higiene Facial Profunda Ultrasónica',
-        desc: 'Extracción atraumática, peeling enzimático, alta frecuencia y velo.',
-        price: '$35',
-        duration: '60 min',
-        image: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        name: 'Depilación Láser Diodo Cuerpo Completo',
-        desc: 'Cabezal frío indoloro en cabina climatizada con evaluación dérmica.',
-        price: '$70',
-        duration: '75 min',
-        image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=500&q=80',
-      },
-    ],
-    metrics: [
-      { value: '0 cruces', label: 'Bloqueo simultáneo de cabina física y aparatología' },
-      { value: '+64%', label: 'Finalización completa de bonos de 5 sesiones' },
-      { value: '24/7', label: 'Recepción digital activa fuera de horario clínico' },
-    ],
-  },
-  academy: {
-    id: 'academy',
-    label: 'Academia & Formación',
-    shortLabel: 'Academia',
-    badge: 'Escuelas de Belleza, Masterclasses y Cursos Certificados',
-    headlineAccent: 'academia y estudio',
-    painTitle: 'Salón y escuela mezclados sin separar reservas de clientas e inscripciones de alumnas',
-    painDetail:
-      'Muchos salones líderes dictan formación presencial, pero venden los cupos de forma improvisada por mensajes directos, perdiendo el control de abonos del 50% y plazas restantes.',
-    solutionTitle: 'Doble motor integrado: Servicios de Salón + Cartelera de Cursos con cupos',
-    solutionDetail:
-      'Así como Capra Studio opera sus 6 departamentos junto a Capra Academy, tu plataforma muestra servicios diarios y masterclasses certificadas con reserva de plaza en el mismo ecosistema.',
-    heroImage: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=1400&q=85',
-    demoBrandName: 'Capra Studio & Academy',
-    demoBrandSub: 'Salón Integral & Escuela de Formación Certificada',
-    demoAccent: '#8E4A59',
-    demoRecommendation: {
-      name: 'Masterclass: Diseño de Cejas & Laminado HD',
-      price: '$80',
-      duration: '240 min',
-    },
-    demoServices: [
-      {
-        name: 'Curso Intensivo: Maquillaje Pro & Piel Blindada',
-        desc: 'Práctica con modelo real, guía impresa, materiales en aula y certificado.',
-        price: '$95',
-        duration: '4 horas',
-        image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        name: 'Laminado de Cejas + Visagismo (Servicio en Salón)',
-        desc: 'Diseño geométrico, keratina nutritiva y pigmentación híbrida.',
-        price: '$18',
-        duration: '45 min',
-        image: 'https://images.unsplash.com/photo-1583001931096-959e9a1a6223?auto=format&fit=crop&w=500&q=80',
-      },
-    ],
-    metrics: [
-      { value: '2 en 1', label: 'Agenda de clientas y matrícula de alumnas en un solo panel' },
-      { value: '50%', label: 'Flujo claro de reserva de cupo con anticipo verificado' },
-      { value: '+2.4x', label: 'Conversión de clientas habituales en alumnas de cursos' },
-    ],
-  },
-};
-
-const JOURNAL_ARTICLES = [
+const SECTORS = [
   {
-    id: 'marketplaces-comisiones',
-    category: 'Economía de Salón',
-    readTime: '4 min de lectura',
-    date: 'Octubre 2026',
-    author: 'Equipo de Estrategia · VANESEV',
-    title: 'La trampa de los directorios: por qué las apps "gratis" le cuestan hasta $4,500 al año a tu salón',
-    excerpt:
-      'Analizamos la letra pequeña de las plataformas que prometen alta gratuita pero retienen entre el 20% y el 25% por nueva clienta y anuncian a tu competencia en tu propia ficha.',
-    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1000&q=80',
-    content: [
-      'Durante años, los grandes directorios de reservas vendieron una promesa atractiva a peluquerías y centros de estética: "software sin cuota mensual". Sin embargo, el coste real aparece en las liquidaciones: comisiones de entre el 20% y el 25% por cada clienta captada, recargos por transacción y penalizaciones.',
-      'En un salón con 140 citas mensuales y un ticket medio de $25 USD, ceder el 20% equivale a entregar $700 USD cada mes —más de $8,400 USD al año— a un intermediario.',
-      'El segundo problema es de marca: en un directorio, tu salón es una fila más junto a otros veinte locales de tu misma calle que compiten bajando precios. Con VANESEV, el código QR de tu tocador y el enlace de tu Instagram abren exclusivamente tu casa, con tu identidad visual, tus tarifas y cero anuncios de terceros.',
+    id: 'brows-lashes',
+    tag: 'Brows, Lashes & MakeUp',
+    title: 'Estudios de Mirada & Maquillaje de Autor',
+    subtitle: 'Laminado, Lifting, Extensiones Seda y Piel Blindada',
+    image: '/capra/brow-lamination.jpg',
+    problemSolved:
+      'Elimina las 40 preguntas diarias de "¿qué diferencia hay entre lifting y extensiones?" con fichas editoriales fotográficas y reserva por especialista.',
+    metrics: '+42% conversión en paquetes combinados de cejas + pestañas',
+    servicesPreview: [
+      { name: 'Brow Lamination + Botox Nutritivo', duration: '50 min', price: '$20' },
+      { name: 'Lifting de Pestañas + Keratina', duration: '60 min', price: '$22' },
+      { name: 'Maquillaje Social Piel Blindada HD', duration: '75 min', price: '$35' },
     ],
   },
   {
-    id: 'fidelizacion-5-sellos',
-    category: 'Retención & Psicología',
-    readTime: '5 min de lectura',
-    date: 'Octubre 2026',
-    author: 'Dirección de Producto · VANESEV',
-    title: 'Por qué las tarjetas de cartón acaban en la papelera y el Club Digital de 5 sellos acorta el ciclo a 21 días',
-    excerpt:
-      'El progreso visible en la pantalla del teléfono activa el efecto de meta alcanzada: cuando una clienta ve 3 de 5 sellos completados, no cambia de salón.',
-    image: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=1000&q=80',
-    content: [
-      'Siete de cada diez tarjetas de fidelización impresas en cartulina se pierden o se olvidan en otro bolso antes de la tercera visita. Cuando la clienta llega a recepción y no la trae consigo, el programa de premios pierde todo su efecto.',
-      'Al trasladar la tarjeta VIP directamente al navegador móvil vinculada a su número de teléfono, la clienta consulta sus sellos acumulados en el mismo lugar donde agenda su próxima cita.',
-      'Establecer una meta corta y alcanzable de 5 visitas (en lugar de 10) mantiene la recompensa cerca. Nuestros estudios en salones activos muestran que a partir del tercer sello la tasa de retorno supera el 88% y el tiempo entre visitas baja de 34 a 21 días.',
+    id: 'hair-atelier',
+    tag: 'Hair Color & Styling',
+    title: 'Salones de Alta Peluquería & Colorimetría',
+    subtitle: 'Balayage, Alisados Orgánicos, Hidratación Profunda & Ondas',
+    image: '/vanesev/sector-hair-color.jpg',
+    problemSolved:
+      'Bloquea automáticamente sillones de lavado y estilistas durante 3 o 4 horas sin cruces de agenda ni esperas incómodas en recepción.',
+    metrics: '0 sobrecupos en sesiones largas de colorimetría y alisados',
+    servicesPreview: [
+      { name: 'Alisado Orgánico Brillo Espejo', duration: '150 min', price: '$45' },
+      { name: 'Diseño Balayage & Matiz Gloss', duration: '180 min', price: '$85' },
+      { name: 'Peinado de Gala & Ondas Hollywood', duration: '60 min', price: '$25' },
     ],
   },
   {
-    id: 'sincronizacion-multicabina',
-    category: 'Operaciones & Espacio',
-    readTime: '3 min de lectura',
-    date: 'Octubre 2026',
-    author: 'Arquitectura Operativa · VANESEV',
-    title: 'Sincronización multi-cabina: cómo facturar más por metro cuadrado sin cruces en el equipo',
-    excerpt:
-      'Organizar tocadores, sillones de pedicura y cabinas privadas como recursos vinculados evita esperas en recepción y automatiza el cálculo de comisiones.',
-    image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1000&q=80',
-    content: [
-      'El cuello de botella de un salón en crecimiento rara vez es la falta de demanda: suele ser el desorden interno en horas punta. Dos especialistas citando a la vez para la misma camilla de pestañas o el mismo sillón de spa genera retrasos en cadena.',
-      'En VANESEV cada reserva vincula tres variables: el servicio, la especialista elegida y la zona o cabina física. En cuanto un turno se confirma, ese recurso queda blindado.',
-      'Además, al cierre de la jornada o de la semana, el panel calcula al centavo cuánto facturó cada miembro del equipo según su porcentaje asignado, eliminando las horas de cuadre manual en libreta.',
+    id: 'medspa-clinic',
+    tag: 'Aesthetic & MedSpa',
+    title: 'Clínicas Estéticas, Cabinas Faciales & Spa',
+    subtitle: 'Armonización, Hidrafacial, Depilación Láser & Rituales Detox',
+    image: '/vanesev/sector-medspa.jpg',
+    problemSolved:
+      'Asigna cabinas médicas y aparatología por separado, registrando el historial de sesiones y premiando la constancia del paciente.',
+    metrics: '78% de pacientes completan su protocolo de 5 sesiones',
+    servicesPreview: [
+      { name: 'Protocolo Glow Hidrafacial & LED', duration: '60 min', price: '$55' },
+      { name: 'Depilación Corporal Piel de Seda', duration: '45 min', price: '$25' },
+      { name: 'Ritual Corporal Botánico Detox', duration: '90 min', price: '$65' },
+    ],
+  },
+  {
+    id: 'nails-spa',
+    tag: 'Nail Bar & Foot Spa',
+    title: 'Nail Bars Boutique & Spa de Manos y Pies',
+    subtitle: 'Sistemas Estructurales, Manicura Rusa & Pedicure Botánico',
+    image: '/capra/nails-french.jpg',
+    problemSolved:
+      'Permite que la clienta elija su nivel de diseño, largo y extras antes de llegar al salón, calculando tiempo exacto de mesa y costo en USD/Bs.',
+    metrics: '+31% ticket promedio gracias a extras sugeridos en reserva',
+    servicesPreview: [
+      { name: 'Sistema Estructural Micro-French', duration: '90 min', price: '$25' },
+      { name: 'Pedicure Spa Detox con Pétalos', duration: '60 min', price: '$20' },
+      { name: 'Nivelación Gel Calcio + Brillo Seda', duration: '60 min', price: '$18' },
+    ],
+  },
+  {
+    id: 'barber-lounge',
+    tag: 'Gentlemen Grooming',
+    title: 'Barberías de Autor & Grooming Lounges',
+    subtitle: 'Corte Esculpido, Ritual de Barba con Toalla Caliente & Facial',
+    image: '/vanesev/sector-barber-lounge.jpg',
+    problemSolved:
+      'El cliente escanea el QR en el sillón o entra desde Instagram, elige a su barbero de confianza y agenda en 12 segundos sin llamar.',
+    metrics: 'Fidelización automática cada 5 cortes con ritual de barba gratis',
+    servicesPreview: [
+      { name: 'Corte de Autor + Ritual Toalla Caliente', duration: '60 min', price: '$25' },
+      { name: 'Perfilado de Barba & Vapor Ozono', duration: '35 min', price: '$15' },
+      { name: 'Black Mask Detox & Cuidado Capilar', duration: '45 min', price: '$20' },
     ],
   },
 ];
 
 export const VanesevLanding: React.FC<VanesevLandingProps> = ({
+  onOpenCapraDemo,
+  onOpenCapraAdmin,
   onOpenCentral,
-  onSelectTenant,
 }) => {
-  const [selectedNiche, setSelectedNiche] = useState<NicheSpec['id']>('hair');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Interactive Phone Mockup State
-  const [phoneTab, setPhoneTab] = useState<'carta' | 'reserva' | 'vip'>('carta');
-  const [selectedStaffIdx, setSelectedStaffIdx] = useState(0);
-  const [selectedSlot, setSelectedSlot] = useState('16:30');
-  const [simBookingDone, setSimBookingDone] = useState(false);
-  const [simStamps, setSimStamps] = useState(4);
+  // Interactive Phone Simulator State in Hero
+  const [phoneStep, setPhoneStep] = useState<'catalog' | 'passport' | 'whatsapp'>('catalog');
+  const [phonePaletteId, setPhonePaletteId] = useState<SalonPaletteId>('rose-cashmere');
+  const [selectedDemoService, setSelectedDemoService] = useState(0);
+  const [selectedDemoTime, setSelectedDemoTime] = useState('10:30 AM');
+  const [simulatedStamps, setSimulatedStamps] = useState(4);
 
-  // Interactive ROI Calculator State
-  const [monthlyClients, setMonthlyClients] = useState<number>(140);
-  const [averageTicket, setAverageTicket] = useState<number>(25);
+  // Interactive Live Theme Studio on Landing Page
+  const [studioPaletteId, setStudioPaletteId] = useState<SalonPaletteId>('rose-cashmere');
+  const [studioTypographyId, setStudioTypographyId] = useState<SalonTypographyId>('haute-couture');
+  const [studioLayoutId, setStudioLayoutId] = useState<SalonCardLayoutId>('editorial-magazine');
 
-  // Pricing & Modals
-  const [billingCycle, setBillingCycle] = useState<'quarterly' | 'monthly'>('quarterly');
-  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<{
-    name: string;
-    price: string;
-    period: string;
-  } | null>(null);
-  const [checkoutSalonName, setCheckoutSalonName] = useState('');
-  const [checkoutOwnerPhone, setCheckoutOwnerPhone] = useState('');
-  const [checkoutNiche, setCheckoutNiche] = useState('Peluquería / Salón Integral');
-  const [checkoutPaymentMethod, setCheckoutPaymentMethod] = useState<'card' | 'transfer' | 'binance'>('transfer');
-  const [activeArticle, setActiveArticle] = useState<(typeof JOURNAL_ARTICLES)[0] | null>(null);
+  // Interactive Saturday Comparison Toggle
+  const [saturdayMode, setSaturdayMode] = useState<'chaos' | 'vanesev'>('vanesev');
 
-  const currentNiche = NICHES[selectedNiche];
+  // Active Sector Showcase
+  const [activeSectorIdx, setActiveSectorIdx] = useState(0);
 
-  // Financial math
-  const monthlyGrossRevenue = monthlyClients * averageTicket;
-  const platformCommissionLoss = Math.round(monthlyGrossRevenue * 0.2);
-  const retentionExtraRevenue = Math.round(monthlyGrossRevenue * 0.32);
+  // Financial Recovery Calculator
+  const [avgTicket, setAvgTicket] = useState(28);
+  const [missedWeekly, setMissedWeekly] = useState(6);
 
-  // Live QR SVG for the interactive showcase
-  const sampleQrSvg = useMemo(() => {
-    try {
-      const matrix = QREncoder.generateMatrix('https://vanesev.com/r/capra-menu');
-      return QREncoder.toSVG(matrix, {
-        fgColor: '#16151A',
-        bgColor: '#FFFFFF',
-        centerText: 'VN',
-      });
-    } catch {
-      return '';
-    }
-  }, []);
+  // 3D Scroll Perspective Ref
+  const showcaseRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: showcaseRef,
+    offset: ['start end', 'end start'],
+  });
+  const rotateX = useTransform(scrollYProgress, [0, 0.45, 1], [14, 0, -6]);
+  const scale3d = useTransform(scrollYProgress, [0, 0.45, 1], [0.94, 1, 0.98]);
+  const yFloat = useTransform(scrollYProgress, [0, 0.5, 1], [35, 0, -25]);
 
-  const handleConfirmCheckout = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPlanForCheckout) return;
-    const methodLabel =
-      checkoutPaymentMethod === 'card'
-        ? 'Tarjeta Internacional'
-        : checkoutPaymentMethod === 'binance'
-        ? 'Binance Pay / USDT'
-        : 'Transferencia / Pago Móvil / Zelle';
+  const phonePalette = getPaletteById(phonePaletteId);
+  const studioPalette = getPaletteById(studioPaletteId);
+  const studioTypography = getTypographyById(studioTypographyId);
+  const activeSector = SECTORS[activeSectorIdx] || SECTORS[0];
 
-    const message =
-      `Hola equipo VANESEV, solicito activar mi cuenta en la plataforma:\n\n` +
-      `• Plan elegido: *${selectedPlanForCheckout.name}* ($${selectedPlanForCheckout.price} USD/mes - ${selectedPlanForCheckout.period})\n` +
-      `• Nombre del Salón: *${checkoutSalonName || 'Por definir'}*\n` +
-      `• Especialidad: *${checkoutNiche}*\n` +
-      `• WhatsApp de contacto: *${checkoutOwnerPhone || 'Por definir'}*\n` +
-      `• Método de pago: *${methodLabel}*\n\n` +
-      `Quiero recibir mi enlace /m/ y mi kit de QR dinámico.`;
+  const monthlyRecoveredUSD = avgTicket * missedWeekly * 4;
+  const yearlyRecoveredUSD = monthlyRecoveredUSD * 12;
 
-    window.open(
-      `https://wa.me/584247429530?text=${encodeURIComponent(message)}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
-    setSelectedPlanForCheckout(null);
+  const scrollToSection = (id: string) => {
+    setMobileMenuOpen(false);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen bg-crema text-tinta font-sans antialiased selection:bg-cassis/20 selection:text-tinta">
-      {/* ══ FLOATING CAPSULE NAVBAR (DKITCHEN-GRADE ARCHITECTURAL DOCK) ══ */}
-      <header className="fixed inset-x-0 top-0 z-[100] flex justify-center px-3 pt-4 sm:pt-5">
-        <nav
-          aria-label="Principal"
-          className="flex w-full max-w-6xl items-center justify-between gap-3 rounded-full border border-white/12 bg-obsidiana/88 py-2.5 pl-5 pr-2.5 text-white shadow-[0_14px_44px_rgba(12,10,14,0.38)] backdrop-blur-xl"
-        >
-          <a
-            href="#inicio"
-            className="font-display shrink-0 text-lg sm:text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5"
-          >
-            <span>
-              VANE<span className="text-[#E04D7A]">SEV</span>
-            </span>
-            <span className="hidden sm:inline-block rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/75">
-              Atelier Cloud
-            </span>
-          </a>
+    <div className="min-h-screen bg-[#FAF7F2] text-[#1E181A] font-sans selection:bg-[#9E475B]/15 selection:text-[#9E475B] overflow-x-hidden">
+      {/* ─── SUBTLE LUMINOUS AMBIENT SILK GLOWS (ZERO DARK / ZERO BLACK) ─── */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div
+          className="absolute -top-36 -right-36 w-[560px] h-[560px] rounded-full blur-3xl opacity-45"
+          style={{ background: 'radial-gradient(circle, #F5E1E6 0%, transparent 70%)' }}
+        />
+        <div
+          className="absolute top-[38%] -left-40 w-[520px] h-[520px] rounded-full blur-3xl opacity-40"
+          style={{ background: 'radial-gradient(circle, #F2E4D5 0%, transparent 70%)' }}
+        />
+      </div>
 
-          <ul className="hidden items-center gap-0.5 lg:flex">
+      {/* ─── FLOATING WHITE GLASS CAPSULE NAVBAR ─── */}
+      <header className="sticky top-4 z-50 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto rounded-full bg-white/90 backdrop-blur-xl border border-[#1E181A]/8 shadow-[0_14px_40px_-14px_rgba(30,24,26,0.08)] px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+          {/* Brand Signature */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-display font-bold text-base shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 55%, #E2A889 100%)' }}
+            >
+              V
+            </div>
+            <div>
+              <span className="font-display font-bold text-base sm:text-lg tracking-tight text-[#1E181A] block leading-none">
+                VANESEV
+              </span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#9E475B] block mt-0.5">
+                Beauty &amp; Wellness Cloud
+              </span>
+            </div>
+          </div>
+
+          {/* Center Navigation Pills */}
+          <nav className="hidden lg:flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-full border border-[#1E181A]/6">
             {[
-              { href: '#sectores', label: 'Sectores' },
-              { href: '#carta-qr', label: 'Carta QR' },
-              { href: '#superpoderes', label: 'Por dentro' },
-              { href: '#calculadora', label: 'Calculadora' },
-              { href: '#planes', label: 'Precios' },
-              { href: '#casos', label: 'Casos en vivo' },
-              { href: '#journal', label: 'Journal' },
+              { id: 'experiencia', label: 'Prueba en Vivo' },
+              { id: 'personalizador', label: 'Diseño a Medida' },
+              { id: 'sectores', label: 'Especialidades' },
+              { id: 'ejecutivo', label: 'Panel & QR' },
+              { id: 'inversion', label: 'Planes' },
             ].map((item) => (
-              <li key={item.href}>
-                <a
-                  href={item.href}
-                  className="block whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium text-white/72 transition-colors hover:bg-white/8 hover:text-white"
-                >
-                  {item.label}
-                </a>
-              </li>
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id)}
+                className="px-4 py-1.5 rounded-full text-xs font-bold text-[#6E6266] hover:text-[#1E181A] hover:bg-white transition-all cursor-pointer"
+              >
+                {item.label}
+              </button>
             ))}
-          </ul>
+          </nav>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onOpenCentral}
-              className="hidden whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-medium text-white/75 transition hover:text-white xl:block cursor-pointer"
-            >
-              Zona cliente · Central
-            </button>
-            <a
-              href="#planes"
-              className="whitespace-nowrap rounded-full bg-cassis px-4 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-[0_6px_24px_rgba(142,27,70,0.45)] transition hover:bg-cassis-hondo"
-            >
-              Crear mi cuenta
-            </a>
+          {/* Right Live Demo CTAs */}
+          <div className="hidden sm:flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Abrir menú de navegación"
-              aria-expanded={mobileMenuOpen}
-              className="rounded-full p-2 text-white hover:bg-white/10 lg:hidden cursor-pointer"
+              onClick={onOpenCapraAdmin}
+              className="px-4 py-2 rounded-full text-xs font-bold text-[#1E181A] bg-[#FAF7F2] hover:bg-[#F0EBE1] border border-[#1E181A]/10 transition-all cursor-pointer"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              Ver Admin de Salón
+            </button>
+            <button
+              type="button"
+              onClick={onOpenCapraDemo}
+              className="px-4.5 py-2 rounded-full text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition-transform hover:scale-[1.02] cursor-pointer"
+              style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Probar Salón Real</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
-        </nav>
 
-        {/* Mobile Dropdown Drawer */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-x-3 top-20 z-[101] rounded-3xl border border-white/15 bg-obsidiana/96 p-5 text-white shadow-2xl backdrop-blur-2xl lg:hidden">
-            <div className="grid grid-cols-2 gap-2 pb-4 border-b border-white/10">
-              {[
-                { href: '#sectores', label: '5 Sectores' },
-                { href: '#carta-qr', label: 'Carta QR en Tocador' },
-                { href: '#superpoderes', label: 'Por dentro (Suite)' },
-                { href: '#calculadora', label: 'Calculadora de Ahorro' },
-                { href: '#planes', label: 'Planes y Precios' },
-                { href: '#casos', label: 'Salones en Vivo' },
-                { href: '#journal', label: 'Revista Editorial' },
-              ].map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-2xl bg-white/5 px-3.5 py-2.5 text-xs font-semibold text-white/90 hover:bg-white/10"
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-            <div className="pt-4 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/50 px-1">
-                Demos reales y acceso directo
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onSelectTenant('capra-studio');
-                  }}
-                  className="rounded-2xl border border-white/15 bg-white/8 px-3 py-2.5 text-left text-xs font-semibold text-white cursor-pointer"
-                >
-                  <span className="block text-[#F2D5DF] text-[10px]">Salón + Academia</span>
-                  Ver Capra Studio →
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onSelectTenant('andrea-nails');
-                  }}
-                  className="rounded-2xl border border-white/15 bg-white/8 px-3 py-2.5 text-left text-xs font-semibold text-white cursor-pointer"
-                >
-                  <span className="block text-emerald-300 text-[10px]">Nails & Pedi Spa</span>
-                  Ver Andrea Nails →
-                </button>
-              </div>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenCentral();
-                }}
-                className="w-full rounded-2xl bg-white/10 py-2.5 text-center text-xs font-bold text-white cursor-pointer"
-              >
-                Entrar a Zona Cliente / Central Super-Admin
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* ══ HERO MONUMENTAL (NOCHE + ATMOSPHERIC DEPTH + 3D DEVICE) ══ */}
-      <section
-        id="inicio"
-        className="relative overflow-hidden bg-noche pt-28 pb-20 text-white sm:pt-36 md:pt-40 md:pb-28"
-      >
-        {/* Persistent Atmospheric Background Layer (house-style.md recipe) */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -right-[15%] bottom-[-35%] h-[65vmax] w-[65vmax] rounded-full opacity-45 blur-[110px] [background:radial-gradient(closest-side,rgba(142,27,70,0.55),transparent)] animate-[deriva1_22s_ease-in-out_infinite_alternate]" />
-          <div className="absolute -left-[25%] -top-[30%] h-[75vmax] w-[75vmax] rounded-full opacity-50 blur-[110px] [background:radial-gradient(closest-side,rgba(107,18,51,0.6),transparent)] animate-[deriva2_26s_ease-in-out_infinite_alternate]" />
-          <div className="absolute bottom-[-40%] left-[28%] h-[55vmax] w-[55vmax] rounded-full opacity-25 blur-[100px] [background:radial-gradient(closest-side,rgba(200,169,106,0.28),transparent)]" />
-          <div className="absolute inset-0 opacity-[0.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
+          {/* Mobile Menu Button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 rounded-full bg-[#FAF7F2] border border-[#1E181A]/10 text-[#1E181A] cursor-pointer"
+            aria-label="Menú"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-5 sm:px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-14">
-            {/* Left Editorial Column */}
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/6 px-3.5 py-1.5 text-xs text-white/85 backdrop-blur">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                <span>Marca propia para salones y estética · 0% comisiones</span>
-              </div>
-
-              <h1 className="font-display mt-6 text-[42px] font-bold leading-[0.98] tracking-tight sm:text-6xl lg:text-[76px]">
-                Tu {currentNiche.headlineAccent},{' '}
-                <span className="acento-serif font-normal text-[#F4D3DF] block sm:inline">
-                  con marca propia.
-                </span>
-              </h1>
-
-              <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-white/72">
-                Tu carta digital con QR dinámico en cada tocador, agenda multi-cabina sin solapamientos y tarjeta VIP de 5 sellos en el móvil de tu clienta. Un directorio con comisiones lo tiene cualquiera: nosotros te damos una marca que vende y retiene.
-              </p>
-
-              {/* Interactive 5-Niche Selector Pills */}
-              <div className="mt-7 space-y-2">
-                <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
-                  Elige el giro de tu negocio para adaptar la demostración en vivo:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {(Object.values(NICHES) as NicheSpec[]).map((n) => {
-                    const active = selectedNiche === n.id;
-                    return (
-                      <button
-                        key={n.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedNiche(n.id);
-                          setSimBookingDone(false);
-                        }}
-                        className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
-                          active
-                            ? 'bg-cassis text-white shadow-[0_6px_20px_rgba(142,27,70,0.45)] border border-[#E04D7A]'
-                            : 'bg-white/6 text-white/70 border border-white/12 hover:bg-white/12 hover:text-white'
-                        }`}
-                      >
-                        {n.shortLabel}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Primary CTAs */}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="#planes"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-cassis px-7 py-4 text-[15px] font-semibold text-white shadow-[0_10px_40px_rgba(142,27,70,0.45)] transition hover:bg-cassis-hondo"
-                >
-                  <span>Quiero mi propio sistema</span>
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-                <button
-                  type="button"
-                  onClick={() => onSelectTenant('capra-studio')}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/6 px-7 py-4 text-[15px] font-semibold text-white backdrop-blur transition hover:border-white/45 hover:bg-white/10 cursor-pointer"
-                >
-                  <span>Ver un salón real en vivo</span>
-                  <ExternalLink className="w-4 h-4 text-oro" />
-                </button>
-              </div>
-
-              <p className="mt-5 text-xs sm:text-sm text-white/60">
-                ¿Solo quieres la carta QR de servicios?{' '}
-                <a
-                  href="#carta-qr"
-                  className="font-semibold text-white underline decoration-cassis decoration-2 underline-offset-4"
-                >
-                  Conoce cómo funciona
-                </a>{' '}
-                ·{' '}
-                <a
-                  href="https://wa.me/584247429530?text=Hola%2C%20quiero%20ver%20una%20demo%20de%20VANESEV%20para%20mi%20sal%C3%B3n."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-white underline decoration-emerald-400 decoration-2 underline-offset-4"
-                >
-                  Pedir demostración por WhatsApp
-                </a>
-              </p>
-
-              {/* 3 Lining Tabular Metric Callouts */}
-              <div className="mt-9 grid grid-cols-3 gap-3 border-t border-white/12 pt-6">
-                {currentNiche.metrics.map((m, i) => (
-                  <div key={i}>
-                    <span className="font-display text-2xl sm:text-3xl font-extrabold text-white tabular-nums block">
-                      {m.value}
-                    </span>
-                    <span className="mt-1 block text-[11px] sm:text-xs text-white/60 leading-snug">
-                      {m.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Column: 3D Titanium Smartphone + Floating Live Badges */}
-            <div className="relative mx-auto w-full max-w-[320px] sm:max-w-[330px]">
-              {/* Interactive Mode Switcher Pill above the Phone */}
-              <div className="mb-4 grid grid-cols-3 gap-1 rounded-full border border-white/15 bg-white/8 p-1 backdrop-blur-xl">
+        {/* Mobile Dropdown Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="lg:hidden mt-2 rounded-3xl bg-white border border-[#1E181A]/10 shadow-xl p-5 space-y-3"
+            >
+              <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'carta', label: '1. Carta QR' },
-                  { id: 'reserva', label: '2. Cabinas' },
-                  { id: 'vip', label: '3. Club VIP' },
-                ].map((tab) => (
+                  { id: 'experiencia', label: 'Prueba en Vivo' },
+                  { id: 'personalizador', label: 'Diseño a Medida' },
+                  { id: 'sectores', label: 'Especialidades' },
+                  { id: 'ejecutivo', label: 'Panel & QR' },
+                  { id: 'inversion', label: 'Planes' },
+                ].map((item) => (
                   <button
-                    key={tab.id}
+                    key={item.id}
                     type="button"
-                    onClick={() => setPhoneTab(tab.id as any)}
-                    className={`rounded-full py-2 text-[11px] font-bold transition-all cursor-pointer ${
-                      phoneTab === tab.id
-                        ? 'bg-white text-noche shadow-sm'
-                        : 'text-white/70 hover:text-white'
-                    }`}
+                    onClick={() => scrollToSection(item.id)}
+                    className="p-2.5 rounded-2xl bg-[#FAF7F2] text-left text-xs font-bold text-[#1E181A]"
                   >
-                    {tab.label}
+                    {item.label}
                   </button>
                 ))}
               </div>
+              <div className="pt-2 border-t border-[#1E181A]/10 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenCapraDemo();
+                  }}
+                  className="w-full py-3 rounded-full text-xs font-bold text-white flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Abrir Catálogo Real (/m/capra-studio)</span>
+                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenCapraAdmin();
+                    }}
+                    className="py-2.5 rounded-full text-xs font-bold bg-[#FAF7F2] text-[#1E181A] border border-[#1E181A]/12"
+                  >
+                    Admin de Salón
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenCentral();
+                    }}
+                    className="py-2.5 rounded-full text-xs font-bold bg-[#FAF0F2] text-[#9E475B] border border-[#9E475B]/25"
+                  >
+                    Super-Admin Central
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
 
-              {/* Ambient Glow behind Phone */}
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          SECTION 1: LUMINOUS HAUTE-COUTURE HERO + LIVE INTERACTIVE PHONE SIMULATOR
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section id="experiencia" className="relative z-10 pt-10 sm:pt-14 pb-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Left Editorial Pitch (7 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="lg:col-span-7 space-y-6"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#9E475B]/20 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-[#9E475B] animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#9E475B]">
+                Arquitectura Digital para Salones de Belleza, Clínicas &amp; Spas
+              </span>
+            </div>
+
+            <h1 className="font-display text-4xl sm:text-6xl font-semibold text-[#1E181A] leading-[1.06] tracking-tight">
+              El arte de dirigir un salón{' '}
+              <span className="italic font-normal text-[#9E475B]">lleno, sereno</span> y con identidad propia.
+            </h1>
+
+            <p className="text-base sm:text-lg text-[#6E6266] leading-relaxed max-w-2xl">
+              Tus clientas no quieren descargar aplicaciones pesadas ni esperar 3 horas una respuesta por WhatsApp para saber qué turno tienes libre. Con <strong>VANESEV</strong>, tu salón estrena una <strong>Experiencia Editorial de Reserva, Pasaporte VIP de Fidelidad y Recepción QR</strong> diseñada con tus propios colores y tipografía.
+            </p>
+
+            {/* 3 Psychological Value Pillars */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
+              {[
+                {
+                  title: 'Diseño 100% Editable',
+                  desc: 'Elige tu paleta de color, tipografía editorial y estilo visual sin plantillas clonadas.',
+                },
+                {
+                  title: 'Reserva en 15 Segundos',
+                  desc: 'Tus clientas eligen especialista, día y hora real conectada directo a tu WhatsApp.',
+                },
+                {
+                  title: 'Pasaporte VIP Digital',
+                  desc: 'Sella visitas con el teléfono de tu clienta y premia su constancia automáticamente.',
+                },
+              ].map((pillar, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ y: -3 }}
+                  className="p-4 rounded-2xl bg-white border border-[#1E181A]/8 shadow-2xs"
+                >
+                  <div className="w-6 h-6 rounded-full bg-[#FAF0F2] text-[#9E475B] flex items-center justify-center mb-2">
+                    <Check className="w-3.5 h-3.5" />
+                  </div>
+                  <p className="text-xs font-bold text-[#1E181A]">{pillar.title}</p>
+                  <p className="text-[11px] text-[#6E6266] mt-1 leading-relaxed">{pillar.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Primary Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3.5 pt-2">
+              <button
+                type="button"
+                onClick={onOpenCapraDemo}
+                className="px-7 py-4 rounded-full text-sm font-bold text-white shadow-lg flex items-center gap-2.5 transition-all hover:scale-[1.02] cursor-pointer"
+                style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
+              >
+                <span>Explorar Salón Real en Vivo</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => scrollToSection('personalizador')}
+                className="px-6 py-4 rounded-full text-sm font-bold bg-white hover:bg-[#FAF0F2] text-[#1E181A] border border-[#1E181A]/12 shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <Palette className="w-4 h-4 text-[#9E475B]" />
+                <span>Personalizar Colores en Vivo</span>
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Right Interactive Live Phone Simulator (5 cols) */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.65, delay: 0.1 }}
+            className="lg:col-span-5 flex flex-col items-center"
+          >
+            {/* Interactive Palette Bar Above Phone */}
+            <div className="mb-3 px-4 py-2 rounded-full bg-white border border-[#1E181A]/10 shadow-xs flex items-center gap-2.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#6E6266]">
+                Cambia el tema del teléfono:
+              </span>
+              <div className="flex items-center gap-1.5">
+                {SALON_PALETTES.slice(0, 5).map((pal) => (
+                  <button
+                    key={pal.id}
+                    type="button"
+                    onClick={() => setPhonePaletteId(pal.id)}
+                    className={`w-5 h-5 rounded-full transition-transform cursor-pointer ${
+                      phonePaletteId === pal.id ? 'scale-125 ring-2 ring-[#1E181A] ring-offset-2' : 'opacity-75 hover:opacity-100'
+                    }`}
+                    style={{ backgroundColor: pal.primary }}
+                    title={pal.name}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Luxury Pearl Phone Frame */}
+            <div className="w-full max-w-[390px] rounded-[46px] p-3 bg-gradient-to-b from-[#EBE4DC] via-[#DFD5CA] to-[#CFC2B4] shadow-[0_32px_80px_-20px_rgba(30,24,26,0.22)] border border-white">
               <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-[-12%] rounded-full bg-[radial-gradient(closest-side,rgba(142,27,70,0.38),transparent)] blur-2xl"
-              />
-
-              {/* Titanium Bezel Device Frame */}
-              <div className="relative rounded-[48px] p-[3px] shadow-[0_50px_110px_-20px_rgba(0,0,0,0.75)] [background:linear-gradient(145deg,#6b707b,#1b1d22_35%,#0b0c0f_70%,#4a4e57)]">
-                <div className="rounded-[45px] bg-obsidiana p-[9px]">
-                  <div className="relative overflow-hidden rounded-[36px] bg-[#151319] text-[#F5F2EB]">
-                    {/* Dynamic Island */}
-                    <div className="absolute left-1/2 top-2.5 z-30 h-[20px] w-[86px] -translate-x-1/2 rounded-full bg-black flex items-center justify-end pr-2.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    </div>
-
-                    {/* Glass Reflection Shimmer */}
+                className="rounded-[36px] overflow-hidden border border-black/5 flex flex-col min-h-[600px] transition-colors duration-500"
+                style={{ backgroundColor: phonePalette.bgPrimary, color: phonePalette.textPrimary }}
+              >
+                {/* Phone Top Bar */}
+                <div className="px-5 pt-4 pb-3 bg-white/85 backdrop-blur-md border-b border-black/5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 z-20 animate-[reflejo_7s_ease-in-out_infinite] [background:linear-gradient(115deg,transparent_35%,rgba(255,255,255,0.1)_48%,transparent_60%)] [background-size:250%_100%]"
-                    />
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-white font-display font-bold text-xs"
+                      style={{ background: phonePalette.heroGradient }}
+                    >
+                      CS
+                    </div>
+                    <div>
+                      <p className="font-display font-bold text-xs leading-none">Capra Studio</p>
+                      <p className="text-[9px] text-[#6E6266] mt-0.5">vanesev.com/m/capra-studio</p>
+                    </div>
+                  </div>
+                  <span
+                    className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                    style={{ backgroundColor: phonePalette.badgeBg, color: phonePalette.badgeText }}
+                  >
+                    Interactivo
+                  </span>
+                </div>
 
-                    {/* ── PHONE VIEW 1: LIVE AUTHOR QR CATALOG (LIKE EL RINCÓN DEL FLORES) ── */}
-                    {phoneTab === 'carta' && (
-                      <div className="flex flex-col justify-between">
-                        {/* Salon Atmospheric Header */}
-                        <div className="relative h-36 overflow-hidden">
+                {/* 3 Flow Switcher Pills Inside Phone */}
+                <div className="p-2.5 bg-white/60 border-b border-black/5 grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: 'catalog', label: '01. Carta & Cita' },
+                    { id: 'passport', label: '02. Sellos VIP' },
+                    { id: 'whatsapp', label: '03. Recepción' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setPhoneStep(tab.id as any)}
+                      className={`py-1.5 px-2 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
+                        phoneStep === tab.id ? 'text-white shadow-2xs' : 'bg-white/80 text-[#6E6266]'
+                      }`}
+                      style={phoneStep === tab.id ? { backgroundColor: phonePalette.primary } : undefined}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Phone Dynamic Screen Content */}
+                <div className="p-4 flex-1 flex flex-col justify-between">
+                  <AnimatePresence mode="wait">
+                    {phoneStep === 'catalog' && (
+                      <motion.div
+                        key="catalog"
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="space-y-3.5"
+                      >
+                        <div className="relative h-36 rounded-2xl overflow-hidden shadow-xs">
                           <img
-                            src={currentNiche.heroImage}
-                            alt={currentNiche.demoBrandName}
-                            className="h-full w-full object-cover opacity-55"
+                            src="/capra/lash-lifting.jpg"
+                            alt="Lifting de Pestañas"
+                            className="w-full h-full object-cover"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#151319] via-[#151319]/40 to-transparent" />
-                          <div className="absolute inset-x-0 bottom-0 p-4">
-                            <span className="inline-block rounded-full bg-white/15 backdrop-blur-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white/90">
-                              vanesev.com/m/{selectedNiche}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent flex flex-col justify-end p-3.5 text-white">
+                            <span className="text-[9px] uppercase tracking-widest font-bold opacity-90">
+                              Mirada de Autor &bull; 60 Min
                             </span>
-                            <p className="mt-1 font-display text-xl font-bold text-white leading-tight">
-                              {currentNiche.demoBrandName}
-                            </p>
-                            <p className="text-[11px] text-white/75 truncate">
-                              {currentNiche.demoBrandSub}
+                            <p className="font-display text-base font-semibold leading-tight">
+                              Lifting de Pestañas + Keratina
                             </p>
                           </div>
                         </div>
 
-                        {/* Recommended Today Banner */}
-                        <div className="px-3.5 pt-2">
-                          <div
-                            onClick={() => setPhoneTab('reserva')}
-                            className="flex items-center justify-between gap-2 rounded-2xl border border-dashed border-white/30 p-2.5 cursor-pointer transition hover:brightness-110"
-                            style={{ backgroundColor: currentNiche.demoAccent }}
-                          >
-                            <div className="min-w-0">
-                              <span className="block text-[9px] font-bold uppercase tracking-[0.2em] text-white/80">
-                                Hoy recomendamos
-                              </span>
-                              <span className="block text-xs font-bold text-white truncate">
-                                {currentNiche.demoRecommendation.name}
-                              </span>
-                            </div>
-                            <span className="shrink-0 rounded-xl bg-black/25 px-2.5 py-1 text-xs font-extrabold text-white tabular-nums">
-                              {currentNiche.demoRecommendation.price}
-                            </span>
-                          </div>
-                        </div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#6E6266]">
+                          Toca un servicio para simular reserva:
+                        </p>
 
-                        {/* Services Grid Inside Phone */}
-                        <div className="px-3.5 pt-3 space-y-2.5">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-bold text-white/90">Carta de Servicios</span>
-                            <span className="text-white/50 tabular-nums">Precios en vivo</span>
-                          </div>
-
-                          <div className="space-y-2">
-                            {currentNiche.demoServices.map((srv, idx) => (
-                              <div
-                                key={idx}
-                                onClick={() => setPhoneTab('reserva')}
-                                className="flex items-center gap-3 rounded-2xl bg-[#201D26] p-2.5 border border-white/8 hover:border-white/20 transition cursor-pointer"
-                              >
-                                <img
-                                  src={srv.image}
-                                  alt={srv.name}
-                                  className="h-14 w-14 shrink-0 rounded-xl object-cover"
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-start justify-between gap-1">
-                                    <p className="text-xs font-bold text-white leading-snug truncate">
-                                      {srv.name}
-                                    </p>
-                                    <span className="shrink-0 rounded-lg bg-white/10 px-2 py-0.5 text-xs font-extrabold text-[#F4D3DF] tabular-nums">
-                                      {srv.price}
-                                    </span>
-                                  </div>
-                                  <p className="mt-0.5 text-[10px] text-white/60 line-clamp-1">
-                                    {srv.desc}
-                                  </p>
-                                  <span className="mt-1 inline-block text-[9px] font-semibold text-emerald-400">
-                                    ⏱ {srv.duration} · Toca para agendar →
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Phone Bottom Capsule Bar */}
-                        <div className="p-3.5 pt-4">
-                          <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-black/80 p-1">
-                            <button
-                              type="button"
-                              onClick={() => setPhoneTab('vip')}
-                              className="flex-1 rounded-full py-2 text-[10px] font-semibold text-white/85 hover:text-white cursor-pointer"
-                            >
-                              Mi Club VIP
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPhoneTab('reserva')}
-                              className="flex-1 rounded-full py-2 text-[10px] font-bold text-white cursor-pointer"
-                              style={{ backgroundColor: currentNiche.demoAccent }}
-                            >
-                              Reservar Cita
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ── PHONE VIEW 2: MULTI-CABIN & SPECIALIST BOOKING ── */}
-                    {phoneTab === 'reserva' && (
-                      <div className="p-4 pt-10 space-y-3.5">
-                        <div className="border-b border-white/10 pb-2.5">
-                          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#F4D3DF] block">
-                            SINCRONIZACIÓN EN VIVO
-                          </span>
-                          <p className="font-display text-base font-bold text-white">
-                            Reserva Especialista &amp; Cabina
-                          </p>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] font-semibold text-white/65 block">
-                            1. Elige quién te atiende y en qué estación:
-                          </span>
+                        <div className="space-y-2">
                           {[
-                            { name: 'María G. · Directora', zone: 'Cabina Principal #1' },
-                            { name: 'Valeria M. · Senior', zone: 'Estación VIP #2' },
-                          ].map((st, idx) => (
+                            { name: 'Brow Lamination + Botox', price: '$20 USD', time: '50 min', img: '/capra/brow-lamination.jpg' },
+                            { name: 'Lifting de Pestañas + Tinte', price: '$22 USD', time: '60 min', img: '/capra/lash-lifting.jpg' },
+                            { name: 'Alisado Orgánico Brillo Espejo', price: '$45 USD', time: '120 min', img: '/capra/hair-straightening.jpg' },
+                          ].map((srv, idx) => (
                             <button
                               key={idx}
                               type="button"
-                              onClick={() => {
-                                setSelectedStaffIdx(idx);
-                                setSimBookingDone(false);
-                              }}
-                              className={`w-full rounded-2xl p-2.5 text-left border transition cursor-pointer flex items-center justify-between ${
-                                selectedStaffIdx === idx
-                                  ? 'bg-white/12 border-[#E04D7A] text-white'
-                                  : 'bg-[#201D26] border-white/8 text-white/70'
+                              onClick={() => setSelectedDemoService(idx)}
+                              className={`w-full p-2.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer bg-white ${
+                                selectedDemoService === idx ? 'ring-2 shadow-xs' : 'border-black/8 opacity-85'
                               }`}
+                              style={selectedDemoService === idx ? { borderColor: phonePalette.primary } : undefined}
                             >
-                              <div>
-                                <span className="text-xs font-bold block">{st.name}</span>
-                                <span className="text-[10px] text-emerald-400">{st.zone} · Libre</span>
+                              <img src={srv.img} alt={srv.name} className="w-11 h-11 rounded-xl object-cover shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold truncate">{srv.name}</p>
+                                <p className="text-[10px] text-[#6E6266]">{srv.time} &bull; Especialista Certificada</p>
                               </div>
-                              <div
-                                className={`h-4 w-4 rounded-full border flex items-center justify-center ${
-                                  selectedStaffIdx === idx
-                                    ? 'border-[#E04D7A] bg-cassis'
-                                    : 'border-white/30'
-                                }`}
-                              >
-                                {selectedStaffIdx === idx && <Check className="w-2.5 h-2.5 text-white" />}
-                              </div>
+                              <span className="font-display font-bold text-xs shrink-0" style={{ color: phonePalette.primary }}>
+                                {srv.price}
+                              </span>
                             </button>
                           ))}
                         </div>
 
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] font-semibold text-white/65 block">
-                            2. Horarios disponibles hoy (bloqueo automático):
-                          </span>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#6E6266] mb-1.5">
+                            Turnos Disponibles Hoy:
+                          </p>
                           <div className="grid grid-cols-3 gap-1.5">
-                            {['10:30', '14:00', '16:30'].map((slot) => (
+                            {['10:30 AM', '02:00 PM', '04:30 PM'].map((slot) => (
                               <button
                                 key={slot}
                                 type="button"
-                                onClick={() => {
-                                  setSelectedSlot(slot);
-                                  setSimBookingDone(false);
-                                }}
-                                className={`rounded-xl py-2 text-xs font-bold tabular-nums border transition cursor-pointer ${
-                                  selectedSlot === slot
-                                    ? 'bg-white text-noche border-white'
-                                    : 'bg-[#201D26] text-white/75 border-white/10'
+                                onClick={() => setSelectedDemoTime(slot)}
+                                className={`py-1.5 rounded-xl text-[10px] font-bold border transition-all cursor-pointer ${
+                                  selectedDemoTime === slot ? 'text-white' : 'bg-white text-[#1E181A] border-black/10'
                                 }`}
+                                style={selectedDemoTime === slot ? { backgroundColor: phonePalette.primary, borderColor: phonePalette.primary } : undefined}
                               >
                                 {slot}
                               </button>
@@ -866,1328 +568,1049 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                           </div>
                         </div>
 
-                        {simBookingDone ? (
-                          <div className="rounded-2xl bg-emerald-500/20 border border-emerald-400/40 p-3 text-center space-y-1">
-                            <p className="text-xs font-bold text-emerald-300">
-                              ✓ Turno {selectedSlot} Blindado en Agenda
-                            </p>
-                            <p className="text-[10px] text-white/75">
-                              Cabina bloqueada y sello VIP preparado.
-                            </p>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setSimBookingDone(true)}
-                            className="w-full rounded-2xl bg-cassis py-3 text-xs font-bold text-white shadow-lg transition hover:bg-cassis-hondo cursor-pointer"
-                          >
-                            Confirmar Cita de las {selectedSlot} →
-                          </button>
-                        )}
-
-                        <div className="pt-1 flex justify-between items-center text-[10px] text-white/50 border-t border-white/10">
-                          <span>0% comisión por reserva</span>
-                          <button
-                            type="button"
-                            onClick={() => setPhoneTab('vip')}
-                            className="text-[#F4D3DF] font-semibold underline cursor-pointer"
-                          >
-                            Ver Tarjeta VIP →
-                          </button>
-                        </div>
-                      </div>
+                        <button
+                          type="button"
+                          onClick={() => setPhoneStep('passport')}
+                          className="w-full py-3 rounded-full text-white text-xs font-bold shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                          style={{ background: phonePalette.heroGradient }}
+                        >
+                          <span>Confirmar Turno ({selectedDemoTime})</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </motion.div>
                     )}
 
-                    {/* ── PHONE VIEW 3: 5-STAMP DIGITAL LOYALTY CARD ── */}
-                    {phoneTab === 'vip' && (
-                      <div className="p-4 pt-10 space-y-3.5">
-                        <div className="border-b border-white/10 pb-2.5 flex items-center justify-between">
-                          <div>
-                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-oro block">
-                              FIDELIZACIÓN SIN CARTÓN
+                    {phoneStep === 'passport' && (
+                      <motion.div
+                        key="passport"
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="space-y-4"
+                      >
+                        <div
+                          className="p-4 rounded-2xl text-white shadow-md space-y-2"
+                          style={{ background: phonePalette.heroGradient }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-bold uppercase tracking-widest opacity-85">
+                              Pasaporte de Fidelidad VIP
                             </span>
-                            <p className="font-display text-base font-bold text-white">
-                              Club VIP · 5 Visitas
-                            </p>
+                            <Award className="w-4 h-4" />
                           </div>
-                          <span className="rounded-full bg-oro/20 border border-oro/40 px-2.5 py-0.5 text-[10px] font-extrabold text-oro tabular-nums">
-                            {simStamps}/5 Sellos
-                          </span>
+                          <p className="font-display text-lg font-bold">Valentina Méndez</p>
+                          <p className="text-[11px] opacity-90">
+                            {simulatedStamps} de 5 visitas completadas
+                          </p>
                         </div>
 
-                        {/* Interactive 5 Stamps Box */}
-                        <div className="rounded-2xl bg-gradient-to-br from-[#231D29] to-[#17141C] p-3.5 border border-white/12 space-y-3">
-                          <div className="flex justify-between items-center text-[11px]">
-                            <span className="font-bold text-white">Clienta: Mariana Rivas</span>
-                            <span className="text-white/50 text-[10px]">Toca un sello:</span>
+                        <div className="p-4 rounded-2xl bg-white border border-black/8 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6E6266]">
+                              Sellos Acumulados
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setSimulatedStamps((s) => (s >= 5 ? 1 : s + 1))}
+                              className="text-[10px] font-bold underline cursor-pointer"
+                              style={{ color: phonePalette.primary }}
+                            >
+                              + Simular Nuevo Sello
+                            </button>
                           </div>
 
-                          <div className="grid grid-cols-5 gap-1.5">
+                          <div className="grid grid-cols-5 gap-2">
                             {[1, 2, 3, 4, 5].map((num) => {
-                              const active = simStamps >= num;
+                              const active = num <= simulatedStamps;
                               return (
-                                <button
+                                <div
                                   key={num}
-                                  type="button"
-                                  onClick={() => setSimStamps(num)}
-                                  className={`h-11 rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer ${
-                                    active
-                                      ? 'bg-gradient-to-br from-[#E5C158] to-[#B88A36] border-[#F3D87D] text-noche font-black shadow-sm scale-105'
-                                      : 'bg-white/5 border-white/12 text-white/40'
+                                  className={`aspect-square rounded-2xl flex flex-col items-center justify-center border transition-all ${
+                                    active ? 'text-white shadow-xs scale-105' : 'bg-[#FAF7F2] text-[#9A8C90] border-black/10'
                                   }`}
+                                  style={active ? { background: phonePalette.heroGradient, borderColor: 'transparent' } : undefined}
                                 >
-                                  <span className="text-xs font-extrabold tabular-nums">{num}</span>
-                                  <span className="text-[8px] uppercase font-bold">
-                                    {active ? 'Listo' : 'Sello'}
-                                  </span>
-                                </button>
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  <span className="text-[9px] font-bold mt-0.5">#{num}</span>
+                                </div>
                               );
                             })}
                           </div>
 
-                          <div className="rounded-xl bg-black/35 p-2.5 text-center">
-                            <p className="text-[11px] font-semibold text-white">
-                              {simStamps === 5
-                                ? 'Beneficio Desbloqueado: Hidratación / Diseño Gratis'
-                                : `A solo ${5 - simStamps} ${5 - simStamps === 1 ? 'visita' : 'visitas'} de su premio de fidelidad`}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Recent Visit History inside Phone so screen is rich and full */}
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 block">
-                            Historial de visitas en su móvil
-                          </span>
-                          <div className="rounded-xl bg-[#201D26] p-2.5 border border-white/8 flex justify-between items-center text-[11px]">
-                            <div>
-                              <span className="font-bold text-white block">Visita #4 · Culminada</span>
-                              <span className="text-white/50 text-[10px]">Sello acreditado desde recepción</span>
-                            </div>
-                            <span className="text-emerald-400 font-bold text-[10px]">+1 Sello</span>
+                          <div className="p-3 rounded-xl bg-[#FAF7F2] text-[11px] text-[#1E181A]">
+                            {simulatedStamps >= 5 ? (
+                              <span className="font-bold text-emerald-700">
+                                🎉 ¡5/5 Sellos! Tu Ritual VIP de Cortesía está desbloqueado.
+                              </span>
+                            ) : (
+                              <span>
+                                A solo <strong>{5 - simulatedStamps} visita(s)</strong> de desbloquear tu <strong>Ritual VIP 100% Gratis</strong>.
+                              </span>
+                            )}
                           </div>
                         </div>
 
                         <button
                           type="button"
-                          onClick={() => setPhoneTab('carta')}
-                          className="w-full rounded-2xl bg-white/10 hover:bg-white/15 py-2.5 text-xs font-bold text-white transition cursor-pointer"
+                          onClick={() => setPhoneStep('whatsapp')}
+                          className="w-full py-3 rounded-full text-white text-xs font-bold shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                          style={{ backgroundColor: phonePalette.primary }}
                         >
-                          ← Volver a la Carta QR
+                          <span>Ver Cierre en Recepción</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </button>
-                      </div>
+                      </motion.div>
                     )}
+
+                    {phoneStep === 'whatsapp' && (
+                      <motion.div
+                        key="whatsapp"
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="space-y-3.5"
+                      >
+                        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                              Sincronización Automática
+                            </span>
+                          </div>
+                          <p className="font-display text-sm font-bold">
+                            Cita registrada en Admin + Alerta en WhatsApp
+                          </p>
+                          <p className="text-[11px] text-emerald-800 leading-relaxed">
+                            Tu recepción recibe el turno bloqueado con servicio, especialista, monto en USD y equivalente a tasa BCV del día.
+                          </p>
+                        </div>
+
+                        <div className="p-3.5 rounded-2xl bg-white border border-black/8 space-y-2 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-[#6E6266]">Clienta:</span>
+                            <span className="font-bold">Valentina Méndez</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#6E6266]">Horario reservado:</span>
+                            <span className="font-bold">{selectedDemoTime}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#6E6266]">Sello de Fidelidad:</span>
+                            <span className="font-bold text-emerald-700">+1 Sello Acreditado</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={onOpenCapraDemo}
+                          className="w-full py-3 rounded-full text-white text-xs font-bold shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                          style={{ background: phonePalette.heroGradient }}
+                        >
+                          <span>Abrir Experiencia Completa</span>
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="pt-3 mt-3 border-t border-black/6 flex items-center justify-between text-[10px] text-[#6E6266]">
+                    <span>Paleta activa: <strong>{phonePalette.name}</strong></span>
+                    <button
+                      type="button"
+                      onClick={onOpenCapraDemo}
+                      className="font-bold underline cursor-pointer"
+                      style={{ color: phonePalette.primary }}
+                    >
+                      Pantalla completa &rarr;
+                    </button>
                   </div>
                 </div>
               </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-              {/* Floating Live Callout Badges on Desktop/Tablet (Like DKitchen's Hero) */}
-              <div
-                className="pointer-events-none absolute -left-28 top-[16%] z-30 hidden xl:block"
-                style={{ transform: 'rotate(-3deg)' }}
-              >
-                <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-carbon/90 px-3.5 py-2.5 text-white shadow-2xl backdrop-blur-xl">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="absolute inset-0 animate-ping rounded-full bg-cassis opacity-75" />
-                    <span className="relative h-2.5 w-2.5 rounded-full bg-[#E04D7A]" />
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          SECTION 2: 3D SCROLL PERSPECTIVE ARCHITECTURAL SHOWCASE
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section ref={showcaseRef} className="relative z-10 py-12 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto" style={{ perspective: '1400px' }}>
+          <motion.div
+            style={{ rotateX, scale: scale3d, y: yFloat }}
+            className="rounded-[40px] bg-white border border-[#1E181A]/10 shadow-[0_35px_90px_-25px_rgba(30,24,26,0.16)] overflow-hidden"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12">
+              <div className="lg:col-span-7 relative min-h-[340px] sm:min-h-[440px]">
+                <img
+                  src="/vanesev/hero-atelier.jpg"
+                  alt="Interior de Salón de Belleza de Autor con Recepción QR VANESEV"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1E181A]/70 via-transparent to-transparent flex flex-col justify-end p-6 sm:p-8 text-white">
+                  <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-[0.2em] w-fit mb-2">
+                    Recepción &amp; Mesa con QR de Autor
                   </span>
-                  <div>
-                    <span className="block text-xs font-bold whitespace-nowrap">Tocador 2 · QR activo</span>
-                    <span className="block text-[11px] text-white/60 whitespace-nowrap">
-                      Clienta viendo carta de servicios
-                    </span>
-                  </div>
+                  <h2 className="font-display text-2xl sm:text-3xl font-semibold">
+                    Tu recepción deja de perseguir mensajes y se dedica a consentir en cabina.
+                  </h2>
                 </div>
               </div>
 
-              <div
-                className="pointer-events-none absolute -right-28 top-[32%] z-30 hidden xl:block"
-                style={{ transform: 'rotate(3deg)' }}
-              >
-                <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-carbon/90 px-3.5 py-2.5 text-white shadow-2xl backdrop-blur-xl">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                  <div>
-                    <span className="block text-xs font-bold whitespace-nowrap">Precio actualizado</span>
-                    <span className="block text-[11px] text-white/60 whitespace-nowrap tabular-nums">
-                      Alisado · $40 → $45 USD al instante
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className="pointer-events-none absolute -left-24 bottom-[14%] z-30 hidden xl:block"
-                style={{ transform: 'rotate(2deg)' }}
-              >
-                <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-carbon/90 px-3.5 py-2.5 text-white shadow-2xl backdrop-blur-xl">
-                  <span className="h-2.5 w-2.5 rounded-full bg-oro" />
-                  <div>
-                    <span className="block text-xs font-bold whitespace-nowrap">Cabina 1 · 16:30</span>
-                    <span className="block text-[11px] text-white/60 whitespace-nowrap">
-                      Reserva confirmada sin cruces
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══ KINETIC MARQUEE STRIP ══ */}
-      <div className="relative overflow-hidden border-y border-white/10 bg-noche py-5 text-white">
-        <div className="flex w-max animate-[marquesina_36s_linear_infinite] gap-10 whitespace-nowrap">
-          {[1, 2].map((loop) => (
-            <React.Fragment key={loop}>
-              <span className="font-display flex items-center gap-10 text-xl font-semibold md:text-3xl">
-                Tu marca, tus clientas
-                <span className="h-2 w-2 rounded-full bg-cassis" aria-hidden="true" />
-              </span>
-              <span className="font-display flex items-center gap-10 text-xl font-semibold md:text-3xl">
-                0% comisiones por cita
-                <span className="h-2 w-2 rounded-full bg-cassis" aria-hidden="true" />
-              </span>
-              <span className="font-display flex items-center gap-10 text-xl font-semibold md:text-3xl">
-                QR dinámico en cada tocador
-                <span className="h-2 w-2 rounded-full bg-cassis" aria-hidden="true" />
-              </span>
-              <span className="font-display flex items-center gap-10 text-xl font-semibold md:text-3xl">
-                Agenda multi-cabina sin cruces
-                <span className="h-2 w-2 rounded-full bg-cassis" aria-hidden="true" />
-              </span>
-              <span className="font-display flex items-center gap-10 text-xl font-semibold md:text-3xl">
-                Club VIP de 5 sellos en el móvil
-                <span className="h-2 w-2 rounded-full bg-cassis" aria-hidden="true" />
-              </span>
-              <span className="font-display flex items-center gap-10 text-xl font-semibold md:text-3xl">
-                Liquidación exacta de comisiones
-                <span className="h-2 w-2 rounded-full bg-cassis" aria-hidden="true" />
-              </span>
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-
-      {/* ══ FULL-BLEED EDITORIAL MANIFESTO (ZERO MOBILE COLLISION) ══ */}
-      <section className="relative min-h-[460px] md:h-[72svh] overflow-hidden bg-noche text-white flex flex-col justify-end">
-        <img
-          src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1800&q=85"
-          alt="Interior de salón de alta gama"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-55"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-[linear-gradient(180deg,rgba(12,10,14,0.25),rgba(12,10,14,0.5)_38%,rgba(12,10,14,0.95))]"
-        />
-
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-14 pt-28 sm:px-8 md:pb-20">
-          <span className="etiqueta-vn text-oro block">
-            Sin intermediarios entre tu tocador y tu clienta
-          </span>
-          <h2 className="font-display mt-3 max-w-4xl text-3xl font-bold leading-[1.03] sm:text-5xl md:text-6xl">
-            El talento y el salón ya son tuyos.{' '}
-            <span className="acento-serif font-normal text-[#F4D3DF]">
-              La clienta también debería serlo.
-            </span>
-          </h2>
-          <p className="mt-4 max-w-2xl text-sm sm:text-base text-white/75 leading-relaxed">
-            Cuando una clienta escanea el código de tu espejo o abre el enlace de tu biografía, entra en tu casa digital. Sin banners de otros salones, sin descuentos forzados y con una estética que justifica el valor de tu trabajo.
-          </p>
-        </div>
-      </section>
-
-      {/* ══ SECCIÓN DOLORES REALES (ARCHITECTURAL NUMBERED GRID - NO PINK ICONS) ══ */}
-      <section id="por-que" className="bg-crema py-20 md:py-28 border-b border-linea">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <p className="etiqueta-vn text-cassis">¿Te suena?</p>
-          <h2 className="font-display mt-3 max-w-3xl text-3xl font-bold leading-[1.04] text-tinta sm:text-5xl">
-            Lo que le está costando dinero a tu local cada semana.
-          </h2>
-
-          <div className="mt-12 grid md:grid-cols-2 md:gap-x-14">
-            <div className="grid grid-cols-[48px_1fr] gap-4 border-t border-linea-fuerte py-7 sm:py-8">
-              <span className="acento-serif text-4xl leading-none text-cassis">1</span>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold leading-snug text-tinta">
-                  Pierdes citas de noche y en domingo por no poder contestar al instante.
-                </h3>
-                <p className="mt-2 text-sm text-niebla leading-relaxed">
-                  Tus clientas deciden agendar a las 10:30 de la noche viendo Instagram. Mientras estás descansando o atendiendo en cabina, escriben a tres salones y reservan en el primero que les confirma en un clic.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[48px_1fr] gap-4 border-t border-linea-fuerte py-7 sm:py-8">
-              <span className="acento-serif text-4xl leading-none text-cassis">2</span>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold leading-snug text-tinta">
-                  Las plataformas de directorios se quedan hasta el 25% y exhiben a tu competencia.
-                </h3>
-                <p className="mt-2 text-sm text-niebla leading-relaxed">
-                  Entrar en un marketplace significa regalar una quinta parte de tu trabajo y poner ofertas de otros salones de tu misma zona justo debajo de tu nombre.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[48px_1fr] gap-4 border-t border-linea-fuerte py-7 sm:py-8">
-              <span className="acento-serif text-4xl leading-none text-cassis">3</span>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold leading-snug text-tinta">
-                  Cruces de cabinas en hora punta y domingos perdidos sacando cuentas de comisiones.
-                </h3>
-                <p className="mt-2 text-sm text-niebla leading-relaxed">
-                  Dos especialistas citan a la vez para el mismo sillón de pedicura o camilla facial. Y al cerrar la semana, toca sumar boletas a mano para liquidar el porcentaje de cada profesional.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[48px_1fr] gap-4 border-t border-linea-fuerte py-7 sm:py-8">
-              <span className="acento-serif text-4xl leading-none text-cassis">4</span>
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold leading-snug text-tinta">
-                  Las tarjetas de cartulina se pierden y la clienta alarga su regreso a 6 semanas.
-                </h3>
-                <p className="mt-2 text-sm text-niebla leading-relaxed">
-                  Sin un incentivo vivo en su teléfono, la clienta pospone el retoque o prueba otro sitio. El Club VIP digital de 5 sellos hace que siempre vuelva a completar su ciclo contigo.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="#planes"
-              className="inline-flex justify-center rounded-full bg-tinta px-7 py-4 text-sm font-semibold text-white transition hover:bg-obsidiana"
-            >
-              Resolverlo con mi propio sistema →
-            </a>
-            <a
-              href="https://wa.me/584247429530?text=Hola%2C%20quiero%20digitalizar%20mi%20sal%C3%B3n%20con%20VANESEV."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex justify-center rounded-full border border-tinta px-7 py-4 text-sm font-semibold text-tinta transition hover:bg-tinta hover:text-white"
-            >
-              Consultar mi caso por WhatsApp
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ══ LOS 5 SECTORES: ENFOQUE REAL POR ESPECIALIDAD ══ */}
-      <section id="sectores" className="bg-white py-20 md:py-28 border-b border-linea">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <p className="etiqueta-vn text-cassis">Hecho para tu especialidad</p>
-          <h2 className="font-display mt-3 max-w-3xl text-3xl font-bold leading-[1.04] text-tinta sm:text-5xl">
-            Peluquería, uñas, barbería, clínica o academia.{' '}
-            <span className="acento-serif font-normal text-cassis">
-              Todo adaptado a tu local.
-            </span>
-          </h2>
-
-          {/* Sector Selector Bar */}
-          <div className="mt-8 flex gap-2 overflow-x-auto no-scrollbar pb-2">
-            {(Object.values(NICHES) as NicheSpec[]).map((n) => {
-              const active = selectedNiche === n.id;
-              return (
-                <button
-                  key={n.id}
-                  type="button"
-                  onClick={() => setSelectedNiche(n.id)}
-                  className={`shrink-0 rounded-full px-5 py-2.5 text-xs sm:text-sm font-bold transition cursor-pointer ${
-                    active
-                      ? 'bg-tinta text-white shadow-sm'
-                      : 'bg-crema text-grafito border border-linea hover:border-tinta'
-                  }`}
-                >
-                  {n.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Sector Detail Showcase */}
-          <div className="mt-8 grid gap-8 rounded-[32px] border border-linea bg-crema p-6 sm:p-10 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-7 space-y-6">
-              <span className="inline-block rounded-full bg-cassis/10 border border-cassis/25 px-3.5 py-1 text-xs font-bold text-cassis">
-                {currentNiche.badge}
-              </span>
-
-              <div className="space-y-4">
-                <div className="rounded-2xl bg-white p-5 border border-linea">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700 block">
-                    El problema habitual en {currentNiche.shortLabel}
+              <div className="lg:col-span-5 p-6 sm:p-9 flex flex-col justify-between bg-[#FAF7F2]">
+                <div className="space-y-4">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B]">
+                    POR QUÉ LOS SALONES DE ALTO NIVEL ELIGEN VANESEV
                   </span>
-                  <h3 className="mt-1 font-display text-lg font-bold text-tinta">
-                    {currentNiche.painTitle}
+                  <h3 className="font-display text-2xl font-semibold text-[#1E181A] leading-snug">
+                    Ni directorios donde compites por precio, ni plantillas oscuras que dañan tu imagen.
                   </h3>
-                  <p className="mt-1.5 text-xs sm:text-sm text-niebla leading-relaxed">
-                    {currentNiche.painDetail}
+                  <p className="text-xs sm:text-sm text-[#6E6266] leading-relaxed">
+                    Las plataformas tradicionales meten a tu salón dentro de un directorio junto a tu competencia y te cobran comisiones por tus propias clientas. VANESEV construye tu <strong>propio ecosistema privado de reservas y fidelización</strong>.
                   </p>
-                </div>
 
-                <div className="rounded-2xl bg-obsidiana text-white p-5">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-oro block">
-                    Cómo opera con VANESEV
-                  </span>
-                  <h3 className="mt-1 font-display text-lg font-bold text-white">
-                    {currentNiche.solutionTitle}
-                  </h3>
-                  <p className="mt-1.5 text-xs sm:text-sm text-white/75 leading-relaxed">
-                    {currentNiche.solutionDetail}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-5">
-              <div className="relative overflow-hidden rounded-3xl border border-linea bg-noche shadow-luxury">
-                <div className="aspect-[4/3] w-full overflow-hidden">
-                  <img
-                    src={currentNiche.heroImage}
-                    alt={currentNiche.label}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="p-5 text-white space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-display text-lg font-bold">{currentNiche.demoBrandName}</span>
-                    <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
-                      Plantilla de Autor Activa
-                    </span>
-                  </div>
-                  <p className="text-xs text-white/65">{currentNiche.demoBrandSub}</p>
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
-                    {currentNiche.metrics.map((m, idx) => (
-                      <div key={idx}>
-                        <span className="font-display text-base font-extrabold text-oro tabular-nums block">
-                          {m.value}
-                        </span>
-                        <span className="text-[10px] text-white/55 line-clamp-2">{m.label}</span>
+                  <div className="space-y-2.5 pt-2">
+                    {[
+                      '0% comisiones por cita: el 100% de tu facturación va directo a tu salón.',
+                      'Enrutamiento limpio `/m/tu-salon` para códigos QR en recepción, espejos y bio de Instagram.',
+                      'Conversión bimoneda automática (USD + Tasa BCV en vivo) en cada servicio.',
+                    ].map((point, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5 text-xs text-[#1E181A]">
+                        <CheckCircle2 className="w-4 h-4 text-[#9E475B] shrink-0 mt-0.5" />
+                        <span>{point}</span>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                <div className="pt-6 mt-6 border-t border-[#1E181A]/10 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#9A8C90]">
+                      Caso de Estudio en Producción
+                    </p>
+                    <p className="font-display text-sm font-bold text-[#1E181A]">
+                      Capra Studio &bull; Brows, Lashes &amp; Hair
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onOpenCapraDemo}
+                    className="px-4 py-2.5 rounded-full bg-[#1E181A] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer hover:bg-[#33292C]"
+                  >
+                    <span>Ver Carta Real</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          SECTION 3: INTERACTIVE LIVE BRAND & THEME STUDIO ON LANDING PAGE
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section id="personalizador" className="relative z-10 py-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white border border-[#9E475B]/25 text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B]">
+              <Palette className="w-3.5 h-3.5" /> Libertad Creativa para Cada Salón
+            </span>
+            <h2 className="font-display text-3xl sm:text-5xl font-semibold text-[#1E181A] tracking-tight">
+              Cada salón tiene su esencia.{' '}
+              <span className="italic font-normal text-[#9E475B]">Pruébalo aquí mismo.</span>
+            </h2>
+            <p className="text-sm sm:text-base text-[#6E6266]">
+              Desde el panel administrativo de tu salón (o con ayuda de nuestro equipo en Central), puedes cambiar tu paleta de colores curada, la tipografía editorial y la disposición de tus servicios con 1 clic.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Controls (5 cols) */}
+            <div className="lg:col-span-5 bg-white rounded-[32px] p-6 sm:p-7 border border-[#1E181A]/8 shadow-sm space-y-6">
+              {/* 1. Palette Selector */}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-[#1E181A] block mb-3">
+                  1. Elige la Paleta de Color de tu Salón
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {SALON_PALETTES.map((pal) => {
+                    const active = studioPaletteId === pal.id;
+                    return (
+                      <button
+                        key={pal.id}
+                        type="button"
+                        onClick={() => setStudioPaletteId(pal.id)}
+                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                          active
+                            ? 'border-[#1E181A] bg-[#FAF7F2] shadow-xs ring-2 ring-[#1E181A]/10'
+                            : 'border-[#1E181A]/10 bg-white hover:border-[#1E181A]/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span className="w-4 h-4 rounded-full border border-black/10" style={{ backgroundColor: pal.bgPrimary }} />
+                          <span className="w-4 h-4 rounded-full" style={{ backgroundColor: pal.primary }} />
+                          <span className="w-4 h-4 rounded-full" style={{ backgroundColor: pal.secondary }} />
+                        </div>
+                        <p className="text-xs font-bold text-[#1E181A]">{pal.name}</p>
+                        <p className="text-[10px] text-[#6E6266] truncate">{pal.subtitle}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Typography Selector */}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-[#1E181A] block mb-2.5">
+                  2. Tipografía de Autor
+                </label>
+                <div className="space-y-2">
+                  {SALON_TYPOGRAPHIES.map((typo) => {
+                    const active = studioTypographyId === typo.id;
+                    return (
+                      <button
+                        key={typo.id}
+                        type="button"
+                        onClick={() => setStudioTypographyId(typo.id)}
+                        className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                          active
+                            ? 'border-[#1E181A] bg-[#FAF7F2]'
+                            : 'border-[#1E181A]/10 bg-white hover:border-[#1E181A]/30'
+                        }`}
+                      >
+                        <div>
+                          <p className="text-xs font-bold text-[#1E181A]">{typo.name}</p>
+                          <p className="text-[10px] text-[#6E6266]">{typo.subtitle}</p>
+                        </div>
+                        <span className="text-sm font-semibold px-2.5 py-1 rounded-lg bg-white border border-black/8">
+                          Aa
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Layout Selector */}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-[#1E181A] block mb-2.5">
+                  3. Estilo de Tarjetas del Catálogo
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {SALON_LAYOUTS.map((lay) => {
+                    const active = studioLayoutId === lay.id;
+                    return (
+                      <button
+                        key={lay.id}
+                        type="button"
+                        onClick={() => setStudioLayoutId(lay.id)}
+                        className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+                          active
+                            ? 'bg-[#1E181A] text-white border-[#1E181A]'
+                            : 'bg-white text-[#1E181A] border-[#1E181A]/12'
+                        }`}
+                      >
+                        <p className="text-[11px] font-bold">{lay.name}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Live Transforming Salon Preview (7 cols) */}
+            <motion.div
+              layout
+              className="lg:col-span-7 rounded-[36px] p-6 sm:p-8 border border-[#1E181A]/10 shadow-xl transition-colors duration-500 space-y-6"
+              style={{
+                backgroundColor: studioPalette.bgPrimary,
+                color: studioPalette.textPrimary,
+                fontFamily: studioTypography.bodyFont,
+              }}
+            >
+              {/* Simulated Salon Header */}
+              <div
+                className="rounded-3xl p-6 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                style={{ background: studioPalette.heroGradient }}
+              >
+                <div>
+                  <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest">
+                    Vista Previa en Tiempo Real &bull; {studioPalette.name}
+                  </span>
+                  <h3
+                    className="text-2xl sm:text-3xl font-semibold mt-2"
+                    style={{ fontFamily: studioTypography.headingFont }}
+                  >
+                    Maison Lumière &amp; Spa
+                  </h3>
+                  <p className="text-xs text-white/90 mt-1">
+                    Alta Peluquería, Diseño de Mirada &amp; Bienestar Integral
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onOpenCapraDemo}
+                  className="px-4 py-2.5 rounded-full bg-white text-[#1E181A] text-xs font-bold shadow-sm shrink-0 self-start sm:self-center cursor-pointer"
+                >
+                  Probar Reserva
+                </button>
+              </div>
+
+              {/* Simulated Service Cards in Selected Layout */}
+              <div
+                className={
+                  studioLayoutId === 'boutique-grid'
+                    ? 'grid grid-cols-1 sm:grid-cols-2 gap-4'
+                    : 'space-y-3.5'
+                }
+              >
+                {[
+                  {
+                    name: 'Diseño de Cejas Orgánicas + Henna Lab',
+                    desc: 'Visagismo geométrico, depilación con hilo hindú y sombreado mineral de larga duración.',
+                    price: '$15 USD',
+                    duration: '45 min',
+                    img: '/capra/brows-henna.jpg',
+                    badge: 'Best Seller',
+                  },
+                  {
+                    name: 'Maquillaje Social & Piel Blindada HD',
+                    desc: 'Preparación lumínica de la piel, acabado satinado resistente a lágrimas y pestañas de seda.',
+                    price: '$35 USD',
+                    duration: '75 min',
+                    img: '/capra/makeup-blindada.jpg',
+                    badge: 'Editorial',
+                  },
+                  {
+                    name: 'Pedicure Spa Botánico con Pétalos & Sales',
+                    desc: 'Exfoliación orgánica, hidratación térmica profunda y esmaltado gel de brillo espejo.',
+                    price: '$20 USD',
+                    duration: '60 min',
+                    img: '/capra/pedicure-spa.jpg',
+                    badge: 'Relax VIP',
+                  },
+                ].map((item, idx) => (
+                  <motion.div
+                    key={idx}
+                    layout
+                    className={`rounded-2xl bg-white border p-4 shadow-2xs flex ${
+                      studioLayoutId === 'boutique-grid'
+                        ? 'flex-col gap-3'
+                        : 'flex-col sm:flex-row sm:items-center gap-4'
+                    }`}
+                    style={{ borderColor: studioPalette.borderSubtle }}
+                  >
+                    {studioLayoutId !== 'minimal-menu' && (
+                      <img
+                        src={item.img}
+                        alt={item.name}
+                        className={
+                          studioLayoutId === 'boutique-grid'
+                            ? 'w-full h-36 rounded-xl object-cover'
+                            : 'w-full sm:w-24 h-32 sm:h-24 rounded-xl object-cover shrink-0'
+                        }
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                          style={{ backgroundColor: studioPalette.badgeBg, color: studioPalette.badgeText }}
+                        >
+                          {item.badge}
+                        </span>
+                        <span className="text-[11px] text-[#6E6266] flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {item.duration}
+                        </span>
+                      </div>
+                      <h4
+                        className="text-base font-bold"
+                        style={{ fontFamily: studioTypography.headingFont, color: studioPalette.textPrimary }}
+                      >
+                        {item.name}
+                      </h4>
+                      <p className="text-xs mt-1 line-clamp-2" style={{ color: studioPalette.textSecondary }}>
+                        {item.desc}
+                      </p>
+                    </div>
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-black/5">
+                      <span
+                        className="text-base font-bold"
+                        style={{ fontFamily: studioTypography.headingFont, color: studioPalette.primary }}
+                      >
+                        {item.price}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={onOpenCapraDemo}
+                        className="px-3.5 py-1.5 rounded-full text-white text-[11px] font-bold cursor-pointer"
+                        style={{ backgroundColor: studioPalette.primary }}
+                      >
+                        Agendar
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ══ LA PUERTA DE ENTRADA: CARTA QR DINÁMICA + 6 SUPERPODERES ══ */}
-      <section id="carta-qr" className="bg-crema py-20 md:py-28 border-b border-linea">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-7">
-              <p className="etiqueta-vn text-cassis">La puerta de entrada · Tecnología QR Dinámico</p>
-              <h2 className="font-display mt-3 text-3xl font-bold leading-[1.03] text-tinta sm:text-5xl">
-                Imprimes el QR una sola vez.{' '}
-                <span className="acento-serif font-normal text-cassis">
-                  Tus precios y promociones cambian al instante.
-                </span>
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          SECTION 4: 5 BEAUTY & WELLNESS SECTORS SHOWCASE
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section id="sectores" className="relative z-10 py-20 px-4 sm:px-6 bg-[#F4EFEA]/70 border-y border-[#1E181A]/6">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B] block mb-2">
+                DISEÑADO PARA CADA ESPECIALIDAD DEL SECTOR BELLEZA
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1E181A]">
+                Tu especialidad tiene su propio flujo operativo.
               </h2>
-              <p className="mt-5 text-sm sm:text-base text-niebla leading-relaxed max-w-2xl">
-                Cada salón recibe su propia ruta oficial <code className="rounded bg-papel px-2 py-0.5 font-mono text-xs text-tinta">vanesev.com/m/tu-salon</code> y sus códigos cortos <code className="rounded bg-papel px-2 py-0.5 font-mono text-xs text-tinta">vanesev.com/r/tocador-1</code>. Sin subdominios complicados ni esperas de DNS: lo colocas en espejos, acrílicos de recepción o tarjetas y lo gobiernas en tiempo real desde tu móvil.
-              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {SECTORS.map((sec, idx) => (
+                <button
+                  key={sec.id}
+                  type="button"
+                  onClick={() => setActiveSectorIdx(idx)}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    activeSectorIdx === idx
+                      ? 'bg-[#1E181A] text-white shadow-xs'
+                      : 'bg-white text-[#6E6266] hover:text-[#1E181A] border border-[#1E181A]/10'
+                  }`}
+                >
+                  {sec.tag}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              <div className="mt-8 grid gap-px overflow-hidden rounded-[28px] border border-linea bg-linea sm:grid-cols-3">
-                <div className="bg-white p-6">
-                  <span className="acento-serif text-3xl leading-none text-cassis">1</span>
-                  <p className="mt-3 text-base font-bold text-tinta">Nunca más imprentas</p>
-                  <p className="mt-1 text-xs text-niebla leading-relaxed">
-                    Actualizas un servicio o la tasa del día en 5 segundos y ya está en todos los espejos.
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeSector.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35 }}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white rounded-[36px] p-6 sm:p-8 border border-[#1E181A]/8 shadow-sm items-center"
+            >
+              <div className="lg:col-span-6 relative h-[320px] sm:h-[390px] rounded-[28px] overflow-hidden">
+                <img
+                  src={activeSector.image}
+                  alt={activeSector.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-white flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#9E475B] block">
+                      Impacto Comprobado
+                    </span>
+                    <p className="text-xs font-bold text-[#1E181A] mt-0.5">{activeSector.metrics}</p>
+                  </div>
+                  <Sparkles className="w-5 h-5 text-[#9E475B] shrink-0" />
+                </div>
+              </div>
+
+              <div className="lg:col-span-6 space-y-5">
+                <span className="px-3 py-1 rounded-full bg-[#FAF0F2] text-[#9E475B] text-[10px] font-bold uppercase tracking-widest">
+                  {activeSector.tag}
+                </span>
+                <h3 className="font-display text-2xl sm:text-3xl font-semibold text-[#1E181A]">
+                  {activeSector.title}
+                </h3>
+                <p className="text-sm text-[#6E6266] leading-relaxed">
+                  {activeSector.problemSolved}
+                </p>
+
+                <div className="space-y-2.5 pt-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9A8C90] block">
+                    Ejemplo de Servicios en tu Carta Interactiva:
+                  </span>
+                  {activeSector.servicesPreview.map((srv, i) => (
+                    <div
+                      key={i}
+                      className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#1E181A]/8 flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-xs font-bold text-[#1E181A]">{srv.name}</p>
+                        <p className="text-[10px] text-[#6E6266]">Duración bloqueada en agenda: {srv.duration}</p>
+                      </div>
+                      <span className="font-display font-bold text-sm text-[#9E475B]">{srv.price}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={onOpenCapraDemo}
+                    className="px-6 py-3 rounded-full text-xs font-bold text-white shadow-sm flex items-center gap-2 cursor-pointer"
+                    style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
+                  >
+                    <span>Ver Catálogo en Vivo</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onOpenCapraAdmin}
+                    className="px-5 py-3 rounded-full text-xs font-bold bg-[#FAF7F2] text-[#1E181A] border border-[#1E181A]/12 cursor-pointer"
+                  >
+                    Probar Panel de Gestión
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          SECTION 5: PSYCHOLOGICAL BEFORE VS. AFTER SATURDAY IN YOUR SALON
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section className="relative z-10 py-20 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <div className="text-center space-y-3">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B]">
+              PSICOLOGÍA OPERATIVA DE TU SALÓN
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1E181A]">
+              Un sábado a las 11:00 AM en tu salón: ¿Cómo prefieres vivirlo?
+            </h2>
+
+            <div className="inline-flex p-1.5 rounded-full bg-white border border-[#1E181A]/10 shadow-xs mt-2">
+              <button
+                type="button"
+                onClick={() => setSaturdayMode('chaos')}
+                className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  saturdayMode === 'chaos' ? 'bg-rose-700 text-white' : 'text-[#6E6266]'
+                }`}
+              >
+                Sin Sistema (Caos en WhatsApp)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSaturdayMode('vanesev')}
+                className={`px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  saturdayMode === 'vanesev' ? 'bg-[#1E181A] text-white' : 'text-[#6E6266]'
+                }`}
+              >
+                Con VANESEV Beauty Cloud
+              </button>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {saturdayMode === 'chaos' ? (
+              <motion.div
+                key="chaos"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="rounded-[32px] bg-rose-50/70 border border-rose-200 p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-5"
+              >
+                {[
+                  {
+                    title: '38 Mensajes Sin Responder',
+                    desc: 'Mientras atiendes a una clienta en cabina, 12 nuevas clientas preguntan precios y horarios. Cuando respondes a las 7:00 PM, ya reservaron en otro salón.',
+                  },
+                  {
+                    title: 'Cruces de Turnos & Esperas',
+                    desc: 'Anotar citas en cuadernos o chats sueltos genera dos clientas citadas a la misma hora con la misma especialista.',
+                  },
+                  {
+                    title: 'Tarjetas de Cartón Perdidas',
+                    desc: 'Las clientas olvidan su tarjeta física de sellos en casa y pierden el incentivo de volver cada mes.',
+                  },
+                ].map((c, i) => (
+                  <div key={i} className="p-5 rounded-2xl bg-white border border-rose-200/80 space-y-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold uppercase">
+                      Fuga de Ingresos #{i + 1}
+                    </span>
+                    <h4 className="font-display text-lg font-bold text-[#1E181A]">{c.title}</h4>
+                    <p className="text-xs text-[#6E6266] leading-relaxed">{c.desc}</p>
+                  </div>
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="vanesev"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="rounded-[32px] bg-white border border-[#1E181A]/10 shadow-md p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-5"
+              >
+                {[
+                  {
+                    title: 'Catálogo que Vende 24/7',
+                    desc: 'Tu link `/m/tu-salon` en Instagram y tu código QR en recepción muestran precios en USD/Bs, fotos reales y horarios disponibles al instante.',
+                  },
+                  {
+                    title: 'Equipo, Sillones & Cabinas en Orden',
+                    desc: 'Cada especialista y cada cabina tiene su capacidad configurada. Si un turno se ocupa, se bloquea automáticamente en tiempo real.',
+                  },
+                  {
+                    title: 'Pasaporte VIP con su Número de Teléfono',
+                    desc: 'Al culminar el servicio en Admin, acreditas 1 sello VIP con 1 clic y le envías su felicitación por WhatsApp.',
+                  },
+                ].map((c, i) => (
+                  <div key={i} className="p-5 rounded-2xl bg-[#FAF7F2] border border-[#1E181A]/8 space-y-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">
+                      Paz Operativa #{i + 1}
+                    </span>
+                    <h4 className="font-display text-lg font-bold text-[#1E181A]">{c.title}</h4>
+                    <p className="text-xs text-[#6E6266] leading-relaxed">{c.desc}</p>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          SECTION 6: EXECUTIVE DASHBOARDS PREVIEW (ADMIN DE SALÓN & SUPER-ADMIN CENTRAL)
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section id="ejecutivo" className="relative z-10 py-16 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto space-y-10">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B]">
+              INGENIERÍA EJECUTIVA LUMINOSA
+            </span>
+            <h2 className="font-display text-3xl sm:text-5xl font-semibold text-[#1E181A]">
+              Paneles de dirección tan elegantes como tu propio salón.
+            </h2>
+            <p className="text-sm sm:text-base text-[#6E6266]">
+              Controla citas, especialistas, cabinas, diseño de tu carta, códigos QR dinámicos y reportes financieros en PDF desde cualquier móvil, tablet o computador.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Card 1: Salon Admin Dashboard */}
+            <motion.div
+              whileHover={{ y: -4 }}
+              className="rounded-[32px] bg-white border border-[#1E181A]/10 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6"
+            >
+              <div className="space-y-4">
+                <div
+                  className="rounded-3xl p-6 text-white shadow-md"
+                  style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 55%, #E6B89C 100%)' }}
+                >
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full">
+                    Panel de la Dueña del Salón (/admin)
+                  </span>
+                  <h3 className="font-display text-2xl font-semibold mt-3">
+                    Dirección de Sede, Diseño &amp; Agenda
+                  </h3>
+                  <p className="text-xs text-white/90 mt-1">
+                    Personaliza la paleta y tipografía de tu carta, agrega o edita servicios con fotos, gestiona a tu equipo de especialistas y acredita sellos VIP.
                   </p>
                 </div>
-                <div className="bg-white p-6">
-                  <span className="acento-serif text-3xl leading-none text-cassis">2</span>
-                  <p className="mt-3 text-base font-bold text-tinta">Métrica por ubicación</p>
-                  <p className="mt-1 text-xs text-niebla leading-relaxed">
-                    Sabes cuántos escaneos vienen del espejo, del escaparate o de tu biografía de Instagram.
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {[
+                    'Editor de Paleta, Tipografía y Layout en Vivo',
+                    'Creador y Editor de Servicios, Precios y Fotos',
+                    'Gestión de Especialistas, Comisiones y Cabinas',
+                    'Generador QR `/m/` + Reporte Contable PDF',
+                  ].map((feat, i) => (
+                    <div key={i} className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#1E181A]/6 font-medium text-[#1E181A] flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#9E475B] shrink-0" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onOpenCapraAdmin}
+                className="w-full py-3.5 rounded-full bg-[#1E181A] hover:bg-[#33292C] text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Entrar al Admin Demo (Capra Studio)</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+            </motion.div>
+
+            {/* Card 2: Multi-Tenant Central Super-Admin */}
+            <motion.div
+              whileHover={{ y: -4 }}
+              className="rounded-[32px] bg-white border border-[#1E181A]/10 shadow-sm p-6 sm:p-8 flex flex-col justify-between space-y-6"
+            >
+              <div className="space-y-4">
+                <div
+                  className="rounded-3xl p-6 text-white shadow-md"
+                  style={{ background: 'linear-gradient(135deg, #A67B5B 0%, #C89B7B 55%, #E6CBA8 100%)' }}
+                >
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full">
+                    Gobernanza Multi-Sede (/central)
+                  </span>
+                  <h3 className="font-display text-2xl font-semibold mt-3">
+                    Super-Admin Central de Clientes &amp; Franquicias
+                  </h3>
+                  <p className="text-xs text-white/90 mt-1">
+                    Da de alta nuevos salones en 1 clic, asigna su identidad visual independiente, supervisa métricas globales y asiste a cada cliente en su ficha.
                   </p>
                 </div>
-                <div className="bg-white p-6">
-                  <span className="acento-serif text-3xl leading-none text-cassis">3</span>
-                  <p className="mt-3 text-base font-bold text-tinta">Redirección en vivo</p>
-                  <p className="mt-1 text-xs text-niebla leading-relaxed">
-                    En fechas especiales puedes apuntar el mismo QR físico hacia una campaña o promoción.
-                  </p>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {[
+                    'Alta 1-Click de Nuevos Salones sin Herencia',
+                    'Edición Directa de la Carta de Cualquier Cliente',
+                    'Acceso Directo al Admin y PWA de Cada Sede',
+                    'Analítica Global de Escaneos QR y Competidores',
+                  ].map((feat, i) => (
+                    <div key={i} className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#1E181A]/6 font-medium text-[#1E181A] flex items-center gap-2">
+                      <Crown className="w-3.5 h-3.5 text-[#A67B5B] shrink-0" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onOpenCentral}
+                className="w-full py-3.5 rounded-full bg-[#FAF7F2] hover:bg-[#EFE9E0] text-[#1E181A] border border-[#1E181A]/15 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Abrir Super-Admin Central</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════════════
+          SECTION 7: FINANCIAL RECOVERY CALCULATOR & TRANSPARENT PLANS
+      ═══════════════════════════════════════════════════════════════════════════ */}
+      <section id="inversion" className="relative z-10 py-20 px-4 sm:px-6 bg-[#F4EFEA]/60 border-t border-[#1E181A]/8">
+        <div className="max-w-7xl mx-auto space-y-14">
+          {/* Interactive ROI Calculator */}
+          <div className="rounded-[36px] bg-white border border-[#1E181A]/10 shadow-sm p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-7 space-y-5">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B]">
+                CALCULADORA DE RECUPERACIÓN DE AGENDA
+              </span>
+              <h3 className="font-display text-2xl sm:text-3xl font-semibold text-[#1E181A]">
+                ¿Cuánto dinero pierde tu salón por mensajes respondidos tarde o inasistencias?
+              </h3>
+
+              <div className="space-y-4 pt-2">
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-1.5">
+                    <span>Ticket Promedio por Servicio en tu Salón:</span>
+                    <span className="text-[#9E475B]">${avgTicket} USD</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={12}
+                    max={90}
+                    value={avgTicket}
+                    onChange={(e) => setAvgTicket(Number(e.target.value))}
+                    className="w-full accent-[#9E475B] cursor-pointer"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-1.5">
+                    <span>Citas semanales que no concretan por demora en WhatsApp:</span>
+                    <span className="text-[#9E475B]">{missedWeekly} citas / semana</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={2}
+                    max={20}
+                    value={missedWeekly}
+                    onChange={(e) => setMissedWeekly(Number(e.target.value))}
+                    className="w-full accent-[#9E475B] cursor-pointer"
+                  />
                 </div>
               </div>
             </div>
 
-            {/* QR Physical Acrylic Showcase Card */}
-            <div className="lg:col-span-5">
-              <div className="rounded-[32px] border border-linea bg-white p-6 sm:p-8 shadow-luxury text-center space-y-5">
-                <div className="inline-flex items-center gap-2 rounded-full bg-crema border border-linea px-3 py-1 text-[11px] font-bold text-tinta">
-                  <QrCode className="w-3.5 h-3.5 text-cassis" />
-                  <span>Kit QR Vectorial SVG incluido</span>
-                </div>
-                <div className="mx-auto w-44 h-44 rounded-2xl border border-linea bg-crema p-3 flex items-center justify-center shadow-inner">
-                  {sampleQrSvg ? (
-                    <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: sampleQrSvg }} />
-                  ) : null}
-                </div>
-                <div>
-                  <p className="font-display text-lg font-bold text-tinta">
-                    QR de Tocador · Redirección 302
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-cassis bg-cassis/8 rounded-lg py-1 px-3 inline-block">
-                    vanesev.com/r/capra-menu → /m/capra-studio
-                  </p>
-                </div>
+            <div
+              className="lg:col-span-5 rounded-3xl p-6 sm:p-8 text-white shadow-lg space-y-3"
+              style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-85 block">
+                Facturación Recuperable Estimada
+              </span>
+              <p className="font-display text-4xl sm:text-5xl font-bold">
+                +${monthlyRecoveredUSD.toLocaleString()} <span className="text-lg font-normal">USD / mes</span>
+              </p>
+              <p className="text-xs text-white/90">
+                Equivalente a <strong>+${yearlyRecoveredUSD.toLocaleString()} USD al año</strong> en turnos que hoy se escapan cuando tu recepción está ocupada.
+              </p>
+              <div className="pt-3">
+                <button
+                  type="button"
+                  onClick={onOpenCapraDemo}
+                  className="w-full py-3 rounded-full bg-white text-[#1E181A] text-xs font-bold shadow-sm cursor-pointer"
+                >
+                  Conocer Cómo Recuperarlos Hoy
+                </button>
               </div>
             </div>
           </div>
 
-          {/* 6 Superpowers Architectural Cards (Like DKitchen's "Lo que hace distinta tu carta") */}
-          <div id="superpoderes" className="mt-20">
-            <h3 className="font-display text-2xl sm:text-4xl font-bold text-tinta">
-              Lo que hace único a tu sistema VANESEV.
-            </h3>
+          {/* Transparent Pricing Tiers */}
+          <div className="space-y-8">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B]">
+                INVERSIÓN CLARA &bull; CERO COMISIONES POR CITA
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-[#1E181A]">
+                Planes pensados para crecer contigo.
+              </h2>
+            </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
-                  num: '01',
-                  title: 'Te lo montamos desde una foto de tu lista de precios',
-                  desc: 'Nos envías una foto o PDF de tus servicios actuales y te entregamos tu catálogo interactivo publicado con tus precios, tiempos, categorías y colores de marca.',
+                  name: 'Atelier Boutique',
+                  price: '$19',
+                  period: '/mes',
+                  subtitle: 'Ideal para estudios independientes y especialistas de autor.',
+                  features: [
+                    'Carta Interactiva con Paleta y Tipografía Editable',
+                    'Ruta QR Limpia (/m/tu-salon) + Kit Imprimible',
+                    'Agenda Conectada a WhatsApp & Tasa BCV',
+                    'Hasta 2 Especialistas en Agenda',
+                  ],
+                  highlighted: false,
                 },
                 {
-                  num: '02',
-                  title: 'Agenda multi-cabina y multi-especialista sin cruces',
-                  desc: 'Cada servicio bloquea automáticamente tanto a la profesional elegida como la cabina, sillón o tocador correspondiente para que jamás se solapen dos citas.',
+                  name: 'Salon Couture Pro',
+                  price: '$29',
+                  period: '/mes',
+                  subtitle: 'El estándar completo para salones, peluquerías y spas en crecimiento.',
+                  features: [
+                    'Todo lo incluido en Atelier Boutique',
+                    'Pasaporte Digital de Fidelidad VIP (Sellos)',
+                    'Gestión de Equipo, Comisiones y Cabinas',
+                    'Reportes Contables en PDF & CRM VIP',
+                  ],
+                  highlighted: true,
                 },
                 {
-                  num: '03',
-                  title: 'Tarjeta VIP digital de 5 sellos en el móvil',
-                  desc: 'Tu clienta acumula sellos con su número de teléfono en cada visita. Al llegar al 5.º sello, el sistema acredita su recompensa y dispara su frecuencia de retorno.',
+                  name: 'Maison Multi-Sede',
+                  price: '$59',
+                  period: '/mes',
+                  subtitle: 'Para clínicas estéticas, academias y franquicias con múltiples áreas.',
+                  features: [
+                    'Especialistas y Cabinas Ilimitadas',
+                    'Subdominio Propio + Configuración Asistida',
+                    'Módulo de Academia, Cursos & Paquetes Novia',
+                    'Soporte Prioritario Directo desde Central',
+                  ],
+                  highlighted: false,
                 },
-                {
-                  num: '04',
-                  title: 'Reseñas en Google Maps y liquidación de comisiones',
-                  desc: 'Un botón directo en tu carta invita a cada clienta atendida a dejar 5 estrellas en Google, mientras tu panel calcula al centavo la comisión de cada especialista.',
-                },
-              ].map((item) => (
-                <div
-                  key={item.num}
-                  className="rounded-[28px] border border-linea bg-white p-7 shadow-card"
+              ].map((plan, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ y: -4 }}
+                  className={`rounded-[32px] p-7 flex flex-col justify-between border ${
+                    plan.highlighted
+                      ? 'bg-white border-2 border-[#9E475B] shadow-xl relative'
+                      : 'bg-white border-[#1E181A]/10 shadow-xs'
+                  }`}
                 >
-                  <span className="acento-serif text-3xl leading-none text-cassis">{item.num}</span>
-                  <h4 className="font-display mt-3 text-xl sm:text-2xl font-bold text-tinta">
-                    {item.title}
-                  </h4>
-                  <p className="mt-2 text-sm text-niebla leading-relaxed">{item.desc}</p>
-                </div>
+                  {plan.highlighted && (
+                    <span
+                      className="px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white w-fit mb-4"
+                      style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
+                    >
+                      Más Elegido por Salones
+                    </span>
+                  )}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-display text-2xl font-bold text-[#1E181A]">{plan.name}</h3>
+                      <p className="text-xs text-[#6E6266] mt-1">{plan.subtitle}</p>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="font-display text-4xl font-bold text-[#1E181A]">{plan.price}</span>
+                      <span className="text-xs text-[#6E6266] font-semibold">USD {plan.period}</span>
+                    </div>
+                    <div className="space-y-2.5 pt-2 border-t border-[#1E181A]/8">
+                      {plan.features.map((f, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs text-[#1E181A]">
+                          <Check className="w-4 h-4 text-[#9E475B] shrink-0 mt-0.5" />
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={onOpenCapraDemo}
+                    className={`w-full mt-7 py-3.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      plan.highlighted
+                        ? 'text-white shadow-md'
+                        : 'bg-[#FAF7F2] hover:bg-[#EFE9E0] text-[#1E181A] border border-[#1E181A]/12'
+                    }`}
+                    style={plan.highlighted ? { background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' } : undefined}
+                  >
+                    Probar Demo en Vivo
+                  </button>
+                </motion.div>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══ CALCULADORA INTERACTIVA DE AHORRO (LINING TABULAR NUMBERS, NO WRAPPING) ══ */}
-      <section id="calculadora" className="bg-white py-20 md:py-28 border-b border-linea">
-        <div className="mx-auto max-w-5xl px-5 sm:px-8">
-          <div className="max-w-3xl">
-            <p className="etiqueta-vn text-cassis">Calculadora financiera en vivo</p>
-            <h2 className="font-display mt-3 text-3xl font-bold leading-[1.04] text-tinta sm:text-5xl">
-              Calcula cuánto dinero retienes al eliminar intermediarios.
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-niebla">
-              Desliza los valores según el volumen mensual de tu salón:
-            </p>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-8 rounded-[32px] border border-linea bg-crema p-6 sm:p-10 lg:grid-cols-12 lg:items-center">
-            {/* Sliders */}
-            <div className="lg:col-span-7 space-y-7">
-              <div>
-                <div className="flex items-center justify-between gap-3 mb-2.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-tinta">
-                    Citas atendidas al mes
-                  </label>
-                  <span className="shrink-0 whitespace-nowrap rounded-xl border border-linea-fuerte bg-white px-3.5 py-1.5 font-display text-base font-extrabold text-cassis tabular-nums">
-                    {monthlyClients} citas
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="30"
-                  max="600"
-                  step="10"
-                  value={monthlyClients}
-                  onChange={(e) => setMonthlyClients(Number(e.target.value))}
-                  className="w-full h-2.5 bg-linea-fuerte rounded-lg appearance-none cursor-pointer accent-cassis"
-                />
-                <div className="flex justify-between text-xs text-niebla mt-1.5 font-medium tabular-nums">
-                  <span>30 citas</span>
-                  <span>300 citas</span>
-                  <span>600 citas</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between gap-3 mb-2.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-tinta">
-                    Ticket promedio por servicio
-                  </label>
-                  <span className="shrink-0 whitespace-nowrap rounded-xl border border-linea-fuerte bg-white px-3.5 py-1.5 font-display text-base font-extrabold text-cassis tabular-nums">
-                    ${averageTicket} USD
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="10"
-                  max="120"
-                  step="5"
-                  value={averageTicket}
-                  onChange={(e) => setAverageTicket(Number(e.target.value))}
-                  className="w-full h-2.5 bg-linea-fuerte rounded-lg appearance-none cursor-pointer accent-cassis"
-                />
-                <div className="flex justify-between text-xs text-niebla mt-1.5 font-medium tabular-nums">
-                  <span>$10 USD</span>
-                  <span>$60 USD</span>
-                  <span>$120 USD</span>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-white p-4 border border-linea text-xs sm:text-sm text-grafito leading-relaxed">
-                <strong className="text-tinta">El impacto del 0% de comisiones:</strong> En un salón con{' '}
-                <span className="font-bold tabular-nums">{monthlyClients} citas</span> al mes, ceder el 20% a una app externa supone perder{' '}
-                <strong className="text-cassis tabular-nums">${platformCommissionLoss} USD cada mes</strong>. Con tu propia plataforma ese margen es 100% tuyo.
-              </div>
+      {/* ─── LUMINOUS EDITORIAL FOOTER ─── */}
+      <footer className="relative z-10 bg-white border-t border-[#1E181A]/8 py-12 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white font-display font-bold text-sm"
+              style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
+            >
+              V
             </div>
-
-            {/* Results Card with Crisp Lining Numerals */}
-            <div className="lg:col-span-5 rounded-[28px] bg-noche text-white p-7 sm:p-8 shadow-2xl space-y-6">
-              <span className="inline-block rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-oro">
-                Beneficio Mensual Estimado
-              </span>
-
-              <div className="space-y-5">
-                <div className="border-b border-white/12 pb-4">
-                  <span className="text-xs text-white/65 block">Ahorro directo en comisiones</span>
-                  <span className="font-display text-3xl sm:text-4xl font-extrabold text-oro tabular-nums block mt-1">
-                    +${platformCommissionLoss.toLocaleString('en-US')} USD
-                  </span>
-                  <span className="text-[11px] text-white/45">
-                    Facturación íntegra en la caja de tu salón.
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-xs text-white/65 block">
-                    Facturación adicional por retorno VIP (5 sellos)
-                  </span>
-                  <span className="font-display text-3xl sm:text-4xl font-extrabold text-emerald-400 tabular-nums block mt-1">
-                    +${retentionExtraRevenue.toLocaleString('en-US')} USD
-                  </span>
-                  <span className="text-[11px] text-white/45">
-                    Clientas que acortan su ciclo de visita a 21 días.
-                  </span>
-                </div>
-              </div>
-
-              <a
-                href="#planes"
-                className="w-full rounded-full bg-cassis hover:bg-cassis-hondo py-3.5 text-center text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 shadow-lg transition"
-              >
-                <span>Empezar con mi Salón</span>
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══ CASOS REALES EN VIVO (/m/capra-studio Y /m/andrea-nails) ══ */}
-      <section id="casos" className="bg-crema py-20 md:py-28 border-b border-linea">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <p className="etiqueta-vn text-cassis">Salones operando en vivo</p>
-          <h2 className="font-display mt-3 max-w-3xl text-3xl font-bold leading-[1.04] text-tinta sm:text-5xl">
-            Cada salón con su propia identidad de autor.{' '}
-            <span className="acento-serif font-normal text-cassis">
-              Nunca dos cartas iguales.
-            </span>
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm sm:text-base text-niebla">
-            Comprueba en vivo cómo cada cliente tiene su propia paleta, tipografía, estructura de departamentos y códigos QR dinámicos bajo nuestra arquitectura:
-          </p>
-
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            {/* Case 1: Capra Studio */}
-            <div className="group overflow-hidden rounded-[32px] border border-linea bg-white shadow-card transition hover:-translate-y-1 hover:shadow-luxury flex flex-col justify-between">
-              <div>
-                <div className="relative h-52 overflow-hidden bg-[#1E1417]">
-                  <img
-                    src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1000&q=80"
-                    alt="Capra Studio"
-                    className="h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1E1417] via-[#1E1417]/30 to-transparent" />
-                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                    <span className="rounded-full bg-[#8E4A59] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
-                      Salón Integral &amp; Academia
-                    </span>
-                    <span className="rounded-full bg-black/60 backdrop-blur-md px-3 py-1 font-mono text-[10px] text-white">
-                      /m/capra-studio
-                    </span>
-                  </div>
-                  <div className="absolute bottom-4 left-5 right-5 text-white">
-                    <h3 className="font-display text-2xl font-bold">
-                      Capra Studio · By María Capra
-                    </h3>
-                    <p className="text-xs text-white/80">
-                      6 Departamentos Especializados + Capra Academy Certificada
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-6 sm:p-7 space-y-4">
-                  <p className="text-xs sm:text-sm text-niebla leading-relaxed">
-                    Composición de autor en tonos malva terciopelo y obsidiana. Integra agenda de cejas, pestañas, alisados orgánicos, maquillaje social y matrícula directa para sus cursos profesionales.
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold text-grafito">
-                    <span className="rounded-full bg-crema px-3 py-1 border border-linea">QR: /r/capra-menu</span>
-                    <span className="rounded-full bg-crema px-3 py-1 border border-linea">Club VIP 5 Sellos</span>
-                    <span className="rounded-full bg-crema px-3 py-1 border border-linea">Capra Academy</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-6 pb-6 sm:px-7 sm:pb-7 pt-2">
-                <button
-                  type="button"
-                  onClick={() => onSelectTenant('capra-studio')}
-                  className="w-full rounded-full bg-[#8E4A59] hover:bg-[#743946] py-3.5 text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  <span>Abrir Carta y Reserva de Capra Studio</span>
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Case 2: Andrea Labrador Nails */}
-            <div className="group overflow-hidden rounded-[32px] border border-linea bg-white shadow-card transition hover:-translate-y-1 hover:shadow-luxury flex flex-col justify-between">
-              <div>
-                <div className="relative h-52 overflow-hidden bg-[#1D3326]">
-                  <img
-                    src="https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=1000&q=80"
-                    alt="Andrea Labrador Nails Studio"
-                    className="h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1D3326] via-[#1D3326]/30 to-transparent" />
-                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                    <span className="rounded-full bg-[#2E4F3B] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
-                      Nails Bar &amp; Pedi Spa
-                    </span>
-                    <span className="rounded-full bg-black/60 backdrop-blur-md px-3 py-1 font-mono text-[10px] text-white">
-                      /m/andrea-nails
-                    </span>
-                  </div>
-                  <div className="absolute bottom-4 left-5 right-5 text-white">
-                    <h3 className="font-display text-2xl font-bold">
-                      Andrea Labrador Nails Studio
-                    </h3>
-                    <p className="text-xs text-white/80">
-                      Salud de Uña Natural, Nivelación Rubber, Polygel y Pedicure Spa
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-6 sm:p-7 space-y-4">
-                  <p className="text-xs sm:text-sm text-niebla leading-relaxed">
-                    Composición botánica en verde salvia y crema editorial. Permite combinar servicios de Manos + Pies en una misma cita, conversión de tasa en vivo y tarjeta digital de fidelidad.
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold text-grafito">
-                    <span className="rounded-full bg-crema px-3 py-1 border border-linea">QR: /r/andrea-menu</span>
-                    <span className="rounded-full bg-crema px-3 py-1 border border-linea">Combinación Manos + Pies</span>
-                    <span className="rounded-full bg-crema px-3 py-1 border border-linea">Tasa BCV en vivo</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-6 pb-6 sm:px-7 sm:pb-7 pt-2">
-                <button
-                  type="button"
-                  onClick={() => onSelectTenant('andrea-nails')}
-                  className="w-full rounded-full bg-[#203A2B] hover:bg-[#16291E] py-3.5 text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  <span>Abrir Estudio de Andrea Labrador</span>
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══ PLANES POR CAPACIDAD + OFERTA FUNDADOR ══ */}
-      <section id="planes" className="bg-white py-20 md:py-28 border-b border-linea">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <p className="etiqueta-vn text-cassis">Inversión clara · Cero comisiones</p>
-              <h2 className="font-display mt-3 text-3xl font-bold leading-[1.04] text-tinta sm:text-5xl">
-                Tres planes por capacidad. Sin módulos ocultos.
-              </h2>
-            </div>
-
-            {/* Billing Cycle Switcher */}
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-linea bg-crema p-1.5 self-start">
-              <button
-                type="button"
-                onClick={() => setBillingCycle('quarterly')}
-                className={`rounded-full px-4 py-2 text-xs font-bold transition cursor-pointer ${
-                  billingCycle === 'quarterly'
-                    ? 'bg-tinta text-white shadow-xs'
-                    : 'text-niebla hover:text-tinta'
-                }`}
-              >
-                Trimestral · Ahorra 25%
-              </button>
-              <button
-                type="button"
-                onClick={() => setBillingCycle('monthly')}
-                className={`rounded-full px-4 py-2 text-xs font-bold transition cursor-pointer ${
-                  billingCycle === 'monthly'
-                    ? 'bg-tinta text-white shadow-xs'
-                    : 'text-niebla hover:text-tinta'
-                }`}
-              >
-                Mensual
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {/* Plan 1: Estudio */}
-            <div className="flex flex-col justify-between rounded-[28px] border border-linea bg-crema p-7 text-tinta">
-              <div>
-                <p className="font-display text-2xl font-bold">Estudio</p>
-                <p className="mt-3 flex items-baseline gap-1">
-                  <span className="font-display text-4xl font-extrabold tabular-nums">
-                    ${billingCycle === 'quarterly' ? '19' : '25'}
-                  </span>
-                  <span className="text-xs text-niebla">USD / mes</span>
-                </p>
-                <p className="mt-3 text-xs sm:text-sm text-niebla">
-                  Para especialistas independientes que atienden en su propio estudio o cabina privada.
-                </p>
-
-                <ul className="mt-6 space-y-2.5 text-xs sm:text-sm text-grafito border-t border-linea-fuerte pt-5">
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span><strong>1 especialista</strong> y 1 cabina activa</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span>Carta digital <code className="text-xs">/m/tu-salon</code> de autor</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span><strong>2 códigos QR dinámicos</strong> vectoriales SVG</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span>Tarjeta VIP digital de <strong>5 sellos</strong></span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span>Hasta <strong>120 citas al mes</strong> sin comisión</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span>Montaje inicial desde foto de tu lista de precios</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setSelectedPlanForCheckout({
-                    name: 'Estudio',
-                    price: billingCycle === 'quarterly' ? '19' : '25',
-                    period: billingCycle === 'quarterly' ? 'Facturación Trimestral' : 'Facturación Mensual',
-                  })
-                }
-                className="mt-8 w-full rounded-full border border-tinta py-3.5 text-center text-sm font-bold text-tinta transition hover:bg-tinta hover:text-white cursor-pointer"
-              >
-                Elegir Plan Estudio
-              </button>
-            </div>
-
-            {/* Plan 2: Salón Pro (Recommended Dark Architectural Card) */}
-            <div className="relative flex flex-col justify-between rounded-[28px] border border-tinta bg-noche p-7 text-white shadow-[0_30px_80px_-25px_rgba(12,10,14,0.65)]">
-              <span className="absolute -top-3.5 left-7 rounded-full bg-cassis px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white">
-                Más elegido por salones
-              </span>
-              <div>
-                <p className="font-display text-2xl font-bold">Salón Pro</p>
-                <p className="mt-3 flex items-baseline gap-1">
-                  <span className="font-display text-4xl font-extrabold text-oro tabular-nums">
-                    ${billingCycle === 'quarterly' ? '29' : '39'}
-                  </span>
-                  <span className="text-xs text-white/60">USD / mes</span>
-                </p>
-                <p className="mt-3 text-xs sm:text-sm text-white/70">
-                  Para peluquerías, salones de uñas, barberías y clínicas con equipo de especialistas.
-                </p>
-
-                <ul className="mt-6 space-y-2.5 text-xs sm:text-sm text-white/85 border-t border-white/12 pt-5">
-                  <li className="flex gap-2">
-                    <span className="text-oro font-bold">✓</span>
-                    <span>Hasta <strong>6 especialistas</strong> y <strong>6 cabinas/tocadores</strong></span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-oro font-bold">✓</span>
-                    <span><strong>6 códigos QR dinámicos</strong> con analítica por espejo</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-oro font-bold">✓</span>
-                    <span>Sincronización multi-cabina sin solapamientos</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-oro font-bold">✓</span>
-                    <span>Cálculo automático de <strong>comisiones del equipo</strong></span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-oro font-bold">✓</span>
-                    <span>Hasta <strong>500 citas al mes</strong> con 0% comisión</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-oro font-bold">✓</span>
-                    <span>Botón de reseñas en Google Maps y reporte contable PDF</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setSelectedPlanForCheckout({
-                    name: 'Salón Pro',
-                    price: billingCycle === 'quarterly' ? '29' : '39',
-                    period: billingCycle === 'quarterly' ? 'Facturación Trimestral' : 'Facturación Mensual',
-                  })
-                }
-                className="mt-8 w-full rounded-full bg-cassis hover:bg-cassis-hondo py-3.5 text-center text-sm font-bold text-white shadow-lg transition cursor-pointer"
-              >
-                Activar Salón Pro →
-              </button>
-            </div>
-
-            {/* Plan 3: Atelier & Academia */}
-            <div className="flex flex-col justify-between rounded-[28px] border border-linea bg-crema p-7 text-tinta">
-              <div>
-                <p className="font-display text-2xl font-bold">Atelier &amp; Academia</p>
-                <p className="mt-3 flex items-baseline gap-1">
-                  <span className="font-display text-4xl font-extrabold tabular-nums">
-                    ${billingCycle === 'quarterly' ? '49' : '65'}
-                  </span>
-                  <span className="text-xs text-niebla">USD / mes</span>
-                </p>
-                <p className="mt-3 text-xs sm:text-sm text-niebla">
-                  Para salones integrales de gran formato, franquicias o centros con academia de formación.
-                </p>
-
-                <ul className="mt-6 space-y-2.5 text-xs sm:text-sm text-grafito border-t border-linea-fuerte pt-5">
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span><strong>Especialistas y cabinas ilimitadas</strong></span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span>Módulo de <strong>Academia y Cursos Certificados</strong></span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span><strong>QR dinámicos ilimitados</strong> para campañas y flyers</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span>Citas ilimitadas y soporte prioritario directo</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-cassis font-bold">✓</span>
-                    <span>Diseño de autor a medida con tus fotografías</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setSelectedPlanForCheckout({
-                    name: 'Atelier & Academia',
-                    price: billingCycle === 'quarterly' ? '49' : '65',
-                    period: billingCycle === 'quarterly' ? 'Facturación Trimestral' : 'Facturación Mensual',
-                  })
-                }
-                className="mt-8 w-full rounded-full border border-tinta py-3.5 text-center text-sm font-bold text-tinta transition hover:bg-tinta hover:text-white cursor-pointer"
-              >
-                Elegir Atelier &amp; Academia
-              </button>
-            </div>
-          </div>
-
-          {/* Fundador Launch Banner (Like DKitchen's Fundador Card) */}
-          <div className="mt-12 overflow-hidden rounded-[32px] bg-noche text-white shadow-luxury grid md:grid-cols-[1.2fr_1fr] items-center">
-            <div className="p-7 sm:p-10 space-y-4">
-              <span className="inline-flex items-center gap-2 rounded-full bg-oro px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-noche">
-                <span className="h-1.5 w-1.5 rounded-full bg-cassis animate-pulse" />
-                Plazas de Lanzamiento · Montaje Llave en Mano Incluido
-              </span>
-              <h3 className="font-display text-3xl sm:text-5xl font-bold leading-tight">
-                Plan Fundador
-              </h3>
-              <p className="text-base sm:text-xl text-white/85">
-                Todo el plan <strong>Salón Pro</strong> + montaje completo de tu carta desde una foto por{' '}
-                <span className="text-oro font-extrabold tabular-nums">$25 USD/mes</span> blindado.
+              <p className="font-display font-bold text-sm text-[#1E181A]">
+                VANESEV Beauty &amp; Wellness Cloud
               </p>
-              <p className="text-xs sm:text-sm text-white/60 leading-relaxed">
-                Nos envías tu lista actual de servicios por WhatsApp y en menos de 24 horas tienes tu catálogo publicado, tus códigos QR listos para espejo y tu equipo configurado.
-              </p>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSelectedPlanForCheckout({
-                      name: 'Fundador (Salón Pro Vitalicio)',
-                      price: '25',
-                      period: 'Tarifa Fundador Blindada',
-                    })
-                  }
-                  className="rounded-full bg-cassis hover:bg-cassis-hondo px-7 py-3.5 text-sm font-bold text-white shadow-lg transition cursor-pointer"
-                >
-                  Solicitar Plaza de Fundador →
-                </button>
-              </div>
-            </div>
-            <div className="relative h-64 md:h-full overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1000&q=80"
-                alt="Plan Fundador VANESEV"
-                className="h-full w-full object-cover opacity-75"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-noche via-noche/30 to-transparent" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══ THE BEAUTY FOUNDER JOURNAL (EDITORIAL MAGAZINE) ══ */}
-      <section id="journal" className="bg-crema py-20 md:py-28 border-b border-linea">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
-          <p className="etiqueta-vn text-cassis">The Beauty Founder Journal</p>
-          <h2 className="font-display mt-3 max-w-3xl text-3xl font-bold leading-[1.04] text-tinta sm:text-5xl">
-            Lecturas de gestión, retención y rentabilidad para dueñas de salones.
-          </h2>
-
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {JOURNAL_ARTICLES.map((art) => (
-              <article
-                key={art.id}
-                onClick={() => setActiveArticle(art)}
-                className="group cursor-pointer overflow-hidden rounded-[28px] border border-linea bg-white shadow-card transition hover:-translate-y-1 hover:shadow-luxury flex flex-col justify-between"
-              >
-                <div>
-                  <div className="relative aspect-video overflow-hidden bg-noche">
-                    <img
-                      src={art.image}
-                      alt={art.title}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                    <span className="absolute top-3 left-3 rounded-full bg-noche/85 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-oro">
-                      {art.category}
-                    </span>
-                  </div>
-                  <div className="p-6 space-y-2.5">
-                    <div className="flex justify-between text-[11px] font-semibold text-niebla">
-                      <span>{art.date}</span>
-                      <span>{art.readTime}</span>
-                    </div>
-                    <h3 className="font-display text-lg font-bold text-tinta leading-snug group-hover:text-cassis transition-colors">
-                      {art.title}
-                    </h3>
-                    <p className="text-xs text-niebla leading-relaxed line-clamp-3">
-                      {art.excerpt}
-                    </p>
-                  </div>
-                </div>
-                <div className="px-6 pb-6 pt-3 border-t border-linea flex items-center justify-between text-xs font-bold text-cassis">
-                  <span>Leer reportaje completo</span>
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ ARCHITECTURAL FOOTER ══ */}
-      <footer className="bg-noche text-white py-16 px-5 sm:px-8">
-        <div className="mx-auto max-w-6xl space-y-12">
-          <div className="grid gap-10 md:grid-cols-12">
-            <div className="md:col-span-5 space-y-4">
-              <span className="font-display text-2xl font-extrabold tracking-tight text-white block">
-                VANE<span className="text-[#E04D7A]">SEV</span>
-              </span>
-              <p className="text-xs sm:text-sm text-white/60 max-w-sm leading-relaxed">
-                Plataforma de autor para salones de belleza, estudios de uñas, barberías, clínicas estéticas y academias. Tu carta QR dinámica, tu agenda multi-cabina y tu Club VIP sin comisiones.
+              <p className="text-[11px] text-[#6E6266]">
+                Tecnología de Autor para Salones de Belleza, Peluquerías, Clínicas Estéticas y Spas.
               </p>
             </div>
-
-            <div className="md:col-span-3 space-y-2.5 text-xs">
-              <span className="font-bold uppercase tracking-widest text-oro block">
-                Plataforma
-              </span>
-              <ul className="space-y-2 text-white/70">
-                <li><a href="#sectores" className="hover:text-white">Los 5 Sectores</a></li>
-                <li><a href="#carta-qr" className="hover:text-white">Tecnología QR Dinámico</a></li>
-                <li><a href="#calculadora" className="hover:text-white">Calculadora de Retención</a></li>
-                <li><a href="#planes" className="hover:text-white">Planes por Capacidad</a></li>
-              </ul>
-            </div>
-
-            <div className="md:col-span-4 space-y-2.5 text-xs">
-              <span className="font-bold uppercase tracking-widest text-oro block">
-                Ecosistema en Vivo
-              </span>
-              <ul className="space-y-2 text-white/70">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onSelectTenant('capra-studio')}
-                    className="hover:text-white cursor-pointer"
-                  >
-                    Capra Studio &amp; Academy (/m/capra-studio)
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onSelectTenant('andrea-nails')}
-                    className="hover:text-white cursor-pointer"
-                  >
-                    Andrea Labrador Studio (/m/andrea-nails)
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={onOpenCentral}
-                    className="text-[#F4D3DF] font-semibold hover:underline cursor-pointer"
-                  >
-                    VANESEV Central · Super-Admin
-                  </button>
-                </li>
-              </ul>
-            </div>
           </div>
 
-          <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/45">
-            <span>© {new Date().getFullYear()} VANESEV Cloud · Todos los derechos reservados.</span>
-            <span>Arquitectura Single-Domain · QR Dinámico HTTP 302</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={onOpenCapraDemo}
+              className="px-4 py-2 rounded-full bg-[#FAF7F2] hover:bg-[#EFE9E0] text-xs font-bold text-[#1E181A] border border-[#1E181A]/10 cursor-pointer"
+            >
+              Carta Demo (/m/capra-studio)
+            </button>
+            <button
+              type="button"
+              onClick={onOpenCapraAdmin}
+              className="px-4 py-2 rounded-full bg-[#FAF7F2] hover:bg-[#EFE9E0] text-xs font-bold text-[#1E181A] border border-[#1E181A]/10 cursor-pointer"
+            >
+              Admin Demo (/capra-studio/admin)
+            </button>
+            <button
+              type="button"
+              onClick={onOpenCentral}
+              className="px-4 py-2 rounded-full bg-[#FAF0F2] hover:bg-[#F5E1E6] text-xs font-bold text-[#9E475B] border border-[#9E475B]/20 cursor-pointer"
+            >
+              Super-Admin (/central)
+            </button>
           </div>
         </div>
       </footer>
-
-      {/* ══ MODAL LECTOR DE ARTÍCULOS DEL JOURNAL ══ */}
-      {activeArticle && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-[120] bg-noche/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
-        >
-          <div className="bg-white rounded-[28px] max-w-2xl w-full border border-linea shadow-2xl overflow-hidden my-8">
-            <div className="relative aspect-video max-h-60 overflow-hidden bg-noche">
-              <img
-                src={activeArticle.image}
-                alt={activeArticle.title}
-                className="w-full h-full object-cover opacity-85"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-noche via-noche/30 to-transparent" />
-              <button
-                type="button"
-                onClick={() => setActiveArticle(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-black/60 hover:bg-black text-white transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <div className="absolute bottom-4 left-6 right-6">
-                <span className="rounded-full bg-cassis px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                  {activeArticle.category}
-                </span>
-                <span className="ml-3 text-xs text-white/80">{activeArticle.readTime}</span>
-              </div>
-            </div>
-
-            <div className="p-6 sm:p-8 space-y-5 max-h-[65vh] overflow-y-auto">
-              <div>
-                <h2 className="font-display text-2xl sm:text-3xl font-bold text-tinta leading-tight">
-                  {activeArticle.title}
-                </h2>
-                <p className="mt-2 text-xs text-niebla border-b border-linea pb-4">
-                  Por <strong className="text-tinta">{activeArticle.author}</strong> · {activeArticle.date}
-                </p>
-              </div>
-
-              <div className="space-y-4 text-sm text-grafito leading-relaxed">
-                {activeArticle.content.map((p, i) => (
-                  <p key={i} className={i === 0 ? 'text-base font-medium text-tinta' : ''}>
-                    {p}
-                  </p>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t border-linea flex items-center justify-between gap-4">
-                <a
-                  href="#planes"
-                  onClick={() => setActiveArticle(null)}
-                  className="rounded-full bg-cassis px-5 py-2.5 text-xs font-bold text-white"
-                >
-                  Ver Planes de VANESEV
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setActiveArticle(null)}
-                  className="rounded-full border border-linea-fuerte px-5 py-2.5 text-xs font-bold text-grafito cursor-pointer"
-                >
-                  Cerrar lectura
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══ MODAL DE SOLICITUD DE ALTA / CHECKOUT ══ */}
-      {selectedPlanForCheckout && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-[120] bg-noche/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
-        >
-          <div className="bg-white rounded-[28px] max-w-lg w-full border border-linea shadow-2xl p-6 sm:p-8 space-y-6 my-8">
-            <div className="flex justify-between items-start border-b border-linea pb-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-cassis block">
-                  Solicitud de Alta · {selectedPlanForCheckout.period}
-                </span>
-                <h3 className="font-display text-2xl font-bold text-tinta mt-0.5">
-                  Plan {selectedPlanForCheckout.name}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedPlanForCheckout(null)}
-                className="p-1.5 rounded-full hover:bg-crema text-niebla cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="rounded-2xl bg-crema border border-linea p-4 flex justify-between items-center">
-              <div>
-                <span className="text-xs text-niebla block">Cuota mensual</span>
-                <strong className="font-display text-2xl font-extrabold text-tinta tabular-nums">
-                  ${selectedPlanForCheckout.price} USD / mes
-                </strong>
-              </div>
-              <span className="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1 text-xs font-bold">
-                0% Comisiones
-              </span>
-            </div>
-
-            <form onSubmit={handleConfirmCheckout} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-tinta block mb-1">
-                  Nombre de tu Salón, Barbería o Clínica:
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Lumière Hair & Spa"
-                  value={checkoutSalonName}
-                  onChange={(e) => setCheckoutSalonName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-linea-fuerte bg-white text-sm text-tinta focus:outline-none focus:border-cassis"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-tinta block mb-1">
-                  Especialidad principal:
-                </label>
-                <select
-                  value={checkoutNiche}
-                  onChange={(e) => setCheckoutNiche(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-linea-fuerte bg-white text-sm text-tinta focus:outline-none focus:border-cassis"
-                >
-                  <option value="Peluquería & Colorimetría">Peluquería &amp; Colorimetría</option>
-                  <option value="Estudio de Uñas / Nails Bar">Estudio de Uñas / Nails Bar</option>
-                  <option value="Barbería & Grooming">Barbería &amp; Grooming</option>
-                  <option value="Clínica Estética / MedSpa">Clínica Estética / MedSpa</option>
-                  <option value="Salón Integral + Academia">Salón Integral + Academia</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-tinta block mb-1">
-                  Tu WhatsApp directo:
-                </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="Ej: +58 424 1234567"
-                  value={checkoutOwnerPhone}
-                  onChange={(e) => setCheckoutOwnerPhone(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-linea-fuerte bg-white text-sm text-tinta focus:outline-none focus:border-cassis"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-tinta block mb-1.5">
-                  Modalidad de pago preferida:
-                </label>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  {[
-                    { id: 'transfer', label: 'Pago Móvil / Zelle', icon: Building2 },
-                    { id: 'binance', label: 'Binance / USDT', icon: Zap },
-                    { id: 'card', label: 'Tarjeta', icon: CreditCard },
-                  ].map((m) => (
-                    <button
-                      type="button"
-                      key={m.id}
-                      onClick={() => setCheckoutPaymentMethod(m.id as any)}
-                      className={`p-2.5 rounded-xl border text-center font-bold flex flex-col items-center gap-1 cursor-pointer transition ${
-                        checkoutPaymentMethod === m.id
-                          ? 'border-cassis bg-cassis/8 text-cassis'
-                          : 'border-linea bg-white text-niebla hover:border-tinta'
-                      }`}
-                    >
-                      <m.icon className="w-4 h-4" />
-                      <span className="text-[11px]">{m.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className="w-full py-4 rounded-full bg-cassis hover:bg-cassis-hondo text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
-                >
-                  <span>Solicitar Activación y Montaje de mi Carta</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-                <p className="text-[11px] text-niebla text-center mt-2">
-                  Incluye configuración inicial desde foto de tu lista de precios actual.
-                </p>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

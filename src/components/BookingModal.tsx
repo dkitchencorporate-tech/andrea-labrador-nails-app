@@ -29,6 +29,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
+import { getSalonThemeConfig } from '../utils/salonThemeEngine';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -60,9 +61,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   services,
   exchangeRate,
   referralCode,
-  tenantSlug = 'andrea-nails',
-  tenantName = 'Andrea Labrador Nails Studio',
-  tenantWhatsapp = '584241360937',
+  tenantSlug = 'capra-studio',
+  tenantName = 'Capra Studio',
+  tenantWhatsapp = '584247429530',
   onNavigateToShare,
   onBookingCreated,
 }) => {
@@ -356,9 +357,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     onClose();
   };
 
-  const isCapra = tenantSlug === 'capra-studio';
-  const directorName = isCapra ? 'María Capra' : 'Andrea';
-  const loyaltyRewardLabel = isCapra ? 'Tratamiento VIP de Cortesía' : 'Depilación de Cejas 100% GRATIS';
+  const isAndreaLegacy = tenantSlug === 'andrea-nails';
+  const isCapra = !isAndreaLegacy;
+  const salonTheme = getSalonThemeConfig(tenantSlug);
+  const directorName = isAndreaLegacy ? 'Andrea' : (tenantSlug === 'capra-studio' ? 'María Capra' : 'Dirección del Salón');
+  const loyaltyRewardLabel = isAndreaLegacy
+    ? 'Depilación de Cejas 100% GRATIS'
+    : (salonTheme.loyaltyRewardTitle || 'Tratamiento VIP de Cortesía');
 
   const getServiceCategoryLabel = (cat?: string) => {
     if (!isCapra) return cat === 'pedicure' ? 'Pies' : 'Manos';
@@ -366,48 +371,48 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (c.includes('ceja') || c.includes('pestana')) return 'Cejas & Mirada';
     if (c.includes('estilismo') || c.includes('alisado')) return 'Estilismo Capilar';
     if (c.includes('maquillaje')) return 'Maquillaje HD';
-    if (c.includes('nail') || c.includes('manicure') || c.includes('pedicure')) return 'Nails & Spa Pies';
+    if (c.includes('nail') || c.includes('manicure') || c.includes('pedicure') || c.includes('unia')) return 'Nails & Spa Pies';
     if (c.includes('depi')) return 'Cabina Privada';
-    if (c.includes('curso')) return 'Capra Academy';
+    if (c.includes('curso')) return 'Academy';
     return 'Atelier';
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#1E181A]/55 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
       <div
         className={`relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border overflow-hidden flex flex-col max-h-[92vh] ${
-          isCapra ? 'border-[#8E4A59]/30' : 'border-sage-200'
+          isCapra ? 'border-[#9E475B]/25' : 'border-sage-200'
         }`}
       >
         {/* Modal Header */}
         <div
           className={`px-6 py-5 border-b flex items-center justify-between ${
             isCapra
-              ? 'bg-[#191215] text-[#FAF6F3] border-[#C8A97E]/25'
+              ? 'bg-[#FAF7F2] text-[#1E181A] border-[#1E181A]/10'
               : 'bg-warm-100 border-sage-200/80'
           }`}
         >
           <div>
             <span
               className={`text-[10px] font-bold uppercase tracking-[0.2em] block ${
-                isCapra ? 'text-[#C8A97E] font-mono' : 'text-sage-700'
+                isCapra ? 'text-[#9E475B]' : 'text-sage-700'
               }`}
             >
-              Agenda Oficial &bull; {tenantName}
+              Agenda Oficial &bull; {salonTheme.salonName || tenantName}
             </span>
             <h3
-              className={`font-serif text-2xl font-bold ${
-                isCapra ? 'text-[#FAF6F3] font-normal' : 'text-sage-900'
+              className={`font-display text-2xl font-bold ${
+                isCapra ? 'text-[#1E181A]' : 'text-sage-900'
               }`}
             >
-              {isSuccess ? '¡Cita Lista para Confirmar!' : `Reservar en ${tenantName}`}
+              {isSuccess ? '¡Cita Lista para Confirmar!' : `Reservar en ${salonTheme.salonName || tenantName}`}
             </h3>
           </div>
           <button
             onClick={handleResetAndClose}
             className={`p-2 rounded-full transition-all cursor-pointer ${
               isCapra
-                ? 'text-white/70 hover:text-white hover:bg-white/10'
+                ? 'text-[#6E6266] hover:text-[#1E181A] hover:bg-black/5'
                 : 'text-warm-500 hover:text-warm-900 hover:bg-white/80'
             }`}
           >

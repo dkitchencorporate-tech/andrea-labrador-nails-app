@@ -3,10 +3,24 @@ import {
   Shield, Layers, CheckCircle2, AlertTriangle, MessageSquare, FileText,
   Globe, Plus, RefreshCw, ExternalLink, Sparkles, Send, Check, XCircle,
   Clock, Server, Database, HardDrive, GitBranch, ArrowUpRight, Users,
-  MapPin, DollarSign, Crown, Eye, Terminal, Activity, Lock, QrCode, Crosshair
+  MapPin, DollarSign, Crown, Eye, Terminal, Activity, Lock, QrCode, Crosshair,
+  Palette, Sliders, X
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { DynamicQrManager } from './DynamicQrManager';
 import { CentralCompetitors } from './CentralCompetitors';
+import { SalonThemeStudio } from './SalonThemeStudio';
+import {
+  SALON_PALETTES,
+  SALON_TYPOGRAPHIES,
+  SALON_LAYOUTS,
+  getSalonThemeConfig,
+  saveSalonThemeConfig,
+  getPaletteById,
+  SalonPaletteId,
+  SalonTypographyId,
+  SalonCardLayoutId,
+} from '../utils/salonThemeEngine';
 
 interface CentralDashboardProps {
   onNavigateToTenant: (tenantSlug: string, openAdmin?: boolean) => void;
@@ -17,9 +31,11 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   onNavigateToTenant,
   onNavigateToSaaSLanding,
 }) => {
-  const [activeTab, setActiveTab] = useState<'sessions' | 'incidents' | 'mailbox' | 'tasks_roadmap' | 'tenants' | 'docs' | 'qr' | 'competitors'>('sessions');
+  const [activeTab, setActiveTab] = useState<'tenants' | 'sessions' | 'incidents' | 'mailbox' | 'tasks_roadmap' | 'docs' | 'qr' | 'competitors'>('tenants');
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [editingTenantThemeSlug, setEditingTenantThemeSlug] = useState<string | null>(null);
+
   const [data, setData] = useState<any>({
     tenants: [],
     sessions: [],
@@ -68,12 +84,15 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
     whatsappPhone: '58424',
     instagramHandle: '@',
     city: 'San Cristóbal, Táchira',
-    primaryColor: '#B5838D',
-    accentColor: '#C5A059',
+    paletteId: 'rose-cashmere' as SalonPaletteId,
+    typographyId: 'haute-couture' as SalonTypographyId,
+    layoutId: 'editorial-magazine' as SalonCardLayoutId,
+    primaryColor: '#9E475B',
+    accentColor: '#C89B7B',
     loyaltyStampsTarget: 5,
-    loyaltyRewardTitle: 'Servicio VIP 100% GRATIS',
+    loyaltyRewardTitle: 'Ritual VIP de Cortesía 100% Gratis',
     monthlyFeeUsd: 29,
-    initialZonesCsv: 'Cejas & Pestañas, Estilismo & Peluquería, Manicure & Spa',
+    initialZonesCsv: 'Cejas & Pestañas, Estilismo & Colorimetría, Cabina Facial & Spa',
     initialStaffCsv: 'Directora Principal, Especialista Senior',
   });
 
@@ -172,6 +191,28 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   const handleSaveTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tenantForm.businessName.trim() || !tenantForm.customSubdomain.trim()) return;
+    const chosenPalette = getPaletteById(tenantForm.paletteId);
+    const slug = tenantForm.id || tenantForm.businessName.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+    // Save Author Theme Config immediately for this new salon
+    saveSalonThemeConfig(slug, {
+      tenantSlug: slug,
+      salonName: tenantForm.businessName.trim(),
+      tagline: `${tenantForm.niche === 'spa' ? 'Spa & Wellness' : 'Beauty Atelier'} · ${tenantForm.city}`,
+      heroHeadline: tenantForm.businessName.trim(),
+      heroSubheadline: tenantForm.slogan,
+      paletteId: tenantForm.paletteId,
+      typographyId: tenantForm.typographyId,
+      layoutId: tenantForm.layoutId,
+      whatsappPhone: tenantForm.whatsappPhone,
+      instagramHandle: tenantForm.instagramHandle,
+      addressLine: tenantForm.city,
+      loyaltyStampsGoal: tenantForm.loyaltyStampsTarget,
+      loyaltyRewardTitle: tenantForm.loyaltyRewardTitle,
+      showVipPassport: true,
+      showCurrencyDual: true,
+    });
+
     const initialZones = tenantForm.initialZonesCsv
       .split(',')
       .map((z) => z.trim())
@@ -188,6 +229,9 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
       }));
     await postAction('create_tenant_wizard', {
       ...tenantForm,
+      id: slug,
+      primaryColor: chosenPalette.primary,
+      accentColor: chosenPalette.secondary,
       initialZones,
       initialStaff,
     });
@@ -199,94 +243,98 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   const pendingTasksCount = (data.tasks || []).filter((t: any) => t.status !== 'completed').length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans selection:bg-amber-500/20 selection:text-amber-900 overflow-x-hidden">
-      {/* TOP COMMAND HEADER */}
-      <header className="sticky top-0 z-40 border-b border-[#E2E8F0] bg-white/95 backdrop-blur-xl shadow-xs">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="min-h-screen bg-[#F6F5F2] text-[#1E181A] font-sans selection:bg-[#9E475B]/15 selection:text-[#9E475B] overflow-x-hidden">
+      {/* VERTIX-STYLE LUMINOUS FLOATING CAPSULE TOP HEADER */}
+      <header className="sticky top-0 z-40 border-b border-[#1E181A]/8 bg-[#F6F5F2]/90 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 p-[1px] shadow-sm shrink-0">
-                <div className="w-full h-full bg-[#0F172A] rounded-[11px] flex items-center justify-center">
-                  <span className="font-serif font-black text-lg sm:text-xl text-amber-300">
-                    V
-                  </span>
-                </div>
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm shrink-0 text-white font-display font-bold text-lg"
+                style={{ background: 'linear-gradient(135deg, #B85D6F 0%, #D48C70 52%, #E6B89C 100%)' }}
+              >
+                V
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] sm:text-xs font-mono uppercase tracking-[0.2em] text-amber-800 font-bold">
-                    VANESEV · CENTRAL
+                  <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#9E475B]">
+                    VANESEV &bull; SUPER ADMIN CENTRAL
                   </span>
-                  <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
-                    ● LIVE DB
+                  <span className="px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
+                    ● NEON DB LIVE
                   </span>
                 </div>
-                <h1 className="text-sm sm:text-xl font-bold tracking-tight text-[#0F172A] truncate">
-                  Centro de Mando &amp; Gobernanza de karc0
+                <h1 className="font-display text-base sm:text-xl font-bold tracking-tight text-[#1E181A] truncate">
+                  Dirección General de Clientes, Cartas &amp; Gobernanza (karc0)
                 </h1>
               </div>
             </div>
             <button
               onClick={fetchCentralState}
               disabled={syncing}
-              className="sm:hidden p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 shrink-0"
+              className="lg:hidden p-2.5 rounded-full bg-white hover:bg-[#FAF7F2] border border-[#1E181A]/10 text-[#1E181A] shrink-0"
               title="Sincronizar con Neon DB"
             >
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-amber-600' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-[#9E475B]' : ''}`} />
             </button>
           </div>
 
-          {/* Quick Jump Switcher to Live Environments (Swipeable on Mobile) */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5 sm:pb-0">
+          {/* Quick Jump Capsule Buttons */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5 lg:pb-0">
+            <button
+              onClick={() => {
+                setActiveTab('tenants');
+                setShowTenantModal(true);
+              }}
+              className="px-4 py-2 rounded-full text-xs font-bold text-white flex items-center gap-1.5 transition-all shadow-sm shrink-0 cursor-pointer hover:opacity-95"
+              style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Nuevo Cliente / Salón
+            </button>
             <button
               onClick={() => onNavigateToTenant('capra-studio', false)}
-              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-[#FDF2F4] hover:bg-[#FBE4E9] text-[#7A4953] border border-[#F3C5CE] flex items-center gap-1.5 transition-all shrink-0"
+              className="px-3.5 py-2 rounded-full text-xs font-bold bg-white hover:bg-[#FAF0F2] text-[#9E475B] border border-[#9E475B]/25 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-2xs"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
-              Ver Capra Studio
+              <Sparkles className="w-3.5 h-3.5" />
+              Carta Capra Studio
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => onNavigateToTenant('capra-studio', true)}
-              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 flex items-center gap-1.5 transition-all shrink-0"
+              className="px-3.5 py-2 rounded-full text-xs font-bold bg-white hover:bg-[#FAF7F2] text-[#1E181A] border border-[#1E181A]/10 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-2xs"
             >
-              Admin Capra V2
-            </button>
-            <button
-              onClick={() => onNavigateToTenant('andrea-nails', false)}
-              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 transition-all shrink-0"
-            >
-              Ver Andrea Nails V2
+              Admin Capra Studio
             </button>
             <button
               onClick={onNavigateToSaaSLanding}
-              className="px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-[#0F172A] hover:bg-slate-800 text-white flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+              className="px-4 py-2 rounded-full text-xs font-bold bg-[#1E181A] hover:bg-[#33292C] text-white flex items-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
             >
-              <Globe className="w-3.5 h-3.5 text-amber-400" />
+              <Globe className="w-3.5 h-3.5 text-[#E6B89C]" />
               Web Comercial vanesev.com
             </button>
             <button
               onClick={fetchCentralState}
               disabled={syncing}
-              className="hidden sm:inline-flex p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 shrink-0"
+              className="hidden lg:inline-flex p-2.5 rounded-full bg-white hover:bg-[#FAF7F2] border border-[#1E181A]/10 text-[#1E181A] shrink-0 cursor-pointer shadow-2xs"
               title="Sincronizar con Neon DB"
             >
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-amber-600' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-[#9E475B]' : ''}`} />
             </button>
           </div>
         </div>
 
-        {/* NAVIGATION PILLS */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto no-scrollbar border-t border-[#E2E8F0]">
+        {/* FLOATING CAPSULE NAVIGATION PILL BAR */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-3 flex overflow-x-auto no-scrollbar gap-1.5">
           {[
-            { id: 'sessions', label: '1. Revisión de Sesiones & Aprobación', icon: CheckCircle2, badge: pendingSessionsCount },
-            { id: 'incidents', label: '2. Buzón de Emergencia (Bugs)', icon: AlertTriangle, badge: openIncidentsCount, alert: true },
-            { id: 'mailbox', label: '3. Buzón Directo karc0 ↔ Agente', icon: MessageSquare, badge: (data.mailbox || []).length },
-            { id: 'tasks_roadmap', label: '4. Tareas, Cronograma & Arquitectura', icon: Layers, badge: pendingTasksCount },
-            { id: 'tenants', label: '5. Salones (Tenants) & Dominios', icon: Crown, badge: (data.tenants || []).length },
-            { id: 'docs', label: '6. Documentación Compartida', icon: FileText, badge: (data.docs || []).length },
-            { id: 'qr', label: '7. Motor QR Dinámico & Analítica', icon: QrCode, badge: 0 },
-            { id: 'competitors', label: '8. Radar de Competidores & Inteligencia', icon: Crosshair, badge: 4 },
+            { id: 'tenants', label: 'Salones & Fichas de Clientes', icon: Crown, badge: (data.tenants || []).length },
+            { id: 'qr', label: 'Motor QR & Escaneos', icon: QrCode, badge: 0 },
+            { id: 'competitors', label: 'Radar Competidores', icon: Crosshair, badge: 4 },
+            { id: 'sessions', label: 'Auditoría Sesiones', icon: CheckCircle2, badge: pendingSessionsCount },
+            { id: 'tasks_roadmap', label: 'Tareas & Arquitectura', icon: Layers, badge: pendingTasksCount },
+            { id: 'mailbox', label: 'Buzón karc0 ↔ Agente', icon: MessageSquare, badge: (data.mailbox || []).length },
+            { id: 'incidents', label: 'Incidencias', icon: AlertTriangle, badge: openIncidentsCount, alert: true },
+            { id: 'docs', label: 'Documentación', icon: FileText, badge: (data.docs || []).length },
           ].map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -294,22 +342,22 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-3.5 text-xs sm:text-sm font-medium border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   active
-                    ? 'border-amber-600 text-amber-950 bg-amber-50/70 font-semibold'
-                    : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-[#1E181A] text-white shadow-xs'
+                    : 'bg-white text-[#6E6266] hover:text-[#1E181A] border border-[#1E181A]/8'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${tab.alert && tab.badge > 0 ? 'text-rose-600' : active ? 'text-amber-600' : 'text-slate-400'}`} />
+                <Icon className={`w-3.5 h-3.5 ${tab.alert && tab.badge > 0 ? 'text-rose-500' : active ? 'text-[#E6B89C]' : 'text-[#9A8C90]'}`} />
                 <span>{tab.label}</span>
                 {tab.badge > 0 && (
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full ${
                       tab.alert
-                        ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                        ? 'bg-rose-100 text-rose-800'
                         : active
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        ? 'bg-white/20 text-white'
+                        : 'bg-[#FAF7F2] text-[#6E6266]'
                     }`}
                   >
                     {tab.badge}
@@ -322,36 +370,107 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* INFRASTRUCTURE TELEMETRY STRIP */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {[
-            { label: 'GitHub Cloud CI', value: 'vanessas07 (7GB VM)', icon: GitBranch, color: 'text-emerald-600' },
-            { label: 'Vercel Edge', value: 'vanesevapp-4342 (iad1)', icon: Server, color: 'text-sky-600' },
-            { label: 'Neon Postgres 18', value: 'production + staging', icon: Database, color: 'text-amber-600' },
-            { label: 'Neon Live SQL', value: 'Realtime Activo', icon: Activity, color: 'text-purple-600' },
-            { label: 'Vercel Blob CDN', value: 'vanesev-media-blob', icon: HardDrive, color: 'text-pink-600' },
-            { label: 'Proyecto Aislado', value: 'VAKSAR (Reservado)', icon: Lock, color: 'text-slate-500' },
-          ].map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div key={idx} className="p-3.5 rounded-xl bg-white border border-[#E2E8F0] shadow-xs flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
-                  <Icon className={`w-4 h-4 ${item.color}`} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 truncate">{item.label}</p>
-                  <p className="text-xs font-semibold text-[#0F172A] truncate">{item.value}</p>
-                </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-7 space-y-7">
+        {/* VERTIX EXECUTIVE HERO SUMMARY BENTO */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <motion.div
+            whileHover={{ y: -3 }}
+            className="lg:col-span-7 rounded-[32px] p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[210px]"
+            style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 52%, #E2A889 100%)' }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 relative z-10">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-[0.2em]">
+                  <Crown className="w-3.5 h-3.5" /> Super-Admin Multi-Sede VANESEV
+                </span>
+                <h2 className="font-display text-2xl sm:text-3xl font-semibold mt-3 tracking-tight">
+                  Control Total de Clientes, Diseño &amp; QR
+                </h2>
+                <p className="text-xs sm:text-sm text-white/90 mt-1.5 max-w-xl leading-relaxed">
+                  Crea nuevos salones en segundos, personaliza su paleta de colores y tipografía en vivo, o entra directamente a su panel administrativo para asistirles.
+                </p>
               </div>
-            );
-          })}
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('tenants');
+                  setShowTenantModal(true);
+                }}
+                className="px-4 py-2.5 rounded-full bg-white text-[#1E181A] text-xs font-bold shadow-md hover:scale-105 transition-transform flex items-center gap-1.5 shrink-0 self-start cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-[#9E475B]" />
+                <span>Alta de Nuevo Salón</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 pt-5 mt-5 border-t border-white/20 relative z-10">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-white/75 block">Salones Activos</span>
+                <span className="font-display text-2xl font-bold">{(data.tenants || []).length} Sedes</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-white/75 block">Especialistas Red</span>
+                <span className="font-display text-2xl font-bold">{(data.staff || []).length} Pros</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-white/75 block">Cabinas &amp; Áreas</span>
+                <span className="font-display text-2xl font-bold">{(data.zones || []).length} Zonas</span>
+              </div>
+            </div>
+          </motion.div>
+
+          <div className="lg:col-span-5 grid grid-cols-2 gap-4">
+            <motion.div
+              whileHover={{ y: -3 }}
+              onClick={() => {
+                setActiveTab('tenants');
+                setEditingTenantThemeSlug('capra-studio');
+              }}
+              className="bg-white rounded-[28px] p-5 border border-[#1E181A]/8 shadow-xs flex flex-col justify-between cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#FAF0F2] text-[#9E475B]">
+                <Palette className="w-5 h-5" />
+              </div>
+              <div className="mt-4">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#9A8C90] block">
+                  Diseño &amp; Identidad
+                </span>
+                <p className="font-display text-lg font-bold text-[#1E181A] mt-0.5">
+                  Studio de Temas
+                </p>
+                <span className="text-xs font-semibold text-[#9E475B] mt-1 inline-block">
+                  Editar paletas de clientes &rarr;
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ y: -3 }}
+              onClick={() => setActiveTab('qr')}
+              className="bg-white rounded-[28px] p-5 border border-[#1E181A]/8 shadow-xs flex flex-col justify-between cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#FBF6EE] text-[#A67B5B]">
+                <QrCode className="w-5 h-5" />
+              </div>
+              <div className="mt-4">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#9A8C90] block">
+                  Enrutamiento `/m/`
+                </span>
+                <p className="font-display text-lg font-bold text-[#1E181A] mt-0.5">
+                  Generador QR
+                </p>
+                <span className="text-xs font-semibold text-[#A67B5B] mt-1 inline-block">
+                  Gestionar códigos QR &rarr;
+                </span>
+              </div>
+            </motion.div>
+          </div>
         </div>
 
         {loading ? (
-          <div className="p-16 text-center rounded-2xl bg-white border border-[#E2E8F0] shadow-xs">
-            <RefreshCw className="w-8 h-8 text-amber-600 animate-spin mx-auto mb-3" />
-            <p className="text-sm text-slate-600">Cargando cerebro compartido de VANESEV desde Neon Postgres 18...</p>
+          <div className="p-16 text-center rounded-[32px] bg-white border border-[#1E181A]/8 shadow-xs">
+            <RefreshCw className="w-8 h-8 text-[#9E475B] animate-spin mx-auto mb-3" />
+            <p className="text-sm text-[#6E6266]">Sincronizando ecosistema de salones desde Neon Postgres 18...</p>
           </div>
         ) : (
           <>
@@ -843,50 +962,115 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
               </div>
             )}
 
-            {/* TAB 5: SALONES (TENANTS) & SUBDOMINIOS MODIFICABLES */}
+            {/* TAB 5: SALONES (TENANTS), FICHAS DE CLIENTES & PERSONALIZADOR DE TEMAS */}
             {activeTab === 'tenants' && (
               <div className="space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-[28px] border border-[#1E181A]/8 shadow-xs">
                   <div>
-                    <h2 className="text-xl font-bold text-[#0F172A]">Gobernador Multi-Tenant de Salones & Subdominios (*.vanesev.com)</h2>
-                    <p className="text-sm text-slate-600">
-                      Cada negocio tiene su URL limpia modificable (`[subdominio].vanesev.com` y `vanesev.com/?salon=[id]`), su paleta de autor y su propio Admin Pro V2.
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B] block mb-1">
+                      GOBERNADOR MULTI-SEDE &bull; LIBERTAD ABSOLUTA DE EDICIÓN
+                    </span>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-[#1E181A]">
+                      Salones Activos, Fichas de Clientes &amp; Diseño de Cartas
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#6E6266] mt-1">
+                      Crea nuevos clientes, edita su paleta de colores y tipografía en vivo, o entra directamente a su Admin para gestionar sus servicios, citas y equipo.
                     </p>
                   </div>
                   <button
                     onClick={() => setShowTenantModal(true)}
-                    className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs cursor-pointer"
+                    className="px-5 py-3 rounded-full text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-md cursor-pointer hover:opacity-95"
+                    style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
                   >
                     <Plus className="w-4 h-4" />
                     Crear Nuevo Salón / Cliente
                   </button>
                 </div>
 
+                {/* EMBEDDED SALON THEME STUDIO WHEN EDITING A CLIENT'S DESIGN */}
+                {editingTenantThemeSlug && (
+                  <div className="bg-white rounded-[32px] border-2 border-[#9E475B]/25 shadow-xl p-6 sm:p-8 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#1E181A]/10">
+                      <div className="flex items-center gap-2.5">
+                        <span className="px-3 py-1 rounded-full bg-[#FAF0F2] text-[#9E475B] text-[10px] font-bold uppercase tracking-widest">
+                          Modo Super-Admin &bull; Edición en Vivo
+                        </span>
+                        <span className="text-xs font-mono text-[#6E6266]">
+                          Sede: <strong>{editingTenantThemeSlug}</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onNavigateToTenant(editingTenantThemeSlug, true)}
+                          className="px-4 py-2 rounded-full bg-[#1E181A] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <span>Ir al Admin Completo de esta Sede</span>
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingTenantThemeSlug(null)}
+                          className="p-2 rounded-full bg-[#FAF7F2] hover:bg-rose-50 text-[#1E181A] hover:text-rose-700 border border-[#1E181A]/10 cursor-pointer"
+                          title="Cerrar editor de diseño"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <SalonThemeStudio
+                      tenantSlug={editingTenantThemeSlug}
+                      onOpenPublicCatalog={() => onNavigateToTenant(editingTenantThemeSlug, false)}
+                      onSaved={() => fetchCentralState()}
+                    />
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {(data.tenants || []).map((ten: any) => {
                     const tenantStaff = (data.staff || []).filter((s: any) => s.tenant_id === ten.id);
                     const tenantZones = (data.zones || []).filter((z: any) => z.tenant_id === ten.id);
+                    const liveTheme = getSalonThemeConfig(ten.id);
+                    const livePalette = getPaletteById(liveTheme.paletteId);
+                    const isLegacyAndrea = ten.id === 'andrea-nails';
+
                     return (
-                      <div key={ten.id} className="rounded-2xl bg-white border border-[#E2E8F0] shadow-xs overflow-hidden flex flex-col justify-between">
+                      <motion.div
+                        key={ten.id}
+                        whileHover={{ y: -3 }}
+                        className="rounded-[28px] bg-white border border-[#1E181A]/8 shadow-xs overflow-hidden flex flex-col justify-between"
+                      >
                         <div className="p-6 space-y-4">
                           <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3.5">
                               <div
-                                className="w-12 h-12 rounded-xl flex items-center justify-center font-serif font-bold text-lg text-white shadow-md"
-                                style={{ backgroundColor: ten.primary_color, border: `2px solid ${ten.accent_color}` }}
+                                className="w-13 h-13 rounded-2xl flex items-center justify-center font-display font-bold text-lg text-white shadow-md shrink-0"
+                                style={{ background: isLegacyAndrea ? '#16291F' : livePalette.heroGradient }}
                               >
-                                {ten.business_name.slice(0, 2).toUpperCase()}
+                                {(liveTheme.salonName || ten.business_name).slice(0, 2).toUpperCase()}
                               </div>
                               <div>
-                                <div className="flex items-center gap-2">
-                                  <h3 className="text-lg font-bold text-[#0F172A]">{ten.business_name}</h3>
-                                  {ten.is_lifetime_free && (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-50 text-amber-800 border border-amber-200">
-                                      ★ VITALICIO GRATIS
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h3 className="font-display text-lg font-bold text-[#1E181A]">
+                                    {liveTheme.salonName || ten.business_name}
+                                  </h3>
+                                  {isLegacyAndrea ? (
+                                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                                      Cliente Externo Aislado
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                                      style={{ backgroundColor: livePalette.badgeBg, color: livePalette.badgeText }}
+                                    >
+                                      Paleta: {livePalette.name}
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-xs text-slate-500">{ten.owner_name} · {ten.instagram_handle} · +{ten.whatsapp_phone}</p>
+                                <p className="text-xs text-[#6E6266] mt-0.5">
+                                  {ten.owner_name} &bull; {liveTheme.instagramHandle || ten.instagram_handle} &bull; +{liveTheme.whatsappPhone || ten.whatsapp_phone}
+                                </p>
                               </div>
                             </div>
                             <span className="px-2.5 py-1 rounded-full text-[10px] font-mono uppercase bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -894,70 +1078,96 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                             </span>
                           </div>
 
-                          <p className="text-xs text-slate-700 italic">"{ten.slogan}"</p>
+                          <p className="text-xs text-[#6E6266] italic">
+                            &ldquo;{liveTheme.heroSubheadline || ten.slogan}&rdquo;
+                          </p>
 
-                          {/* Editable Subdomain URL Box */}
-                          <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
-                            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 block font-bold">
-                              URL Oficial Modificable (Wildcard DNS Activo en Vercel):
+                          {/* Clean QR Route & Subdomain */}
+                          <div className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#1E181A]/8 space-y-1.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9E475B] block">
+                              Rutas Activas (Generador QR `/m/` &amp; Subdominio):
                             </span>
-                            <div className="flex items-center justify-between gap-2 text-xs font-mono text-[#0F172A]">
-                              <span>https://{ten.custom_subdomain}.vanesev.com</span>
-                              <span className="text-slate-400">|</span>
-                              <span>vanesev.com/?salon={ten.id}</span>
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[#1E181A]">
+                              <span className="font-bold">vanesev.com/m/{ten.id}</span>
+                              <span className="text-[#9A8C90]">|</span>
+                              <span>{ten.custom_subdomain}.vanesev.com</span>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-2 text-center">
-                            <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
-                              <p className="text-[10px] text-slate-500 uppercase font-mono">Especialistas</p>
-                              <p className="text-sm font-bold text-[#0F172A]">{tenantStaff.length}</p>
+                          <div className="grid grid-cols-3 gap-2.5 text-center">
+                            <div className="p-2.5 rounded-2xl bg-[#FAF7F2] border border-[#1E181A]/6">
+                              <p className="text-[10px] text-[#9A8C90] uppercase font-bold">Equipo</p>
+                              <p className="text-sm font-bold text-[#1E181A] mt-0.5">{tenantStaff.length} Pros</p>
                             </div>
-                            <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
-                              <p className="text-[10px] text-slate-500 uppercase font-mono">Zonas Local</p>
-                              <p className="text-sm font-bold text-[#0F172A]">{tenantZones.length}</p>
+                            <div className="p-2.5 rounded-2xl bg-[#FAF7F2] border border-[#1E181A]/6">
+                              <p className="text-[10px] text-[#9A8C90] uppercase font-bold">Cabinas</p>
+                              <p className="text-sm font-bold text-[#1E181A] mt-0.5">{tenantZones.length} Áreas</p>
                             </div>
-                            <div className="p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
-                              <p className="text-[10px] text-slate-500 uppercase font-mono">Fidelización</p>
-                              <p className="text-sm font-bold text-amber-800">{ten.loyalty_stamps_target} Sellos VIP</p>
+                            <div className="p-2.5 rounded-2xl bg-[#FAF7F2] border border-[#1E181A]/6">
+                              <p className="text-[10px] text-[#9A8C90] uppercase font-bold">Pasaporte VIP</p>
+                              <p className="text-sm font-bold text-[#9E475B] mt-0.5">
+                                {liveTheme.loyaltyStampsGoal || ten.loyalty_stamps_target} Visitas
+                              </p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="p-4 bg-[#F8FAFC] border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2">
+                        <div className="p-4 bg-[#FAF7F2] border-t border-[#1E181A]/8 grid grid-cols-1 sm:grid-cols-3 gap-2">
                           <button
-                            onClick={() => onNavigateToTenant(ten.id, false)}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-[#CBD5E1] text-[#0F172A] text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs"
+                            type="button"
+                            onClick={() => setEditingTenantThemeSlug(ten.id)}
+                            className="py-2.5 px-3 rounded-xl bg-white hover:bg-[#FAF0F2] border border-[#9E475B]/30 text-[#9E475B] text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
                           >
-                            <Eye className="w-3.5 h-3.5 text-amber-600" />
-                            Abrir PWA del Salón
+                            <Palette className="w-3.5 h-3.5" />
+                            <span>Diseño &amp; Ficha</span>
                           </button>
                           <button
+                            type="button"
                             onClick={() => onNavigateToTenant(ten.id, true)}
-                            className="flex-1 py-2.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center justify-center gap-1.5"
+                            className="py-2.5 px-3 rounded-xl bg-[#1E181A] hover:bg-[#33292C] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
                           >
-                            Abrir Admin Pro V2
-                            <ArrowUpRight className="w-3.5 h-3.5" />
+                            <Sliders className="w-3.5 h-3.5 text-[#E6B89C]" />
+                            <span>Entrar al Admin</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onNavigateToTenant(ten.id, false)}
+                            className="py-2.5 px-3 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#1E181A]/12 text-[#1E181A] text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-[#9E475B]" />
+                            <span>Carta Pública</span>
                           </button>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
 
                 {showTenantModal && (
-                  <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white border border-[#CBD5E1] rounded-2xl max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-                      <div>
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-amber-800 font-bold">
-                          WIZARD 1-CLICK MULTI-TENANT · NEON DB
-                        </span>
-                        <h3 className="text-lg font-bold text-[#0F172A]">Dar de Alta Nuevo Salón + Zonas + Equipo</h3>
+                  <div className="fixed inset-0 z-50 bg-[#1E181A]/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white border border-[#1E181A]/10 rounded-[32px] max-w-2xl w-full p-6 sm:p-8 space-y-5 max-h-[92vh] overflow-y-auto shadow-2xl">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9E475B] block">
+                            ALTA DE CLIENTE MULTI-TENANT &bull; SIN PLANTILLAS HEREDADAS
+                          </span>
+                          <h3 className="font-display text-xl font-bold text-[#1E181A] mt-1">
+                            Crear Nuevo Salón con Identidad de Autor Propia
+                          </h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowTenantModal(false)}
+                          className="p-2 rounded-full bg-[#FAF7F2] text-[#6E6266] hover:text-[#1E181A] cursor-pointer"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
-                      <form onSubmit={handleSaveTenant} className="space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
+
+                      <form onSubmit={handleSaveTenant} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                           <div>
-                            <label className="text-xs text-slate-600 block mb-1">Nombre del Salón</label>
+                            <label className="text-xs font-bold text-[#1E181A] block mb-1">Nombre del Salón / Clínica</label>
                             <input
                               type="text"
                               required
@@ -966,88 +1176,161 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                                 const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                                 setTenantForm({ ...tenantForm, businessName: e.target.value, id: slug, customSubdomain: slug.replace(/-/g, '') });
                               }}
-                              placeholder="Ej: Lumina Spa"
-                              className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-sm text-[#0F172A] focus:border-amber-500"
+                              placeholder="Ej: Lumière Hair & Spa"
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-sm text-[#1E181A] font-medium"
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-slate-600 block mb-1">Subdominio (.vanesev.com)</label>
+                            <label className="text-xs font-bold text-[#1E181A] block mb-1">Ruta QR (`/m/slug`) y Subdominio</label>
                             <input
                               type="text"
                               required
                               value={tenantForm.customSubdomain}
                               onChange={(e) => setTenantForm({ ...tenantForm, customSubdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                              placeholder="luminaspa"
-                              className="w-full px-3 py-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] text-sm text-amber-800 font-mono"
+                              placeholder="lumierespa"
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-sm text-[#9E475B] font-mono font-bold"
                             />
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+
+                        {/* Selector de Paleta de Autor */}
+                        <div>
+                          <label className="text-xs font-bold text-[#1E181A] block mb-2">
+                            Selecciona la Paleta de Color del Salón (Modificable luego por la clienta):
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            {SALON_PALETTES.map((pal) => {
+                              const selected = tenantForm.paletteId === pal.id;
+                              return (
+                                <button
+                                  key={pal.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setTenantForm({
+                                      ...tenantForm,
+                                      paletteId: pal.id,
+                                      primaryColor: pal.primary,
+                                      accentColor: pal.secondary,
+                                    })
+                                  }
+                                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                                    selected
+                                      ? 'border-[#1E181A] bg-[#FAF7F2] shadow-xs ring-2 ring-[#1E181A]/10'
+                                      : 'border-[#1E181A]/10 bg-white hover:border-[#1E181A]/30'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-1.5 mb-1.5">
+                                    <span className="w-4 h-4 rounded-full border border-black/10" style={{ backgroundColor: pal.bgPrimary }} />
+                                    <span className="w-4 h-4 rounded-full" style={{ backgroundColor: pal.primary }} />
+                                    <span className="w-4 h-4 rounded-full" style={{ backgroundColor: pal.secondary }} />
+                                  </div>
+                                  <p className="text-xs font-bold text-[#1E181A]">{pal.name}</p>
+                                  <p className="text-[10px] text-[#6E6266] truncate">{pal.subtitle}</p>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Selector de Tipografía y Layout */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                           <div>
-                            <label className="text-xs text-slate-600 block mb-1">Dueño/a</label>
+                            <label className="text-xs font-bold text-[#1E181A] block mb-1">Tipografía Editorial</label>
+                            <select
+                              value={tenantForm.typographyId}
+                              onChange={(e) => setTenantForm({ ...tenantForm, typographyId: e.target.value as SalonTypographyId })}
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-xs font-bold text-[#1E181A]"
+                            >
+                              {SALON_TYPOGRAPHIES.map((t) => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-[#1E181A] block mb-1">Disposición de Tarjetas</label>
+                            <select
+                              value={tenantForm.layoutId}
+                              onChange={(e) => setTenantForm({ ...tenantForm, layoutId: e.target.value as SalonCardLayoutId })}
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-xs font-bold text-[#1E181A]"
+                            >
+                              {SALON_LAYOUTS.map((l) => (
+                                <option key={l.id} value={l.id}>{l.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                          <div>
+                            <label className="text-xs font-bold text-[#1E181A] block mb-1">Directora / Propietaria</label>
                             <input
                               type="text"
                               value={tenantForm.ownerName}
                               onChange={(e) => setTenantForm({ ...tenantForm, ownerName: e.target.value })}
-                              className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-sm text-[#0F172A]"
+                              placeholder="Nombre y Apellido"
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-sm text-[#1E181A]"
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-slate-600 block mb-1">WhatsApp (con 58)</label>
+                            <label className="text-xs font-bold text-[#1E181A] block mb-1">WhatsApp de Recepción (con código país)</label>
                             <input
                               type="text"
                               value={tenantForm.whatsappPhone}
                               onChange={(e) => setTenantForm({ ...tenantForm, whatsappPhone: e.target.value })}
-                              className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-sm text-[#0F172A]"
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-sm text-[#1E181A]"
                             />
                           </div>
                         </div>
+
                         <div>
-                          <label className="text-xs text-slate-600 block mb-1">Slogan de Autor</label>
+                          <label className="text-xs font-bold text-[#1E181A] block mb-1">Propuesta de Valor / Slogan de Portada</label>
                           <input
                             type="text"
                             value={tenantForm.slogan}
                             onChange={(e) => setTenantForm({ ...tenantForm, slogan: e.target.value })}
-                            className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-sm text-[#0F172A]"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-sm text-[#1E181A]"
                           />
                         </div>
-                        <div>
-                          <label className="text-xs text-amber-900 font-bold block mb-1">
-                            Áreas / Cabinas Iniciales (separadas por coma → se crean en `studio_zones`)
-                          </label>
-                          <input
-                            type="text"
-                            value={tenantForm.initialZonesCsv}
-                            onChange={(e) => setTenantForm({ ...tenantForm, initialZonesCsv: e.target.value })}
-                            placeholder="Cejas & Pestañas, Peluquería, Manicure & Spa"
-                            className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-xs text-[#0F172A]"
-                          />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                          <div>
+                            <label className="text-xs font-bold text-[#1E181A] block mb-1">
+                              Áreas / Cabinas Iniciales (separadas por coma)
+                            </label>
+                            <input
+                              type="text"
+                              value={tenantForm.initialZonesCsv}
+                              onChange={(e) => setTenantForm({ ...tenantForm, initialZonesCsv: e.target.value })}
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-xs text-[#1E181A]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-[#1E181A] block mb-1">
+                              Especialistas Iniciales (separadas por coma)
+                            </label>
+                            <input
+                              type="text"
+                              value={tenantForm.initialStaffCsv}
+                              onChange={(e) => setTenantForm({ ...tenantForm, initialStaffCsv: e.target.value })}
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#1E181A]/12 text-xs text-[#1E181A]"
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <label className="text-xs text-amber-900 font-bold block mb-1">
-                            Especialistas Iniciales (separadas por coma → se crean en `staff_members`)
-                          </label>
-                          <input
-                            type="text"
-                            value={tenantForm.initialStaffCsv}
-                            onChange={(e) => setTenantForm({ ...tenantForm, initialStaffCsv: e.target.value })}
-                            placeholder="Directora Principal, Especialista 1, Especialista 2"
-                            className="w-full px-3 py-2 rounded-lg bg-white border border-[#CBD5E1] text-xs text-[#0F172A]"
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2 pt-3">
+
+                        <div className="flex justify-end gap-2.5 pt-3 border-t border-[#1E181A]/10">
                           <button
                             type="button"
                             onClick={() => setShowTenantModal(false)}
-                            className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold"
+                            className="px-5 py-2.5 rounded-full bg-[#FAF7F2] hover:bg-[#F0EBE3] text-[#1E181A] text-xs font-bold cursor-pointer"
                           >
                             Cancelar
                           </button>
                           <button
                             type="submit"
-                            className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold uppercase shadow-xs"
+                            className="px-6 py-2.5 rounded-full text-white text-xs font-bold uppercase tracking-wider shadow-md cursor-pointer"
+                            style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
                           >
-                            Crear Salón + Zonas + Equipo en 1 Clic
+                            Crear Salón + Diseño + Equipo en 1 Clic
                           </button>
                         </div>
                       </form>

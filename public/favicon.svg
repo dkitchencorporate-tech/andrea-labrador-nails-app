@@ -1,16 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#141218"/>
-      <stop offset="100%" stop-color="#0C0A0E"/>
+    <linearGradient id="bgPearl" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FAF7F2" />
+      <stop offset="100%" stop-color="#F2E8E1" />
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#B8255A"/>
-      <stop offset="100%" stop-color="#8E1B46"/>
+    <linearGradient id="roseGold" x1="14" y1="14" x2="50" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#B85D6F" />
+      <stop offset="100%" stop-color="#C89B7B" />
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
-  <rect x="24" y="24" width="464" height="464" rx="96" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2"/>
-  <path d="M136 144H196L256 332L316 144H376L282 400H230L136 144Z" fill="#F7F4EF"/>
-  <circle cx="372" cy="376" r="22" fill="url(#accent)"/>
+  <rect width="64" height="64" rx="16" fill="url(#bgPearl)" stroke="#E5D5CB" stroke-width="2" />
+  <path d="M17 18H25.2L32.4 39.8L39.6 18H47.2L35.4 49H28.8L17 18Z" fill="#1E181A" />
+  <circle cx="46.5" cy="44.5" r="4" fill="url(#roseGold)" />
 </svg>

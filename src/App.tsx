@@ -43,93 +43,103 @@ import {
   Users,
 } from 'lucide-react';
 
+import {
+  resolveVerifiedBeautyImage,
+  getSalonThemeConfig,
+} from './utils/salonThemeEngine';
+
 const CAPRA_EDITORIAL_IMAGES: Record<string, string> = {
-  'capra-cejas-lam': 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=900&q=85',
-  'capra-pestanas-vol': 'https://images.unsplash.com/photo-1583001931096-959e9a1a6223?auto=format&fit=crop&w=900&q=85',
-  'capra-alisado-org': 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=85',
-  'capra-secado-ondas': 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=900&q=85',
-  'capra-makeup-social': 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=900&q=85',
-  'capra-nails-rubber': 'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=900&q=85',
-  'capra-pedi-spa': 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&w=900&q=85',
-  'capra-depi-corporal': 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=900&q=85',
-  'capra-curso-cejas': 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=900&q=85',
-  'capra-curso-automaq': 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=900&q=85',
+  'capra-srv-1': '/capra/brows-henna.jpg',
+  'capra-srv-2': '/capra/brow-lamination.jpg',
+  'capra-srv-3': '/capra/lash-lifting.jpg',
+  'capra-srv-4': '/capra/lash-extensions.jpg',
+  'capra-srv-5': '/capra/hair-straightening.jpg',
+  'capra-srv-6': '/vanesev/sector-hair-color.jpg',
+  'capra-srv-7': '/capra/makeup-blindada.jpg',
+  'capra-srv-8': '/capra/bridal-package.jpg',
+  'capra-srv-9': '/capra/nails-french.jpg',
+  'capra-srv-10': '/capra/pedicure-spa.jpg',
+  'capra-srv-11': '/vanesev/sector-medspa.jpg',
+  'capra-srv-12': '/vanesev/hero-atelier.jpg',
+  'capra-cejas-lam': '/capra/brow-lamination.jpg',
+  'capra-pestanas-vol': '/capra/lash-extensions.jpg',
+  'capra-alisado-org': '/capra/hair-straightening.jpg',
+  'capra-secado-ondas': '/vanesev/sector-hair-color.jpg',
+  'capra-makeup-social': '/capra/makeup-blindada.jpg',
+  'capra-nails-rubber': '/capra/nails-french.jpg',
+  'capra-pedi-spa': '/capra/pedicure-spa.jpg',
+  'capra-depi-corporal': '/vanesev/sector-medspa.jpg',
+  'capra-curso-cejas': '/vanesev/hero-atelier.jpg',
+  'capra-curso-automaq': '/capra/bridal-package.jpg',
 };
 
 const resolveCapraServiceImage = (id: string, category: string, name: string, rawUrl?: string): string => {
-  if (rawUrl && !rawUrl.startsWith('/images/')) {
-    return rawUrl;
-  }
-  if (CAPRA_EDITORIAL_IMAGES[id]) {
-    return CAPRA_EDITORIAL_IMAGES[id];
-  }
-  const lower = `${id} ${category} ${name}`.toLowerCase();
-  if (lower.includes('pestaña') || lower.includes('pestana') || lower.includes('rimel')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-pestanas-vol'];
-  }
-  if (lower.includes('ceja') && !lower.includes('curso')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-cejas-lam'];
-  }
-  if (lower.includes('alisado') || lower.includes('hidratac')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-alisado-org'];
-  }
-  if (lower.includes('secado') || lower.includes('onda') || lower.includes('estilismo')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-secado-ondas'];
-  }
-  if (lower.includes('automaq')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-curso-automaq'];
-  }
-  if (lower.includes('curso') || lower.includes('academy')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-curso-cejas'];
-  }
-  if (lower.includes('maquillaje') || lower.includes('makeup') || lower.includes('novia')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-makeup-social'];
-  }
-  if (lower.includes('pedi') || lower.includes('pie')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-pedi-spa'];
-  }
-  if (lower.includes('depi') || lower.includes('cera')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-depi-corporal'];
-  }
-  if (lower.includes('nail') || lower.includes('manicur')) {
-    return CAPRA_EDITORIAL_IMAGES['capra-nails-rubber'];
-  }
-  return CAPRA_EDITORIAL_IMAGES['capra-cejas-lam'];
+  return resolveVerifiedBeautyImage({ id, category, name, imageUrl: rawUrl });
 };
 
 const CAPRA_FALLBACK_SERVICES: ServiceItem[] = [
   {
-    id: 'capra-cejas-lam',
-    name: 'Laminado de Cejas + Diseño y Pigmento HD',
+    id: 'capra-srv-1',
+    name: 'Diseño de Cejas + Sombreado en Henna',
     category: 'cejas_pestanas',
-    priceUSD: 18,
-    durationMinutes: 45,
-    shortDescription: 'Visagismo personalizado con efecto pluma y nutrición profunda con keratina.',
-    fullDescription: 'Diseño arquitectónico de cejas según tu morfología facial, laminado nutritivo, pigmentación híbrida de larga duración y perfilado orgánico.',
-    idealFor: 'Mirada definida y cejas estilizadas por 5 semanas',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-cejas-lam'],
-    badgeText: 'Signature Miradas',
-    badgeColor: 'bg-[#8E4A59]',
+    priceUSD: 12,
+    durationMinutes: 40,
+    shortDescription: 'Visagismo geométrico con hilo o cera hipoalergénica y pigmentación orgánica en henna.',
+    fullDescription: 'Diseño arquitectónico de cejas según tu morfología facial, depilación de alta precisión y sombreado mineral de larga duración.',
+    idealFor: 'Mirada enmarcada y simétrica',
+    imageUrl: '/capra/brows-henna.jpg',
+    badgeText: 'Mirada Perfecta',
+    badgeColor: 'bg-[#9E475B]',
     isAvailable: true,
-    tags: ['Cejas HD', 'Laminado', 'Visagismo'],
+    tags: ['Cejas HD', 'Henna', 'Visagismo'],
   },
   {
-    id: 'capra-pestanas-vol',
-    name: 'Extensiones de Pestañas Efecto Rímel / Volumen Sutil',
+    id: 'capra-srv-2',
+    name: 'Brow Lamination + Diseño & Botox Nutritivo',
     category: 'cejas_pestanas',
-    priceUSD: 25,
+    priceUSD: 20,
+    durationMinutes: 50,
+    shortDescription: 'Efecto pluma estilizado con reestructuración orgánica y vitaminas para cejas.',
+    fullDescription: 'Alineación direccional del vello para lograr cejas más densas, definidas y nutridas hasta por 6 semanas.',
+    idealFor: 'Cejas rebeldes o con espacios vacíos',
+    imageUrl: '/capra/brow-lamination.jpg',
+    badgeText: 'Tendencia VIP',
+    badgeColor: 'bg-[#9E475B]',
+    isAvailable: true,
+    tags: ['Brow Lamination', 'Botox', 'Mirada'],
+  },
+  {
+    id: 'capra-srv-3',
+    name: 'Lifting de Pestañas + Tinte & Keratina',
+    category: 'cejas_pestanas',
+    priceUSD: 22,
+    durationMinutes: 60,
+    shortDescription: 'Curvatura natural desde la raíz con infusión de keratina y tinte negro intenso.',
+    fullDescription: 'Realza la longitud real de tus pestañas naturales sin extensiones, aportando nutrición profunda y efecto rímel.',
+    idealFor: 'Mirada fresca y expresiva sin mantenimiento pesado',
+    imageUrl: '/capra/lash-lifting.jpg',
+    badgeText: 'Mirada Natural',
+    badgeColor: 'bg-[#9E475B]',
+    isAvailable: true,
+    tags: ['Lifting', 'Keratina', 'Pestañas'],
+  },
+  {
+    id: 'capra-srv-4',
+    name: 'Extensiones de Pestañas Pelo a Pelo / Volumen Sutil',
+    category: 'cejas_pestanas',
+    priceUSD: 30,
     durationMinutes: 90,
-    shortDescription: 'Aplicación pelo a pelo ultraligera en fibras de seda sin dañar tu pestaña natural.',
-    fullDescription: 'Mapping personalizado según la curvatura de tu párpado con fibras hipoalergénicas de acabado aterciopelado.',
-    idealFor: 'Despertar con mirada expresiva todos los días',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-pestanas-vol'],
+    shortDescription: 'Fibras de seda ultraligeras aplicadas con aislamiento micro-preciso sin dañar tu pestaña.',
+    fullDescription: 'Mapping personalizado según la anatomía de tu ojo con adhesivo hipoalergénico de grado médico.',
+    idealFor: 'Despertar lista todos los días',
+    imageUrl: '/capra/lash-extensions.jpg',
     badgeText: 'Favorito Capra',
-    badgeColor: 'bg-[#8E4A59]',
+    badgeColor: 'bg-[#9E475B]',
     isAvailable: true,
-    tags: ['Pestañas', 'Efecto Rímel', 'Mirada'],
+    tags: ['Extensiones Seda', 'Volumen', 'Mirada'],
   },
   {
-    id: 'capra-alisado-org',
+    id: 'capra-srv-5',
     name: 'Alisado Orgánico Efecto Espejo & Hidratación Profunda',
     category: 'estilismo',
     priceUSD: 45,
@@ -137,74 +147,89 @@ const CAPRA_FALLBACK_SERVICES: ServiceItem[] = [
     shortDescription: 'Alisado libre de formol con brillo tridimensional y sellado térmico de aminoácidos.',
     fullDescription: 'Fórmula botánica enriquecida con aminoácidos y aceites nobles para disciplinar la hebra al 100% y devolver la sedosidad espejo.',
     idealFor: 'Cabello liso, brillante y saludable por meses',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-alisado-org'],
+    imageUrl: '/capra/hair-straightening.jpg',
     badgeText: 'Hair Couture',
-    badgeColor: 'bg-[#B8925A]',
+    badgeColor: 'bg-[#C89B7B]',
     isAvailable: true,
     tags: ['Alisado', 'Brillo Espejo', 'Hidratación'],
   },
   {
-    id: 'capra-secado-ondas',
+    id: 'capra-srv-6',
     name: 'Secado Editorial, Brushing & Ondas Glamour',
     category: 'estilismo',
-    priceUSD: 15,
+    priceUSD: 18,
     durationMinutes: 60,
     shortDescription: 'Lavado spa capilar, termoprotección y estilizado profesional de larga duración.',
-    fullDescription: 'Incluye diagnóstico capilar, lavado relajante en lavacabezas spa y estilizado con cepillo o ondas de pasarela.',
+    fullDescription: 'Incluye diagnóstico capilar, lavado relajante en lavacabezas spa y estilizado con cepillo u ondas de pasarela.',
     idealFor: 'Eventos especiales o lucir impecable toda la semana',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-secado-ondas'],
+    imageUrl: '/vanesev/sector-hair-color.jpg',
     badgeText: 'Estilismo',
-    badgeColor: 'bg-[#8E4A59]',
+    badgeColor: 'bg-[#9E475B]',
     isAvailable: true,
     tags: ['Secado', 'Ondas', 'Brushing'],
   },
   {
-    id: 'capra-makeup-social',
-    name: 'Maquillaje Profesional Social & Novias (Blindado HD)',
+    id: 'capra-srv-7',
+    name: 'Maquillaje Profesional Social & Piel Blindada HD',
     category: 'maquillaje',
     priceUSD: 35,
     durationMinutes: 75,
     shortDescription: 'Piel blindada de alta definición a prueba de clima, sudor y lágrimas con pestañas.',
     fullDescription: 'Preparación dermo-cosmética de alta gama, técnica de piel blindada luminosa y diseño de ojos personalizado por María Capra.',
-    idealFor: 'Bodas, graduaciones y sesiones editoriales',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-makeup-social'],
+    idealFor: 'Graduaciones, galas y sesiones editoriales',
+    imageUrl: '/capra/makeup-blindada.jpg',
     badgeText: 'By María Capra',
-    badgeColor: 'bg-[#B8925A]',
+    badgeColor: 'bg-[#C89B7B]',
     isAvailable: true,
-    tags: ['Maquillaje HD', 'Piel Blindada', 'Novias'],
+    tags: ['Maquillaje HD', 'Piel Blindada', 'Social'],
   },
   {
-    id: 'capra-nails-rubber',
-    name: 'Manicure Rusa Combinada + Nivelación Rubber',
+    id: 'capra-srv-8',
+    name: 'Paquete Reina / Novia (Maquillaje Blindado + Peinado Gala)',
+    category: 'maquillaje',
+    priceUSD: 65,
+    durationMinutes: 135,
+    shortDescription: 'Experiencia nupcial o de gala completa: piel blindada luminosa, pestañas y estilismo.',
+    fullDescription: 'Atención exclusiva para novias, quinceañeras y protagonistas que requieren perfección absoluta durante más de 16 horas.',
+    idealFor: 'Novias y eventos de máxima etiqueta',
+    imageUrl: '/capra/bridal-package.jpg',
+    badgeText: 'Bridal Suite',
+    badgeColor: 'bg-[#C89B7B]',
+    isAvailable: true,
+    tags: ['Novias', 'Gala', 'Paquete VIP'],
+  },
+  {
+    id: 'capra-srv-9',
+    name: 'Manicure Rusa Combinada + Nivelación Rubber / French',
     category: 'nails',
     priceUSD: 20,
     durationMinutes: 90,
     shortDescription: 'Limpieza micro-precisa de cutícula y arquitectura de uña con acabado natural.',
     fullDescription: 'Manicura rusa con instrumental esterilizado en autoclave, nivelación anatómica con base rubber y esmaltado en gel.',
     idealFor: 'Manos impecables por más de 21 días',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-nails-rubber'],
+    imageUrl: '/capra/nails-french.jpg',
     badgeText: 'Nails Atelier',
-    badgeColor: 'bg-[#8E4A59]',
+    badgeColor: 'bg-[#9E475B]',
     isAvailable: true,
     tags: ['Manicure Rusa', 'Rubber', 'Gel'],
   },
   {
-    id: 'capra-pedi-spa',
-    name: 'Pedicure Spa Botánico & Esmaltado Semipermanente',
+    id: 'capra-srv-10',
+    name: 'Pedicure Spa Detox & Esmaltado Semipermanente',
     category: 'nails',
-    priceUSD: 18,
+    priceUSD: 20,
     durationMinutes: 60,
-    shortDescription: 'Sales minerales, exfoliación orgánica, terapia de hidratación y gel.',
+    shortDescription: 'Sales minerales, exfoliación orgánica con pétalos, terapia de hidratación y gel.',
     fullDescription: 'Ritual de descanso podal con exfoliación nutritiva, retiro suave de asperezas y esmaltado de larga duración.',
     idealFor: 'Pies descansados, suaves y renovados',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-pedi-spa'],
+    imageUrl: '/capra/pedicure-spa.jpg',
     badgeText: 'Ritual Spa',
-    badgeColor: 'bg-[#8E4A59]',
+    badgeColor: 'bg-[#9E475B]',
     isAvailable: true,
     tags: ['Pedicure Spa', 'Semipermanente'],
   },
   {
-    id: 'capra-depi-corporal',
+    id: 'capra-srv-11',
     name: 'Depilación Corporal en Cabina Privada (Cera Miel / Española)',
     category: 'depilacion',
     priceUSD: 22,
@@ -212,41 +237,26 @@ const CAPRA_FALLBACK_SERVICES: ServiceItem[] = [
     shortDescription: 'Cabina climatizada con protocolo calmante post-depilatorio de aloe y manzanilla.',
     fullDescription: 'Protocolo higiénico descartable en cabina privada para piernas completas, axilas y línea de bikini.',
     idealFor: 'Piel de seda libre de irritación',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-depi-corporal'],
+    imageUrl: '/vanesev/sector-medspa.jpg',
     badgeText: 'Cabina Privada',
-    badgeColor: 'bg-[#8E4A59]',
+    badgeColor: 'bg-[#9E475B]',
     isAvailable: true,
     tags: ['Depilación', 'Cera Española', 'Cabina'],
   },
   {
-    id: 'capra-curso-cejas',
-    name: 'MASTERCLASS: Especialista en Diseño de Cejas & Pestañas',
+    id: 'capra-srv-12',
+    name: 'MASTERCLASS: Especialista en Cejas, Pestañas & Automaquillaje',
     category: 'cursos',
     priceUSD: 80,
     durationMinutes: 240,
     shortDescription: 'Formación intensiva teórico-práctica con materiales en mesa, guía y certificado.',
-    fullDescription: 'Aprende visagismo arquitectónico, laminado, pigmentación híbrida, aplicación punto por punto y rentabilidad de salón junto a María Giovanna Capra.',
+    fullDescription: 'Aprende visagismo arquitectónico, laminado, pigmentación híbrida, piel blindada y rentabilidad de salón junto a María Giovanna Capra.',
     idealFor: 'Emprendedoras que buscan iniciar o escalar su estudio',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-curso-cejas'],
+    imageUrl: '/vanesev/hero-atelier.jpg',
     badgeText: 'Capra Academy',
-    badgeColor: 'bg-[#B8925A]',
+    badgeColor: 'bg-[#C89B7B]',
     isAvailable: true,
     tags: ['Certificado', 'Práctica Real', 'Capra Academy'],
-  },
-  {
-    id: 'capra-curso-automaq',
-    name: 'MASTERCLASS: Automaquillaje & Piel Blindada Pro',
-    category: 'cursos',
-    priceUSD: 50,
-    durationMinutes: 180,
-    shortDescription: 'Domina la preparación de tu piel, visagismo y transición de día a noche.',
-    fullDescription: 'Diagnóstico de tu cosmetiquera, preparación de piel luminosa, contorno sutil, técnica de ojos y sellado de larga duración.',
-    idealFor: 'Dominar tu imagen personal con acabado profesional',
-    imageUrl: CAPRA_EDITORIAL_IMAGES['capra-curso-automaq'],
-    badgeText: 'Capra Academy',
-    badgeColor: 'bg-[#B8925A]',
-    isAvailable: true,
-    tags: ['Automaquillaje', 'Piel Blindada', 'Capra Academy'],
   },
 ];
 
@@ -272,31 +282,39 @@ export const App: React.FC = () => {
       hash === '#central' ||
       search.has('central');
 
-    const salonParam = search.get('salon');
-    const isCapra =
-      salonParam === 'capra-studio' ||
-      salonParam === 'capra' ||
-      path.startsWith('/capra') ||
-      path.startsWith('/m/capra');
-
-    const isAndrea =
-      salonParam === 'andrea-nails' ||
-      salonParam === 'andrea' ||
-      path.startsWith('/andrea') ||
-      path.startsWith('/m/andrea');
-
     const isAdmin =
       path.includes('/admin') ||
       hash === '#admin' ||
       search.has('admin');
 
-    const tenant: 'andrea-nails' | 'capra-studio' = isCapra ? 'capra-studio' : 'andrea-nails';
+    const salonParam = search.get('salon');
+
+    // Extract dynamic tenant slug from /m/<slug> or /<slug>/admin or ?salon=<slug>
+    let extractedSlug = '';
+    if (salonParam) {
+      extractedSlug = salonParam.toLowerCase();
+    } else if (path.startsWith('/m/')) {
+      const parts = path.replace(/^\/m\//, '').split('/').filter(Boolean);
+      extractedSlug = parts[0] || 'capra-studio';
+    } else {
+      const parts = path.split('/').filter(Boolean);
+      const first = parts[0] || '';
+      if (first && !['central', 'saas', 'compartir', 'promociones', 'admin'].includes(first)) {
+        extractedSlug = first;
+      }
+    }
+
+    if (extractedSlug === 'capra') extractedSlug = 'capra-studio';
+    if (extractedSlug === 'andrea') extractedSlug = 'andrea-nails';
+
+    const hasExplicitSalon = Boolean(extractedSlug);
+    const tenant: string = extractedSlug || 'capra-studio';
 
     // Root SaaS route: on apex domain or /, or explicitly /saas
     const isSaasLanding =
       !isCentral &&
-      !isCapra &&
-      !isAndrea &&
+      !isAdmin &&
+      !hasExplicitSalon &&
       (path === '/' || path === '' || path.startsWith('/saas') || hash === '#saas' || search.get('zone') === 'saas');
 
     return { isCentral, isSaasLanding, isAdmin, tenant };
@@ -305,7 +323,7 @@ export const App: React.FC = () => {
   const initialRoute = resolveInitialRoute();
   const [isCentralRoute, setIsCentralRoute] = useState(initialRoute.isCentral);
   const [isSaasRoute, setIsSaasRoute] = useState(initialRoute.isSaasLanding);
-  const [activeTenant, setActiveTenant] = useState<'andrea-nails' | 'capra-studio'>(initialRoute.tenant);
+  const [activeTenant, setActiveTenant] = useState<string>(initialRoute.tenant);
 
   // Legal modal state
   const [activeLegalModal, setActiveLegalModal] = useState<LegalModalType>(null);
@@ -353,11 +371,11 @@ export const App: React.FC = () => {
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   // Load store data with Neon Cloud synchronization per activeTenant
-  const refreshData = (targetTenant: 'andrea-nails' | 'capra-studio' = activeTenant) => {
-    AppStore.setActiveTenant(targetTenant);
-    if (targetTenant === 'capra-studio') {
+  const refreshData = (targetTenant: string = activeTenant) => {
+    AppStore.setActiveTenant(targetTenant as any);
+    if (targetTenant !== 'andrea-nails') {
       setServices(CAPRA_FALLBACK_SERVICES);
-      fetch('/api/services?tenant=capra-studio')
+      fetch(`/api/services?tenant=${encodeURIComponent(targetTenant)}`)
         .then(r => (r.ok ? r.json() : null))
         .then(json => {
           const rawServices = Array.isArray(json?.services) ? json.services : Array.isArray(json?.data) ? json.data : null;
@@ -370,12 +388,12 @@ export const App: React.FC = () => {
               durationMinutes: Number(row.durationMinutes ?? row.duration_min ?? 60),
               shortDescription: row.shortDescription || row.description || '',
               fullDescription: row.fullDescription || row.description || '',
-              idealFor: row.idealFor || row.includes_note || 'Atención personalizada en Capra Studio',
+              idealFor: row.idealFor || row.includes_note || 'Atención personalizada de autor',
               imageUrl: resolveCapraServiceImage(row.id, row.category || 'cejas_pestanas', row.name || '', row.imageUrl || row.image_url),
-              badgeText: row.badgeText || (row.category === 'cursos' ? 'Capra Academy' : 'Capra Studio'),
-              badgeColor: row.category === 'cursos' ? 'bg-[#B8925A]' : 'bg-[#8E4A59]',
+              badgeText: row.badgeText || (row.category === 'cursos' ? 'Academy' : 'Autor'),
+              badgeColor: row.category === 'cursos' ? 'bg-[#C89B7B]' : 'bg-[#9E475B]',
               isAvailable: row.isAvailable !== false && row.is_active !== false,
-              tags: Array.isArray(row.tags) ? row.tags : [row.category || 'Belleza', 'By María Capra'],
+              tags: Array.isArray(row.tags) ? row.tags : [row.category || 'Belleza', 'Autor'],
             }));
             setServices(mapped);
           }
@@ -410,18 +428,19 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    AppStore.setActiveTenant(activeTenant);
+    AppStore.setActiveTenant(activeTenant as any);
     refreshData(activeTenant);
 
     // Dynamic PWA Manifest & Title per Tenant
-    const isCapra = activeTenant === 'capra-studio';
+    const isAndreaLegacy = activeTenant === 'andrea-nails';
+    const salonTheme = getSalonThemeConfig(activeTenant);
     document.title = isCentralRoute
-      ? 'VANESEV Central · Centro de Control Multi-Sede'
+      ? 'VANESEV Central · Dirección Multi-Sede'
       : isSaasRoute
       ? 'VANESEV — Arquitectura Digital, Reservas & Fidelización para Salones de Belleza'
-      : isCapra
-      ? 'Capra Studio · By María Capra | Salón de Belleza & Capra Academy'
-      : 'Andrea Labrador · Nails Studio | Cordero & San Cristóbal';
+      : isAndreaLegacy
+      ? 'Andrea Labrador · Nails Studio | Cordero & San Cristóbal'
+      : `${salonTheme.salonName} | Reserva Online & Pasaporte VIP`;
 
     const manifestLink = document.querySelector("link[rel='manifest']") as HTMLLinkElement | null;
     if (manifestLink) {
@@ -456,20 +475,6 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  // Zone & Tenant Switchers
-  // Synchronize browser history (back/forward navigation)
-  useEffect(() => {
-    const handlePopState = () => {
-      const route = resolveInitialRoute();
-      setIsCentralRoute(route.isCentral);
-      setIsSaasRoute(route.isSaasLanding);
-      setIsAdminRoute(route.isAdmin);
-      setActiveTenant(route.tenant);
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
   const switchToCentral = () => {
     window.history.pushState(null, '', '/central');
     setIsCentralRoute(true);
@@ -490,11 +495,11 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const switchToTenant = (slug: 'andrea-nails' | 'capra-studio', openAdmin = false) => {
-    const basePath = slug === 'capra-studio' ? '/capra-studio' : '/andrea-nails';
-    const url = openAdmin ? `${basePath}/admin` : basePath;
+  const switchToTenant = (slug: string, openAdmin = false) => {
+    const cleanSlug = slug || 'capra-studio';
+    const url = openAdmin ? `/${cleanSlug}/admin` : `/m/${cleanSlug}`;
     window.history.pushState(null, '', url);
-    setActiveTenant(slug);
+    setActiveTenant(cleanSlug);
     setIsCentralRoute(false);
     setIsSaasRoute(false);
     setIsShareRoute(false);
@@ -521,7 +526,7 @@ export const App: React.FC = () => {
   };
 
   const handleExitToCatalog = () => {
-    const url = activeTenant === 'capra-studio' ? '/capra-studio' : '/andrea-nails';
+    const url = activeTenant === 'andrea-nails' ? '/andrea-nails' : `/m/${activeTenant}`;
     window.history.pushState(null, '', url);
     setIsAdminRoute(false);
     setIsShareRoute(false);
@@ -567,11 +572,11 @@ export const App: React.FC = () => {
   };
 
   const lazyFallback = (
-    <div className="min-h-screen bg-[#0C0A0E] text-[#FBF9F6] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#1E181A] flex items-center justify-center p-6">
       <div className="text-center space-y-3">
-        <div className="w-9 h-9 rounded-full border-2 border-[#8E1B46] border-t-[#C8A97E] animate-spin mx-auto" />
-        <p className="text-[11px] font-mono text-[#C8A97E] tracking-[0.2em] uppercase">
-          VANESEV · Iniciando Entorno
+        <div className="w-10 h-10 rounded-full border-2 border-[#9E475B]/25 border-t-[#9E475B] animate-spin mx-auto" />
+        <p className="text-[11px] font-bold text-[#9E475B] tracking-[0.22em] uppercase">
+          VANESEV &bull; Preparando Experiencia
         </p>
       </div>
     </div>
@@ -583,12 +588,8 @@ export const App: React.FC = () => {
       <Suspense fallback={lazyFallback}>
         <CentralDashboard
           onNavigateToSaaSLanding={switchToSaasLanding}
-          onNavigateToTenant={(slug) => {
-            if (slug === 'capra-studio' || slug === 'andrea-nails') {
-              switchToTenant(slug, false);
-            } else {
-              switchToSaasLanding();
-            }
+          onNavigateToTenant={(slug, openAdmin) => {
+            switchToTenant(slug, Boolean(openAdmin));
           }}
         />
       </Suspense>
@@ -600,12 +601,16 @@ export const App: React.FC = () => {
     return (
       <Suspense fallback={lazyFallback}>
         <VanesevLanding
+          onOpenCapraDemo={() => switchToTenant('capra-studio', false)}
+          onOpenCapraAdmin={() => switchToTenant('capra-studio', true)}
+          onOpenAndreaDemo={() => switchToTenant('andrea-nails', false)}
           onOpenCentral={switchToCentral}
-          onSelectTenant={(slug) => switchToTenant(slug, false)}
         />
       </Suspense>
     );
   }
+
+  const activeSalonTheme = getSalonThemeConfig(activeTenant);
 
   // ─── ZONA 3: PROTECTED ADMIN PRO V2 DEL SALÓN ACTIVO ──────────────────────
   if (isAdminRoute) {
@@ -624,29 +629,29 @@ export const App: React.FC = () => {
     return (
       <Suspense fallback={lazyFallback}>
         <div>
-          {/* Top Ecosystem Bar inside Admin */}
-          <div className="bg-[#0C0A0E] text-[#FBF9F6] px-4 py-2.5 border-b border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+          {/* Luminous Top Ecosystem Bar inside Admin */}
+          <div className="bg-white text-[#1E181A] px-4 py-2 border-b border-[#1E181A]/8 flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2.5">
-              <span className="px-2 py-0.5 rounded bg-[#8E1B46] text-white font-mono font-bold text-[10px] tracking-wider uppercase">
-                ADMIN SEDE
+              <span className="px-2.5 py-0.5 rounded-full bg-[#FAF0F2] text-[#9E475B] font-bold text-[10px] tracking-wider uppercase">
+                Sede Activa
               </span>
-              <span className="font-semibold text-white/90">
-                {activeTenant === 'capra-studio' ? 'Capra Studio (@caprastudio_)' : 'Andrea Labrador Nails Studio'}
+              <span className="font-display font-bold text-[#1E181A]">
+                {activeTenant === 'andrea-nails' ? 'Andrea Labrador Nails Studio' : activeSalonTheme.salonName}
               </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={() => switchToTenant(activeTenant === 'capra-studio' ? 'andrea-nails' : 'capra-studio', true)}
-                className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-white/90 font-medium transition-colors cursor-pointer"
+                onClick={switchToSaasLanding}
+                className="px-3 py-1 rounded-full bg-[#FAF7F2] hover:bg-[#EFE9E0] text-[#1E181A] font-semibold transition-colors cursor-pointer border border-[#1E181A]/10"
               >
-                Cambiar a {activeTenant === 'capra-studio' ? 'Andrea Nails' : 'Capra Studio'}
+                Web vanesev.com
               </button>
               <button
                 onClick={switchToCentral}
-                className="px-3 py-1 rounded-lg bg-[#C8A97E] text-[#0C0A0E] font-bold flex items-center gap-1.5 hover:bg-[#d8bc93] transition-colors cursor-pointer"
+                className="px-3.5 py-1 rounded-full bg-[#1E181A] text-white font-bold flex items-center gap-1.5 hover:bg-[#33292C] transition-colors cursor-pointer"
               >
-                <Terminal className="w-3.5 h-3.5" />
-                <span>VANESEV Central</span>
+                <Terminal className="w-3.5 h-3.5 text-[#E6B89C]" />
+                <span>Super-Admin Central</span>
               </button>
             </div>
           </div>
@@ -657,7 +662,7 @@ export const App: React.FC = () => {
             blockedSlots={blockedSlots}
             exchangeRate={exchangeRate}
             tenantSlug={activeTenant}
-            tenantName={activeTenant === 'capra-studio' ? 'Capra Studio · By María Capra' : 'Andrea Labrador Nails Studio'}
+            tenantName={activeTenant === 'andrea-nails' ? 'Andrea Labrador Nails Studio' : activeSalonTheme.salonName}
             onRefreshData={() => refreshData(activeTenant)}
             onExitToCatalog={handleExitToCatalog}
             onLogout={() => {
@@ -701,9 +706,9 @@ export const App: React.FC = () => {
           preSelectedPromo={selectedPromo}
           exchangeRate={exchangeRate}
           referralCode={referralCode}
-          tenantSlug={activeTenant}
-          tenantName={activeTenant === 'capra-studio' ? 'Capra Studio' : 'Andrea Labrador Nails Studio'}
-          tenantWhatsapp={activeTenant === 'capra-studio' ? '584247429530' : '584241360937'}
+          tenantSlug={activeTenant as any}
+          tenantName={activeTenant === 'andrea-nails' ? 'Andrea Labrador Nails Studio' : activeSalonTheme.salonName}
+          tenantWhatsapp={activeTenant === 'andrea-nails' ? '584241360937' : activeSalonTheme.whatsappPhone}
           onBookingCreated={() => refreshData(activeTenant)}
         />
         <ClientAccountModal
@@ -716,18 +721,22 @@ export const App: React.FC = () => {
     );
   }
 
-  // --- RENDER PUBLIC CUSTOMER CATALOG (ZONA 4: CAPRA STUDIO OR ANDREA NAILS V2) ---
-  const isCapra = activeTenant === 'capra-studio';
+  // --- RENDER PUBLIC CUSTOMER CATALOG ---
+  // Any salon in VANESEV (Capra Studio or any new client created in Central) uses CapraStudioExperience + SalonThemeEngine.
+  // Only the external legacy client 'andrea-nails' uses the legacy nail components.
+  const isAndreaLegacy = activeTenant === 'andrea-nails';
+  const isCapra = !isAndreaLegacy;
 
   if (isCapra) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#FDFBF9] text-[#2D1E22] font-sans selection:bg-[#B5838D]/30 selection:text-[#2D1E22] overflow-x-hidden">
-        <PWAInstallModal onOpenClientAccount={() => setIsAccountModalOpen(true)} />
+      <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#1E181A] font-sans selection:bg-[#9E475B]/20 selection:text-[#1E181A] overflow-x-hidden">
         <CapraStudioExperience
           services={services}
           exchangeRate={exchangeRate}
+          tenantSlug={activeTenant}
           onOpenBooking={(s) => s ? handleSelectService(s) : handleOpenGeneralBooking()}
           onOpenAccountModal={() => setIsAccountModalOpen(true)}
+          onOpenAdmin={() => switchToTenant(activeTenant, true)}
         />
         <BookingModal
           isOpen={isBookingOpen}
@@ -737,16 +746,11 @@ export const App: React.FC = () => {
           services={services}
           exchangeRate={exchangeRate}
           referralCode={referralCode}
-          tenantSlug="capra-studio"
-          tenantName="Capra Studio · By María Capra"
-          tenantWhatsapp="584247429530"
-          onBookingCreated={() => refreshData('capra-studio')}
+          tenantSlug={activeTenant as any}
+          tenantName={activeSalonTheme.salonName}
+          tenantWhatsapp={activeSalonTheme.whatsappPhone || '584247429530'}
+          onBookingCreated={() => refreshData(activeTenant)}
           onNavigateToShare={handleNavigateToShare}
-        />
-        <ClientAccountModal
-          isOpen={isAccountModalOpen}
-          onClose={() => setIsAccountModalOpen(false)}
-          onBookNewAppointment={handleOpenGeneralBooking}
         />
         <LegalModals
           activeModal={activeLegalModal}

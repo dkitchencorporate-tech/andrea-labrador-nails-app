@@ -49,8 +49,33 @@ export default async function handler(req: any, res: any) {
         ORDER BY price_usd ASC;
       `);
 
+      const normalizeCapraImage = (r: any): string => {
+        const raw = String(r.imageUrl || '');
+        if (raw.startsWith('/capra/') || raw.startsWith('/vanesev/')) return raw;
+        if (String(r.tenantId) !== 'capra-studio') return raw;
+        const id = String(r.id || '');
+        const lower = `${id} ${r.category || ''} ${r.name || ''}`.toLowerCase();
+        if (id === 'capra-srv-1' || lower.includes('henna')) return '/capra/brows-henna.jpg';
+        if (id === 'capra-srv-2' || lower.includes('lamination') || lower.includes('laminado')) return '/capra/brow-lamination.jpg';
+        if (id === 'capra-srv-3' || lower.includes('lifting')) return '/capra/lash-lifting.jpg';
+        if (id === 'capra-srv-4' || lower.includes('extension') || lower.includes('pestaña') || lower.includes('pestana')) return '/capra/lash-extensions.jpg';
+        if (id === 'capra-srv-5' || lower.includes('alisado')) return '/capra/hair-straightening.jpg';
+        if (id === 'capra-srv-6' || lower.includes('peinado') || lower.includes('onda')) return '/vanesev/sector-hair-color.jpg';
+        if (id === 'capra-srv-8' || lower.includes('reina') || lower.includes('novia')) return '/capra/bridal-package.jpg';
+        if (id === 'capra-srv-7' || lower.includes('maquillaje')) return '/capra/makeup-blindada.jpg';
+        if (id === 'capra-srv-9' || lower.includes('french') || lower.includes('uña') || lower.includes('manicur')) return '/capra/nails-french.jpg';
+        if (id === 'capra-srv-10' || lower.includes('pedi')) return '/capra/pedicure-spa.jpg';
+        if (id === 'capra-srv-11' || lower.includes('depi')) return '/vanesev/sector-medspa.jpg';
+        if (id === 'capra-srv-12' || lower.includes('curso') || lower.includes('academy')) return '/vanesev/hero-atelier.jpg';
+        return raw || '/capra/brow-lamination.jpg';
+      };
+
       return res.status(200).json({
-        services: rows.map((r: any) => ({ ...r, priceUSD: Number(r.priceUSD) || 0 })),
+        services: rows.map((r: any) => ({
+          ...r,
+          priceUSD: Number(r.priceUSD) || 0,
+          imageUrl: normalizeCapraImage(r),
+        })),
         databaseConnected: true,
         rlsEnforced: true,
       });
