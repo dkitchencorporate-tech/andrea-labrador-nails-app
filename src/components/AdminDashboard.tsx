@@ -51,9 +51,11 @@ import {
   Shield,
   UserPlus,
   Lock,
-  Briefcase
+  Briefcase,
+  QrCode
 } from 'lucide-react';
 import { InstagramIcon } from './Icons';
+import { DynamicQrManager } from './DynamicQrManager';
 
 interface AdminDashboardProps {
   services: ServiceItem[];
@@ -68,10 +70,11 @@ interface AdminDashboardProps {
   onLogout?: () => void;
 }
 
-type TabKey = 'bookings' | 'analytics' | 'calendar' | 'services' | 'gallery' | 'crm' | 'team' | 'settings';
+type TabKey = 'bookings' | 'analytics' | 'calendar' | 'services' | 'gallery' | 'crm' | 'team' | 'settings' | 'qr';
 
 const NAV_ITEMS: { key: TabKey; label: string; Icon: React.FC<{ className?: string }> }[] = [
   { key: 'bookings',  label: 'Citas & Reservas',         Icon: LayoutDashboard },
+  { key: 'qr',        label: 'QR Dinámicos (Impresión)', Icon: QrCode },
   { key: 'analytics', label: 'Analítica & Facturación',  Icon: BarChart3 },
   { key: 'calendar',  label: 'Horarios & Agenda',        Icon: Calendar },
   { key: 'services',  label: 'Catálogo de Servicios',    Icon: Sparkles },
@@ -2691,6 +2694,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════════════════
+                TAB: QR DINÁMICOS & ANALÍTICA DE ESCANEOS EN TIEMPO REAL
+            ══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'qr' && (
+              <DynamicQrManager
+                tenantSlug={tenantSlug as any}
+                tenantName={tenantName}
+              />
             )}
 
           </div>

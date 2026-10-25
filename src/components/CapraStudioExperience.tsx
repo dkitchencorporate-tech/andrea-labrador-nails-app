@@ -14,9 +14,14 @@ import {
   MapPin,
   DollarSign,
   Gift,
-  ArrowRight
+  ArrowRight,
+  QrCode,
+  Copy,
+  Check,
+  X
 } from 'lucide-react';
 import { ServiceItem } from '../types';
+import { QREncoder } from '../utils/qrEncoder';
 
 interface CapraStudioExperienceProps {
   services: ServiceItem[];
@@ -43,6 +48,21 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const qrSvgString = React.useMemo(() => {
+    try {
+      const matrix = QREncoder.generateMatrix('https://vanesev.com/r/capra-menu');
+      return QREncoder.toSVG(matrix, {
+        fgColor: '#B5838D',
+        bgColor: '#FFFFFF',
+        centerText: 'CAPRA',
+      });
+    } catch {
+      return '';
+    }
+  }, []);
 
   const filteredServices = services.filter((s) => {
     const matchesCat = selectedCategory === 'all' || s.category === selectedCategory;
@@ -78,6 +98,14 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowQrModal(true)}
+              className="px-3 py-2 rounded-full bg-[#F6EEF0] hover:bg-[#EAD8DC] text-[#5C3A42] border border-[#B5838D]/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Ver QR Dinámico de la Carta"
+            >
+              <QrCode className="w-3.5 h-3.5 text-[#B5838D]" />
+              <span className="hidden sm:inline">QR Carta</span>
+            </button>
             <button
               onClick={onOpenAccountModal}
               className="px-3 sm:px-4 py-2 rounded-full bg-[#F6EEF0] hover:bg-[#EAD8DC] text-[#5C3A42] border border-[#B5838D]/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
@@ -403,6 +431,61 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
           </span>
         </div>
       </footer>
+
+      {/* ══ MODAL DE QR DINÁMICO DE CAPRA STUDIO ══ */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#FAF7F5] rounded-3xl border border-[#B5838D]/30 max-w-sm w-full p-6 text-center space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-[#B5838D]/20 pb-3">
+              <span className="text-xs font-bold font-serif text-[#8E5B66] tracking-wider uppercase">
+                QR Dinámico · Capra Studio
+              </span>
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="p-1 rounded-full text-[#8E5B66] hover:bg-[#B5838D]/20 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="w-56 h-56 mx-auto p-3 bg-white rounded-2xl shadow-md border border-[#B5838D]/20 flex items-center justify-center">
+              {qrSvgString ? (
+                <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: qrSvgString }} />
+              ) : null}
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-[#2D1E22]">Escanea con la cámara de tu móvil</p>
+              <p className="text-[11px] text-[#6E5359] mt-0.5">
+                Accede a la carta de servicios y reserva tu cita al instante
+              </p>
+              <p className="font-mono text-xs font-semibold text-[#8E5B66] bg-[#B5838D]/10 rounded-lg py-1 px-2 mt-2">
+                vanesev.com/r/capra-menu
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText('https://vanesev.com/r/capra-menu');
+                  setIsCopied(true);
+                  setTimeout(() => setIsCopied(false), 2000);
+                }}
+                className="flex-1 py-2 rounded-xl bg-white border border-[#B5838D]/30 text-xs font-bold text-[#5C3A42] hover:bg-[#F6EEF0] transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{isCopied ? '¡Copiado!' : 'Copiar Link'}</span>
+              </button>
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#B5838D] to-[#8E5B66] text-white text-xs font-bold hover:brightness-105 transition cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

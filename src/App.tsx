@@ -207,9 +207,8 @@ const CAPRA_CATEGORIES = [
 ];
 
 export const App: React.FC = () => {
-  // Resolve active zone & tenant from URL / Hostname
+  // Resolve active zone & tenant from URL path (Single Domain Architecture - No Subdomains)
   const resolveInitialRoute = () => {
-    const host = window.location.hostname.toLowerCase();
     const path = window.location.pathname.toLowerCase();
     const hash = window.location.hash.toLowerCase();
     const search = new URLSearchParams(window.location.search);
@@ -217,34 +216,34 @@ export const App: React.FC = () => {
     const isCentral =
       path.startsWith('/central') ||
       hash === '#central' ||
-      search.has('central') ||
-      host.startsWith('central.');
+      search.has('central');
 
     const salonParam = search.get('salon');
     const isCapra =
       salonParam === 'capra-studio' ||
       salonParam === 'capra' ||
-      host.startsWith('caprastudio.') ||
       path.startsWith('/capra');
 
     const isAndrea =
       salonParam === 'andrea-nails' ||
       salonParam === 'andrea' ||
-      host.startsWith('andrealabrador.') ||
       path.startsWith('/andrea');
+
+    const isAdmin =
+      path.includes('/admin') ||
+      hash === '#admin' ||
+      search.has('admin');
 
     const tenant: 'andrea-nails' | 'capra-studio' = isCapra ? 'capra-studio' : 'andrea-nails';
 
-    // Root SaaS route: on apex domain, localhost, or no salon param given
+    // Root SaaS route: on apex domain or /, or explicitly /saas
     const isSaasLanding =
       !isCentral &&
       !isCapra &&
-      (path.startsWith('/saas') ||
-        hash === '#saas' ||
-        search.get('zone') === 'saas' ||
-        (!isAndrea && !search.has('salon') && !path.startsWith('/admin') && !search.has('admin')));
+      !isAndrea &&
+      (path === '/' || path === '' || path.startsWith('/saas') || hash === '#saas' || search.get('zone') === 'saas');
 
-    return { isCentral, isSaasLanding, tenant };
+    return { isCentral, isSaasLanding, isAdmin, tenant };
   };
 
   const initialRoute = resolveInitialRoute();
@@ -264,12 +263,7 @@ export const App: React.FC = () => {
   const [exchangeRate, setExchangeRate] = useState(AppStore.getExchangeRate());
 
   // Routing state for SaaS Admin Dashboard
-  const [isAdminRoute, setIsAdminRoute] = useState(() => {
-    const path = window.location.pathname.toLowerCase();
-    const hash = window.location.hash.toLowerCase();
-    const search = new URLSearchParams(window.location.search);
-    return path.startsWith('/admin') || hash === '#admin' || search.has('admin');
-  });
+  const [isAdminRoute, setIsAdminRoute] = useState(initialRoute.isAdmin);
 
   // Super Admin session state with 2FA protection
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => AppStore.isAdminAuthenticated());
@@ -407,26 +401,42 @@ export const App: React.FC = () => {
   }, []);
 
   // Zone & Tenant Switchers
+  // Synchronize browser history (back/forward navigation)
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = resolveInitialRoute();
+      setIsCentralRoute(route.isCentral);
+      setIsSaasRoute(route.isSaasLanding);
+      setIsAdminRoute(route.isAdmin);
+      setActiveTenant(route.tenant);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const switchToCentral = () => {
     window.history.pushState(null, '', '/central');
     setIsCentralRoute(true);
     setIsSaasRoute(false);
     setIsAdminRoute(false);
+    setIsShareRoute(false);
+    setIsPromoRoute(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const switchToSaasLanding = () => {
-    window.history.pushState(null, '', '/?zone=saas');
+    window.history.pushState(null, '', '/');
     setIsSaasRoute(true);
     setIsCentralRoute(false);
     setIsAdminRoute(false);
+    setIsShareRoute(false);
+    setIsPromoRoute(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const switchToTenant = (slug: 'andrea-nails' | 'capra-studio', openAdmin = false) => {
-    const url = slug === 'capra-studio'
-      ? openAdmin ? '/?salon=capra-studio&admin=1' : '/?salon=capra-studio'
-      : openAdmin ? '/?salon=andrea-nails&admin=1' : '/?salon=andrea-nails';
+    const basePath = slug === 'capra-studio' ? '/capra-studio' : '/andrea-nails';
+    const url = openAdmin ? `${basePath}/admin` : basePath;
     window.history.pushState(null, '', url);
     setActiveTenant(slug);
     setIsCentralRoute(false);
@@ -455,7 +465,7 @@ export const App: React.FC = () => {
   };
 
   const handleExitToCatalog = () => {
-    const url = activeTenant === 'capra-studio' ? '/?salon=capra-studio' : '/';
+    const url = activeTenant === 'capra-studio' ? '/capra-studio' : '/andrea-nails';
     window.history.pushState(null, '', url);
     setIsAdminRoute(false);
     setIsShareRoute(false);

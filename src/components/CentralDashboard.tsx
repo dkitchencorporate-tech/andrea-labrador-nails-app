@@ -3,8 +3,9 @@ import {
   Shield, Layers, CheckCircle2, AlertTriangle, MessageSquare, FileText,
   Globe, Plus, RefreshCw, ExternalLink, Sparkles, Send, Check, XCircle,
   Clock, Server, Database, HardDrive, GitBranch, ArrowUpRight, Users,
-  MapPin, DollarSign, Crown, Eye, Terminal, Activity, Lock
+  MapPin, DollarSign, Crown, Eye, Terminal, Activity, Lock, QrCode
 } from 'lucide-react';
+import { DynamicQrManager } from './DynamicQrManager';
 
 interface CentralDashboardProps {
   onNavigateToTenant: (tenantSlug: string, openAdmin?: boolean) => void;
@@ -15,7 +16,7 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   onNavigateToTenant,
   onNavigateToSaaSLanding,
 }) => {
-  const [activeTab, setActiveTab] = useState<'sessions' | 'incidents' | 'mailbox' | 'tasks_roadmap' | 'tenants' | 'docs'>('sessions');
+  const [activeTab, setActiveTab] = useState<'sessions' | 'incidents' | 'mailbox' | 'tasks_roadmap' | 'tenants' | 'docs' | 'qr'>('sessions');
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [data, setData] = useState<any>({
@@ -281,8 +282,9 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             { id: 'incidents', label: '2. Buzón de Emergencia (Bugs)', icon: AlertTriangle, badge: openIncidentsCount, alert: true },
             { id: 'mailbox', label: '3. Buzón Directo karc0 ↔ Agente', icon: MessageSquare, badge: (data.mailbox || []).length },
             { id: 'tasks_roadmap', label: '4. Tareas, Cronograma & Arquitectura', icon: Layers, badge: pendingTasksCount },
-            { id: 'tenants', label: '5. Salones (Tenants) & Subdominios', icon: Crown, badge: (data.tenants || []).length },
+            { id: 'tenants', label: '5. Salones (Tenants) & Dominios', icon: Crown, badge: (data.tenants || []).length },
             { id: 'docs', label: '6. Documentación Compartida', icon: FileText, badge: (data.docs || []).length },
+            { id: 'qr', label: '7. Motor QR Dinámico & Analítica', icon: QrCode, badge: 0 },
           ].map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -1094,6 +1096,14 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
                   )}
                 </div>
               </div>
+            )}
+
+            {/* TAB 7: MOTOR QR DINÁMICO & ANALÍTICA DE ESCANEOS */}
+            {activeTab === 'qr' && (
+              <DynamicQrManager
+                tenantSlug="all"
+                tenantName="VANESEV Central (Todos los Salones)"
+              />
             )}
           </>
         )}

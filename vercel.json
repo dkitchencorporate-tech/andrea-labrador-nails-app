@@ -16,6 +16,14 @@
   ],
   "rewrites": [
     {
+      "source": "/r/:code",
+      "destination": "/api/r?code=:code"
+    },
+    {
+      "source": "/:tenant/r/:code",
+      "destination": "/api/r?code=:code"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
