@@ -74,19 +74,20 @@ interface AdminDashboardProps {
   onLogout?: () => void;
 }
 
-type TabKey = 'bookings' | 'theme' | 'services' | 'team' | 'qr' | 'crm' | 'analytics' | 'calendar' | 'gallery' | 'settings';
+type TabKey = 'overview' | 'bookings' | 'theme' | 'services' | 'team' | 'qr' | 'crm' | 'analytics' | 'calendar' | 'gallery' | 'settings';
 
-const NAV_ITEMS: { key: TabKey; label: string; Icon: React.FC<{ className?: string }> }[] = [
-  { key: 'bookings',  label: 'Citas & Agenda',           Icon: LayoutDashboard },
-  { key: 'theme',     label: 'Diseño & Carta',           Icon: Palette },
-  { key: 'services',  label: 'Servicios & Precios',      Icon: Sparkles },
-  { key: 'team',      label: 'Equipo & Cabinas',         Icon: ShieldCheck },
-  { key: 'qr',        label: 'QR Studio',                Icon: QrCode },
-  { key: 'crm',       label: 'Clientela VIP',            Icon: Users },
-  { key: 'analytics', label: 'Facturación & Reportes',   Icon: BarChart3 },
-  { key: 'calendar',  label: 'Horarios & Bloqueos',      Icon: Calendar },
-  { key: 'gallery',   label: 'Galería Visual',           Icon: ImageIcon },
-  { key: 'settings',  label: 'Tasa BCV & Respaldo',      Icon: DollarSign },
+const NAV_ITEMS: { key: TabKey; label: string; shortLabel: string; subtitle: string; Icon: React.FC<{ className?: string }> }[] = [
+  { key: 'overview',  label: 'Panel & Programa VIP',     shortLabel: 'Overview',  subtitle: 'Supervisa facturación, metas operativas, módulos activos y reservas en tiempo real.', Icon: LayoutDashboard },
+  { key: 'bookings',  label: 'Agenda & Reservas',        shortLabel: 'Agenda',    subtitle: 'Gestiona turnos confirmados, solicitudes en WhatsApp y citas presenciales.',          Icon: Calendar },
+  { key: 'services',  label: 'Catálogo de Servicios',    shortLabel: 'Servicios', subtitle: 'Administra precios en USD/Bs., tiempos de sillón y fotografías editoriales.',        Icon: Sparkles },
+  { key: 'theme',     label: 'Diseño & Identidad',       shortLabel: 'Diseño',    subtitle: 'Personaliza en vivo la paleta de colores, tipografía y tarjetas de tu carta QR.',   Icon: Palette },
+  { key: 'crm',       label: 'Programa de Fidelidad',    shortLabel: 'Programa',  subtitle: 'Controla sellos acumulados en el Pasaporte VIP y recompensas de clientas.',         Icon: Award },
+  { key: 'team',      label: 'Equipo & Cabinas',         shortLabel: 'Equipo',    subtitle: 'Configura especialistas, comisiones pactadas y capacidad por área o cabina.',       Icon: ShieldCheck },
+  { key: 'qr',        label: 'Motor QR de Recepción',    shortLabel: 'QR Studio', subtitle: 'Descarga tu código QR oficial para tocadores, espejos, recepción e Instagram.',     Icon: QrCode },
+  { key: 'analytics', label: 'Reportes & Finanzas',      shortLabel: 'Reportes',  subtitle: 'Analítica de ingresos, balance de comisiones y exportación contable.',              Icon: BarChart3 },
+  { key: 'calendar',  label: 'Horarios & Bloqueos',      shortLabel: 'Horarios',  subtitle: 'Bloquea días festivos, horas de almuerzo o cabinas en mantenimiento.',              Icon: Clock },
+  { key: 'gallery',   label: 'Galería Editorial',        shortLabel: 'Galería',   subtitle: 'Actualiza el portafolio visual de trabajos reales de tu estudio.',                  Icon: ImageIcon },
+  { key: 'settings',  label: 'Tasa BCV & Ajustes',       shortLabel: 'Ajustes',   subtitle: 'Sincroniza la tasa oficial BCV del día y descarga respaldos de seguridad.',         Icon: Settings },
 ];
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -100,8 +101,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onExitToCatalog,
   onLogout,
 }) => {
-  const [activeTab, setActiveTab] = useState<TabKey>('bookings');
+  const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [overviewTier, setOverviewTier] = useState<'silver' | 'gold' | 'platinum'>('gold');
   const salonTheme = getSalonThemeConfig(tenantSlug);
   const salonPalette = getPaletteById(salonTheme.paletteId);
 
@@ -1117,272 +1119,556 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     </div>
   );
 
+  const currentNavInfo = NAV_ITEMS.find((n) => n.key === activeTab) || NAV_ITEMS[0];
+  const progressPercent = Math.min(100, Math.max(28, Math.round(((bookings.length * 25 + services.length * 10) / 300) * 100)));
+
   return (
-    <div className="min-h-screen bg-[#F6F5F2] text-[#1E181A] font-sans flex flex-col">
+    <div className="min-h-screen bg-[#E6E6EB] text-[#18181B] font-sans p-2 sm:p-4 lg:p-6">
+      {/* ── VERTIX OUTER ROUNDED APPLICATION CONTAINER ── */}
+      <div className="max-w-[1440px] mx-auto bg-[#F5F5F8] rounded-[28px] sm:rounded-[34px] p-4 sm:p-6 lg:p-7 shadow-[0_14px_45px_rgba(0,0,0,0.05)] border border-white min-h-[calc(100vh-48px)] flex flex-col">
 
-      {/* ── VERTIX-INSPIRED FLOATING CAPSULE TOP HEADER ── */}
-      <header className="sticky top-0 z-50 bg-[#F6F5F2]/90 backdrop-blur-xl border-b border-[#1E181A]/8 px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-        
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-2xl bg-white hover:bg-[#FAF7F2] text-[#1E181A] transition-colors border border-[#1E181A]/10 lg:hidden cursor-pointer shadow-xs"
-            aria-label="Menú"
-          >
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-
-          <div className="flex items-center gap-3">
+        {/* ── VERTIX TOP HEADER BAR (1 SINGLE CLEAN ROW) ── */}
+        <header className="flex items-center justify-between gap-3">
+          {/* Left: Circular Coral Brand Mark + Compact Salon Name */}
+          <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold font-display text-xs shrink-0 text-white shadow-sm"
-              style={{ background: salonPalette.heroGradient }}
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 text-white shadow-xs"
+              style={{ background: 'linear-gradient(135deg, #F26A3D 0%, #D94824 100%)' }}
             >
               {tenantInitials}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-display font-bold text-[#1E181A] text-sm sm:text-base leading-tight">
+            <span className="font-bold text-[#18181B] text-sm sm:text-base tracking-tight truncate">
+              {salonTheme.salonName || tenantName}
+            </span>
+          </div>
+
+          {/* Center: Floating White Capsule Pill Bar (6 Clean 1-Word Tabs like Vertix) */}
+          <nav className="hidden lg:flex items-center gap-1 bg-white rounded-full p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03]">
+            {[
+              { key: 'overview' as TabKey, label: 'Overview' },
+              { key: 'bookings' as TabKey, label: 'Agenda' },
+              { key: 'services' as TabKey, label: 'Servicios' },
+              { key: 'theme' as TabKey, label: 'Diseño' },
+              { key: 'crm' as TabKey, label: 'Programa' },
+              { key: 'analytics' as TabKey, label: 'Reportes' },
+            ].map((pill) => {
+              const active = activeTab === pill.key;
+              return (
+                <button
+                  key={pill.key}
+                  type="button"
+                  onClick={() => navigate(pill.key)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    active
+                      ? 'bg-[#18181B] text-white shadow-2xs'
+                      : 'text-[#52525B] hover:text-[#18181B] hover:bg-[#F4F4F6]'
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Right: Two Floating White Capsules (Utility Icons Pill + Profile Pill) */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <div className="bg-white rounded-full px-2.5 sm:px-3.5 py-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('bookings')}
+                className="text-[#52525B] hover:text-[#18181B] transition-colors cursor-pointer"
+                title="Buscar citas y reservas"
+              >
+                <Search className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onRefreshData}
+                className="text-[#52525B] hover:text-[#18181B] transition-colors cursor-pointer"
+                title={`Sincronizar datos · BCV Bs. ${exchangeRate.toFixed(2)}`}
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onExitToCatalog}
+                className="text-[#F26A3D] hover:text-[#D94824] transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                title="Ver Carta Pública del Salón"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Carta</span>
+              </button>
+            </div>
+
+            <div className="bg-white rounded-full pl-1.5 pr-2.5 sm:pr-3.5 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] flex items-center gap-2">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                style={{ background: salonPalette.heroGradient }}
+              >
+                {tenantInitials}
+              </div>
+              <div className="hidden sm:block text-left leading-tight">
+                <p className="text-[11px] font-bold text-[#18181B] truncate max-w-[115px]">
                   {salonTheme.salonName || tenantName}
                 </p>
-                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-[#1E181A]/10 text-[9px] font-bold uppercase tracking-widest text-[#9E475B]">
-                  VANESEV Suite
-                </span>
+                <p className="text-[9px] text-[#71717A] tabular-nums">
+                  BCV Bs. {exchangeRate.toFixed(2)}
+                </p>
               </div>
-              <p className="text-[11px] text-[#6E6266] leading-tight">
-                Panel Ejecutivo del Salón · Citas, Diseño de Carta, Equipo &amp; QR
-              </p>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="ml-0.5 p-1 rounded-full text-[#71717A] hover:text-rose-600 transition-colors cursor-pointer"
+                  title="Cerrar Sesión"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Center Floating Capsule Pill Bar (Desktop Quick Switcher) */}
-        <div className="hidden xl:flex items-center gap-1 p-1.5 rounded-full bg-white border border-[#1E181A]/8 shadow-xs">
-          {[
-            { key: 'bookings' as TabKey, label: 'Agenda & Citas' },
-            { key: 'theme' as TabKey, label: 'Diseño & Carta' },
-            { key: 'services' as TabKey, label: 'Servicios' },
-            { key: 'team' as TabKey, label: 'Equipo & Cabinas' },
-            { key: 'qr' as TabKey, label: 'QR Studio' },
-            { key: 'analytics' as TabKey, label: 'Finanzas' },
-          ].map((pill) => (
-            <button
-              key={pill.key}
-              type="button"
-              onClick={() => navigate(pill.key)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                activeTab === pill.key
-                  ? 'bg-[#1E181A] text-white shadow-xs'
-                  : 'text-[#6E6266] hover:text-[#1E181A] hover:bg-[#FAF7F2]'
-              }`}
-            >
-              {pill.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white border border-[#1E181A]/10 text-xs tabular-nums shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[#6E6266]">BCV:</span>
-            <span className="font-bold text-[#1E181A]">Bs. {exchangeRate.toFixed(2)}</span>
-          </div>
-
-          <button
-            onClick={onRefreshData}
-            className="p-2.5 rounded-full bg-white hover:bg-[#FAF7F2] text-[#1E181A] border border-[#1E181A]/10 transition-colors cursor-pointer shadow-2xs"
-            title="Sincronizar datos en vivo"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={onExitToCatalog}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-white rounded-full text-xs font-bold transition-all shadow-sm cursor-pointer hover:opacity-95"
-            style={{ backgroundColor: salonPalette.primary }}
-          >
-            <span>Ver Carta Pública</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </button>
-
-          {onLogout && (
-            <button
-              onClick={onLogout}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-rose-50 text-rose-700 rounded-full text-xs font-bold border border-rose-200 transition-all shadow-2xs active:scale-95 cursor-pointer"
-              title="Cerrar Sesión"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Salir</span>
-            </button>
-          )}
-        </div>
-      </header>
-
-      {/* ── MAIN WORKSPACE ── */}
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* ── MOBILE OVERLAY ── */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
-        {/* ── SIDEBAR DRAWER ── */}
-        <aside
-          className={`
-            fixed lg:relative top-0 left-0 h-full z-40
-            w-72 bg-white border-r border-[#1E181A]/8 shadow-xl lg:shadow-none
-            transition-transform duration-300 ease-in-out
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            flex flex-col pt-[60px] lg:pt-0
-          `}
-          style={{ minHeight: '100vh' }}
-        >
-          <div className="flex flex-col h-full">
-            {/* Vertix Gradient Summary Card inside Sidebar */}
-            <div className="p-4 border-b border-[#1E181A]/8">
-              <div
-                className="p-4 rounded-2xl text-white shadow-md relative overflow-hidden"
-                style={{ background: salonPalette.heroGradient }}
+        {/* ── MOBILE HORIZONTAL CAPSULE SWITCHER (CLEAN 1-ROW SCROLL, ZERO VERTICAL SQUISHING) ── */}
+        <div className="lg:hidden mt-3 flex items-center gap-1 overflow-x-auto no-scrollbar bg-white rounded-full p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03]">
+          {NAV_ITEMS.map((item) => {
+            const active = activeTab === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => navigate(item.key)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                  active
+                    ? 'bg-[#18181B] text-white shadow-2xs'
+                    : 'text-[#52525B] hover:text-[#18181B]'
+                }`}
               >
-                <div className="relative z-10">
-                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/80 block">
-                    Balance Operativo
-                  </span>
-                  <div className="flex items-baseline justify-between mt-1">
-                    <span className="font-display text-2xl font-bold">${totalRevenueUSD.toFixed(0)} USD</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md">
-                      {totalBookingsCount} citas
+                {item.shortLabel}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── VERTIX BODY WORKSPACE (LEFT 3 FLOATING ICON CAPSULES + MAIN BENTO WORKSPACE) ── */}
+        <div className="flex gap-5 lg:gap-7 mt-5 sm:mt-6 flex-1">
+
+          {/* Left Column: 3 Floating Vertical White Icon Capsules (Desktop & Tablet) */}
+          <aside className="hidden md:flex flex-col justify-between items-center w-11 shrink-0 select-none">
+            {/* Top Mini Capsule (Theme Studio & QR Quick Triggers) */}
+            <div className="w-11 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] py-2 flex flex-col items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => navigate('theme')}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  activeTab === 'theme'
+                    ? 'bg-[#18181B] text-white shadow-2xs'
+                    : 'text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F6]'
+                }`}
+                title="Diseño & Paleta de Carta"
+              >
+                <Palette className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('qr')}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  activeTab === 'qr'
+                    ? 'bg-[#18181B] text-white shadow-2xs'
+                    : 'text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F6]'
+                }`}
+                title="Código QR de Recepción"
+              >
+                <QrCode className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Middle Main Capsule (7 Core Operational Modules) */}
+            <div className="w-11 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] py-2.5 flex flex-col items-center gap-2">
+              {[
+                { key: 'overview' as TabKey, Icon: LayoutDashboard, title: 'Overview / Resumen' },
+                { key: 'bookings' as TabKey, Icon: Calendar, title: 'Agenda & Reservas' },
+                { key: 'services' as TabKey, Icon: Sparkles, title: 'Catálogo de Servicios' },
+                { key: 'crm' as TabKey, Icon: Award, title: 'Pasaporte & Fidelidad VIP' },
+                { key: 'team' as TabKey, Icon: Users, title: 'Equipo & Cabinas' },
+                { key: 'analytics' as TabKey, Icon: BarChart3, title: 'Reportes & Finanzas' },
+                { key: 'settings' as TabKey, Icon: Settings, title: 'Tasa BCV & Ajustes' },
+              ].map(({ key, Icon, title }) => {
+                const active = activeTab === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => navigate(key)}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer relative ${
+                      active
+                        ? 'bg-[#18181B] text-white shadow-xs'
+                        : 'text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F6]'
+                    }`}
+                    title={title}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {key === 'bookings' && enWhatsAppCount > 0 && (
+                      <span className="w-2 h-2 rounded-full bg-[#F26A3D] absolute top-0.5 right-0.5" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Bottom Mini Capsule (Public Catalog & Logout) */}
+            <div className="w-11 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] py-2 flex flex-col items-center gap-1.5">
+              <button
+                type="button"
+                onClick={onExitToCatalog}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F6] transition-all cursor-pointer"
+                title="Abrir Carta Pública del Salón"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </button>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-[#71717A] hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                  title="Cerrar Sesión"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </aside>
+
+          {/* ── MAIN CONTENT AREA ── */}
+          <main className="flex-1 min-w-0">
+            {/* Dynamic Vertix Section Heading + 1-Line Subtitle */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-5">
+              <div>
+                <h1 className="text-2xl sm:text-[28px] font-bold text-[#18181B] tracking-tight leading-tight">
+                  {currentNavInfo.label}
+                </h1>
+                <p className="text-xs sm:text-sm text-[#71717A] mt-0.5">
+                  {currentNavInfo.subtitle}
+                </p>
+              </div>
+              {/* Secondary module pills for Calendar / Gallery / Settings when needed */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[
+                  { key: 'qr' as TabKey, label: 'QR Recepción' },
+                  { key: 'team' as TabKey, label: 'Equipo' },
+                  { key: 'calendar' as TabKey, label: 'Bloqueos' },
+                  { key: 'gallery' as TabKey, label: 'Galería' },
+                  { key: 'settings' as TabKey, label: 'Tasa BCV' },
+                ].map((sub) => (
+                  <button
+                    key={sub.key}
+                    type="button"
+                    onClick={() => navigate(sub.key)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer border ${
+                      activeTab === sub.key
+                        ? 'bg-[#18181B] text-white border-[#18181B]'
+                        : 'bg-white text-[#52525B] border-black/5 hover:text-[#18181B]'
+                    }`}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ══════════════════════════════════════════════════════════════════
+                TAB 0: OVERVIEW — EXACT VERTIX 2x2 BENTO GRID (SCREENSHOT 1)
+            ══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'overview' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* BENTO 1 (TOP-LEFT, 7 COLS): WARM CORAL-TERRACOTTA HERO METRIC CARD WITH PROGRESS BAR */}
+                <motion.div
+                  whileHover={{ y: -2 }}
+                  className="lg:col-span-7 rounded-[24px] p-6 sm:p-7 text-white shadow-sm flex flex-col justify-between min-h-[240px] relative overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, #F27449 0%, #E35633 55%, #C94122 100%)',
+                  }}
+                >
+                  {/* Top Pill & Date */}
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md font-semibold text-[11px]">
+                      <Award className="w-3.5 h-3.5" />
+                      <span>Sede Couture Pro &bull; {salonPalette.name}</span>
+                    </span>
+                    <span className="text-[11px] text-white/85 font-medium">
+                      BCV: Bs. {exchangeRate.toFixed(2)}
                     </span>
                   </div>
-                  <p className="text-[10px] text-white/85 mt-1">
-                    ≈ Bs. {(totalRevenueUSD * exchangeRate).toFixed(0)} &bull; Paleta {salonPalette.name}
+
+                  {/* Huge Number + Diagonal Hash Progress Bar */}
+                  <div className="my-5">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl sm:text-5xl font-bold tracking-tight tabular-nums">
+                        ${totalRevenueUSD.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </span>
+                      <span className="text-sm text-white/90 font-medium">
+                        USD facturados &bull; {bookings.length} citas registradas
+                      </span>
+                    </div>
+
+                    {/* Vertix Progress Bar with Diagonal Hash Track */}
+                    <div className="mt-4 h-2.5 w-full rounded-full overflow-hidden flex items-center bg-black/15 p-0.5">
+                      <div
+                        className="h-full bg-white rounded-full transition-all duration-500"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                      <div
+                        className="h-full flex-1 ml-1 rounded-r-full"
+                        style={{
+                          backgroundImage:
+                            'repeating-linear-gradient(-55deg, rgba(255,255,255,0.45), rgba(255,255,255,0.45) 2px, transparent 2px, transparent 6px)',
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-white/85 mt-1.5 font-medium">
+                      <span>Nivel Operativo Gold</span>
+                      <span>{services.length} servicios publicados en carta QR</span>
+                    </div>
+                  </div>
+
+                  {/* Bottom White Pill CTA + Equivalent in Bs */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate('bookings');
+                        handleOpenManualBooking();
+                      }}
+                      className="px-4 py-2 rounded-full bg-white text-[#18181B] text-xs font-bold shadow-xs hover:scale-[1.02] transition-transform flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-[#E35633]" />
+                      <span>Agendar Cita</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('theme')}
+                      className="px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold backdrop-blur-md transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Palette className="w-3.5 h-3.5" />
+                      <span>Personalizar Carta</span>
+                    </button>
+                    <span className="text-[11px] text-white/85 font-medium">
+                      ≈ Bs. {(totalRevenueUSD * exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 0 })} en sistema
+                    </span>
+                  </div>
+                </motion.div>
+
+                {/* BENTO 2 (TOP-RIGHT, 5 COLS): WHITE TIER BENEFITS / ESTADO OPERATIVO CARD */}
+                <div className="lg:col-span-5 bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/[0.03] flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#18181B]">Beneficios &amp; Estado del Salón</h3>
+
+                    {/* Segmented Gray Pill Switcher (Silver / Gold / Platinum style) */}
+                    <div className="mt-3 bg-[#F4F4F6] rounded-full p-1 inline-flex items-center gap-1">
+                      {[
+                        { id: 'silver' as const, label: 'Carta QR' },
+                        { id: 'gold' as const, label: 'Pasaporte VIP' },
+                        { id: 'platinum' as const, label: 'Equipo & BCV' },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setOverviewTier(tab.id)}
+                          className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                            overviewTier === tab.id
+                              ? 'bg-white text-[#18181B] shadow-2xs'
+                              : 'text-[#71717A] hover:text-[#18181B]'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Checkmark Rows */}
+                    <div className="mt-4 space-y-2.5">
+                      {(overviewTier === 'silver'
+                        ? [
+                            `${services.length} tratamientos con fotografía editorial verificada`,
+                            `Ruta pública activa en vanesev.com/m/${tenantSlug}`,
+                            `Paleta ${salonPalette.name} editable en tiempo real`,
+                            `Reserva en 15 segundos directo al WhatsApp del salón`,
+                          ]
+                        : overviewTier === 'gold'
+                        ? [
+                            `Meta de fidelización: ${salonTheme.loyaltyStampsGoal} visitas selladas`,
+                            `Premio activo: ${salonTheme.loyaltyRewardTitle}`,
+                            `${clientsList.length} clientas registradas en base de datos VIP`,
+                            `Acreditación automática al culminar cada cita`,
+                          ]
+                        : [
+                            `Conversión multimoneda activa a Bs. ${exchangeRate.toFixed(2)} (BCV)`,
+                            `${dbStaff.length || 2} especialistas configuradas en agenda`,
+                            `${dbZones.length || 3} áreas o cabinas operativas sin cruces`,
+                            `Reportes financieros y respaldo JSON disponibles`,
+                          ]
+                      ).map((benefit, idx) => (
+                        <div key={idx} className="flex items-center gap-2.5 text-xs text-[#27272A]">
+                          <span className="w-4 h-4 rounded-full bg-[#FFF0EC] text-[#E35633] flex items-center justify-center shrink-0">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </span>
+                          <span>{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#A1A1AA] mt-4 pt-3 border-t border-zinc-100">
+                    Sede sincronizada en tiempo real con Neon Cloud
                   </p>
                 </div>
-              </div>
-            </div>
 
-            {/* Navigation items */}
-            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-              {NAV_ITEMS.map(({ key, label, Icon }) => (
-                <button key={key} onClick={() => navigate(key)} className={tabBtnCls(key)}>
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className="flex-1 text-left">{label}</span>
-                  {key === 'theme' && (
-                    <span className="px-2 py-0.5 rounded-full bg-[#FAF0F2] text-[#9E475B] text-[9px] font-bold uppercase">
-                      Studio
+                {/* BENTO 3 (BOTTOM-LEFT, 7 COLS): WHITE OFFERS / QUICK MODULES CARD (3 SUB-CARDS) */}
+                <div className="lg:col-span-7 bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/[0.03]">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-sm font-bold text-[#18181B]">Módulos &amp; Acciones Rápidas</h3>
+                      <p className="text-xs text-[#71717A] mt-0.5">
+                        Configura la experiencia visual, descarga tu QR o actualiza precios al instante.
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FFF0EC] text-[#E35633] text-[10px] font-bold">
+                      3 activos
                     </span>
-                  )}
-                  {key === 'bookings' && enWhatsAppCount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">{enWhatsAppCount}</span>
-                  )}
-                  {key === 'crm' && clientsList.some(c => c.hasFreeService) && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Clientas con beneficio activo" />
-                  )}
-                </button>
-              ))}
-            </nav>
-
-            <div className="p-4 border-t border-[#1E181A]/8 text-[11px] text-[#6E6266] space-y-1">
-              <p className="font-bold text-[#1E181A]">{salonTheme.salonName || tenantName}</p>
-              <p>VANESEV Beauty Cloud &bull; Sede Verificada</p>
-            </div>
-          </div>
-        </aside>
-
-        {/* ── CONTENT PANEL ── */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="max-w-5xl mx-auto space-y-6">
-
-            {/* VERTIX EXECUTIVE BENTO BANNER */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <motion.div
-                whileHover={{ y: -3 }}
-                className="lg:col-span-7 rounded-[28px] p-6 text-white shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[165px]"
-                style={{ background: salonPalette.heroGradient }}
-              >
-                <div className="flex items-start justify-between gap-4 relative z-10">
-                  <div>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-[0.18em]">
-                      <Sparkles className="w-3 h-3" /> Dirección de Salón en Vivo
-                    </span>
-                    <h2 className="font-display text-2xl sm:text-3xl font-semibold mt-2.5 tracking-tight">
-                      {salonTheme.salonName || tenantName}
-                    </h2>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => navigate('theme')}
-                    className="px-3.5 py-2 rounded-full bg-white text-[#1E181A] text-xs font-bold shadow-sm hover:scale-105 transition-transform flex items-center gap-1.5 shrink-0 cursor-pointer"
-                  >
-                    <Palette className="w-3.5 h-3.5 text-[#9E475B]" />
-                    <span>Personalizar Carta</span>
-                  </button>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-4">
+                    {/* Sub-Card 1 (Highlighted Coral Border like Vertix Screenshot 1) */}
+                    <div className="rounded-[18px] p-4 bg-[#FFF8F6] border border-[#F5CFC4] flex flex-col justify-between min-h-[155px]">
+                      <div>
+                        <div className="w-8 h-8 rounded-xl bg-white shadow-2xs border border-black/5 flex items-center justify-center text-[#E35633] mb-3">
+                          <Palette className="w-4 h-4" />
+                        </div>
+                        <p className="text-xs font-bold text-[#18181B]">Diseño de Carta</p>
+                        <p className="text-[11px] text-[#71717A] mt-1 leading-relaxed">
+                          Paleta {salonPalette.name} y tipografía editorial activa.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-3 mt-2">
+                        <span className="text-[10px] text-[#A1A1AA] font-medium">En vivo</span>
+                        <button
+                          type="button"
+                          onClick={() => navigate('theme')}
+                          className="px-3 py-1 rounded-full bg-[#F26A3D] text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
+                        >
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          <span>Editar</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Sub-Card 2 */}
+                    <div className="rounded-[18px] p-4 bg-[#F8F8FA] border border-black/[0.04] flex flex-col justify-between min-h-[155px]">
+                      <div>
+                        <div className="w-8 h-8 rounded-xl bg-white shadow-2xs border border-black/5 flex items-center justify-center text-[#18181B] mb-3">
+                          <QrCode className="w-4 h-4" />
+                        </div>
+                        <p className="text-xs font-bold text-[#18181B]">Kit QR Recepción</p>
+                        <p className="text-[11px] text-[#71717A] mt-1 leading-relaxed">
+                          Código QR listo para tocador, recepción y bio de Instagram.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-3 mt-2">
+                        <span className="text-[10px] text-[#A1A1AA] font-medium">Permanente</span>
+                        <button
+                          type="button"
+                          onClick={() => navigate('qr')}
+                          className="px-3 py-1 rounded-full bg-[#18181B] text-white text-[10px] font-bold cursor-pointer"
+                        >
+                          Abrir QR
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Sub-Card 3 */}
+                    <div className="rounded-[18px] p-4 bg-[#F8F8FA] border border-black/[0.04] flex flex-col justify-between min-h-[155px]">
+                      <div>
+                        <div className="w-8 h-8 rounded-xl bg-white shadow-2xs border border-black/5 flex items-center justify-center text-[#18181B] mb-3">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <p className="text-xs font-bold text-[#18181B]">Precios &amp; Servicios</p>
+                        <p className="text-[11px] text-[#71717A] mt-1 leading-relaxed">
+                          {services.length} servicios activos con cálculo automático BCV.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-3 mt-2">
+                        <span className="text-[10px] text-[#A1A1AA] font-medium">Catálogo</span>
+                        <button
+                          type="button"
+                          onClick={() => navigate('services')}
+                          className="px-3 py-1 rounded-full bg-[#18181B] text-white text-[10px] font-bold cursor-pointer"
+                        >
+                          Gestionar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 pt-4 mt-4 border-t border-white/20 relative z-10">
+                {/* BENTO 4 (BOTTOM-RIGHT, 5 COLS): WHITE POINTS HISTORY / ACTIVIDAD EN VIVO CARD */}
+                <div className="lg:col-span-5 bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/[0.03] flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] uppercase tracking-wider text-white/75 block">Facturación</span>
-                    <span className="font-display text-xl font-bold">${totalRevenueUSD.toFixed(0)} USD</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase tracking-wider text-white/75 block">Citas Activas</span>
-                    <span className="font-display text-xl font-bold">{confirmedCount + enWhatsAppCount}</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase tracking-wider text-white/75 block">Servicios Carta</span>
-                    <span className="font-display text-xl font-bold">{services.length}</span>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-[#18181B]">Actividad &amp; Servicios en Carta</h3>
+                      <button
+                        type="button"
+                        onClick={() => navigate('bookings')}
+                        className="text-[11px] font-semibold text-[#E35633] hover:underline cursor-pointer"
+                      >
+                        Ver agenda &rarr;
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-zinc-100">
+                      {(bookings.length > 0
+                        ? bookings.slice(0, 4).map((b) => ({
+                            id: b.id,
+                            title: `${b.clientName} · ${b.serviceName}`,
+                            sub: `${b.date} · ${b.timeSlot}`,
+                            amount: `+$${b.totalPriceUSD.toFixed(0)}`,
+                            positive: b.status !== 'cancelada',
+                          }))
+                        : services.slice(0, 4).map((s) => ({
+                            id: s.id,
+                            title: s.name,
+                            sub: `${s.durationMinutes} min · Disponible en carta QR`,
+                            amount: `$${s.priceUSD} USD`,
+                            positive: true,
+                          }))
+                      ).map((row) => (
+                        <div key={row.id} className="py-2.5 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-[#FFF3EF] text-[#E35633] flex items-center justify-center shrink-0">
+                              <Sparkles className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-[#18181B] truncate">{row.title}</p>
+                              <p className="text-[10px] text-[#A1A1AA] truncate">{row.sub}</p>
+                            </div>
+                          </div>
+                          <span
+                            className={`text-xs font-bold tabular-nums shrink-0 ${
+                              row.positive ? 'text-[#10B981]' : 'text-[#E35633]'
+                            }`}
+                          >
+                            {row.amount}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-
-              <div className="lg:col-span-5 grid grid-cols-2 gap-4">
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  onClick={() => navigate('theme')}
-                  className="bg-white rounded-[28px] p-5 border border-[#1E181A]/8 shadow-xs flex flex-col justify-between cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center bg-[#FAF0F2] text-[#9E475B]">
-                    <Palette className="w-4 h-4" />
-                  </div>
-                  <div className="mt-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#9A8C90] block">
-                      Tema &amp; Paleta
-                    </span>
-                    <p className="font-display text-base font-bold text-[#1E181A] mt-0.5">
-                      {salonPalette.name}
-                    </p>
-                    <span className="text-[11px] font-semibold text-[#9E475B] mt-1 inline-block">
-                      Editar colores y fuentes &rarr;
-                    </span>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  whileHover={{ y: -3 }}
-                  onClick={() => navigate('qr')}
-                  className="bg-white rounded-[28px] p-5 border border-[#1E181A]/8 shadow-xs flex flex-col justify-between cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center bg-[#FBF6EE] text-[#A67B5B]">
-                    <QrCode className="w-4 h-4" />
-                  </div>
-                  <div className="mt-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#9A8C90] block">
-                      QR &amp; Fidelidad VIP
-                    </span>
-                    <p className="font-display text-base font-bold text-[#1E181A] mt-0.5">
-                      {salonTheme.loyaltyStampsGoal} Visitas Selladas
-                    </p>
-                    <span className="text-[11px] font-semibold text-[#A67B5B] mt-1 inline-block">
-                      Descargar QR de Recepción &rarr;
-                    </span>
-                  </div>
-                </motion.div>
               </div>
-            </div>
+            )}
 
-          <div className="bg-white rounded-[32px] border border-[#1E181A]/8 shadow-xs p-5 sm:p-7 min-h-[550px]">
+            {/* ── WHITE WORKSPACE CARD FOR SPECIFIC MODULES (SCREENSHOT 4 STYLE) ── */}
+            <div className={activeTab === 'overview' ? 'hidden' : 'bg-white rounded-[24px] border border-black/[0.03] shadow-[0_2px_12px_rgba(0,0,0,0.03)] p-5 sm:p-7 min-h-[540px]'}>
 
             {/* ══════════════════════════════════════════════════════════════════
                 TAB 1: CITAS & RESERVAS
@@ -2874,9 +3160,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               />
             )}
 
-          </div>
-          </div>
-        </main>
+            </div>
+          </main>
+        </div>
       </div>
 
       {/* ── MODAL PARA REPROGRAMAR FECHA Y HORA ACORDADA CON LA CLIENTA ── */}

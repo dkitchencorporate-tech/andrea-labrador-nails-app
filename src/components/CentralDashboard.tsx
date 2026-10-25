@@ -31,7 +31,8 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   onNavigateToTenant,
   onNavigateToSaaSLanding,
 }) => {
-  const [activeTab, setActiveTab] = useState<'tenants' | 'sessions' | 'incidents' | 'mailbox' | 'tasks_roadmap' | 'docs' | 'qr' | 'competitors'>('tenants');
+  const [activeTab, setActiveTab] = useState<'overview' | 'tenants' | 'sessions' | 'incidents' | 'mailbox' | 'tasks_roadmap' | 'docs' | 'qr' | 'competitors'>('overview');
+  const [overviewTier, setOverviewTier] = useState<'zones' | 'database' | 'governance'>('zones');
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [editingTenantThemeSlug, setEditingTenantThemeSlug] = useState<string | null>(null);
@@ -242,242 +243,599 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
   const pendingSessionsCount = (data.sessions || []).filter((s: any) => s.review_status === 'pending_review').length;
   const pendingTasksCount = (data.tasks || []).filter((t: any) => t.status !== 'completed').length;
 
+  const CENTRAL_HEADINGS: Record<string, { title: string; subtitle: string }> = {
+    overview: {
+      title: 'Gobernanza & Ecosistema VANESEV',
+      subtitle: 'Control maestro de sedes activas, diseño de autor, motor QR y analítica de mercado.',
+    },
+    tenants: {
+      title: 'Salones & Fichas de Clientes',
+      subtitle: 'Da de alta nuevos salones en 1 clic, edita su paleta visual o entra a su panel administrativo.',
+    },
+    qr: {
+      title: 'Motor QR & Analítica de Escaneos',
+      subtitle: 'Genera y audita los códigos QR permanentes (/m/<slug>) de todos los salones.',
+    },
+    competitors: {
+      title: 'Radar de Competidores Beauty Tech',
+      subtitle: 'Mapa comparativo de virtudes, debilidades y diferenciación de VANESEV en el sector.',
+    },
+    mailbox: {
+      title: 'Buzón Directo karc0 ↔ Agente',
+      subtitle: 'Canal de órdenes prioritarias y seguimiento operativo sincronizado en Neon DB.',
+    },
+    sessions: {
+      title: 'Auditoría de Sesiones & Reportes',
+      subtitle: 'Historial de despliegues, aprobaciones de karc0 y estado de la infraestructura.',
+    },
+    tasks_roadmap: {
+      title: 'Tareas & Hoja de Ruta',
+      subtitle: 'Planificación técnica y comercial por zonas operativas.',
+    },
+    incidents: {
+      title: 'Control de Incidencias',
+      subtitle: 'Registro y resolución de alertas en tiempo real.',
+    },
+    docs: {
+      title: 'Documentación & Manuales',
+      subtitle: 'Repositorio técnico sincronizado con la base de datos central.',
+    },
+  };
+
+  const currentHeading = CENTRAL_HEADINGS[activeTab] || CENTRAL_HEADINGS.overview;
+  const tenantsCount = Math.max(2, (data.tenants || []).length);
+
   return (
-    <div className="min-h-screen bg-[#F6F5F2] text-[#1E181A] font-sans selection:bg-[#9E475B]/15 selection:text-[#9E475B] overflow-x-hidden">
-      {/* VERTIX-STYLE LUMINOUS FLOATING CAPSULE TOP HEADER */}
-      <header className="sticky top-0 z-40 border-b border-[#1E181A]/8 bg-[#F6F5F2]/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div
-                className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-sm shrink-0 text-white font-display font-bold text-lg"
-                style={{ background: 'linear-gradient(135deg, #B85D6F 0%, #D48C70 52%, #E6B89C 100%)' }}
-              >
-                V
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#9E475B]">
-                    VANESEV &bull; SUPER ADMIN CENTRAL
-                  </span>
-                  <span className="px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
-                    ● NEON DB LIVE
-                  </span>
-                </div>
-                <h1 className="font-display text-base sm:text-xl font-bold tracking-tight text-[#1E181A] truncate">
-                  Dirección General de Clientes, Cartas &amp; Gobernanza (karc0)
-                </h1>
-              </div>
+    <div className="min-h-screen bg-[#E6E6EB] text-[#18181B] font-sans p-2 sm:p-4 lg:p-6">
+      {/* ── VERTIX OUTER ROUNDED APPLICATION CONTAINER ── */}
+      <div className="max-w-[1440px] mx-auto bg-[#F5F5F8] rounded-[28px] sm:rounded-[34px] p-4 sm:p-6 lg:p-7 shadow-[0_14px_45px_rgba(0,0,0,0.05)] border border-white min-h-[calc(100vh-48px)] flex flex-col">
+
+        {/* ── VERTIX TOP HEADER BAR (1 SINGLE CLEAN ROW) ── */}
+        <header className="flex items-center justify-between gap-3">
+          {/* Left: Circular Coral Brand Mark + Crisp Name */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 text-white shadow-xs"
+              style={{ background: 'linear-gradient(135deg, #F26A3D 0%, #D94824 100%)' }}
+            >
+              V
             </div>
-            <button
-              onClick={fetchCentralState}
-              disabled={syncing}
-              className="lg:hidden p-2.5 rounded-full bg-white hover:bg-[#FAF7F2] border border-[#1E181A]/10 text-[#1E181A] shrink-0"
-              title="Sincronizar con Neon DB"
-            >
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-[#9E475B]' : ''}`} />
-            </button>
+            <span className="font-bold text-[#18181B] text-sm sm:text-base tracking-tight truncate">
+              Vanesev Central
+            </span>
           </div>
 
-          {/* Quick Jump Capsule Buttons */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5 lg:pb-0">
-            <button
-              onClick={() => {
-                setActiveTab('tenants');
-                setShowTenantModal(true);
-              }}
-              className="px-4 py-2 rounded-full text-xs font-bold text-white flex items-center gap-1.5 transition-all shadow-sm shrink-0 cursor-pointer hover:opacity-95"
-              style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 100%)' }}
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Nuevo Cliente / Salón
-            </button>
-            <button
-              onClick={() => onNavigateToTenant('capra-studio', false)}
-              className="px-3.5 py-2 rounded-full text-xs font-bold bg-white hover:bg-[#FAF0F2] text-[#9E475B] border border-[#9E475B]/25 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-2xs"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Carta Capra Studio
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onNavigateToTenant('capra-studio', true)}
-              className="px-3.5 py-2 rounded-full text-xs font-bold bg-white hover:bg-[#FAF7F2] text-[#1E181A] border border-[#1E181A]/10 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-2xs"
-            >
-              Admin Capra Studio
-            </button>
-            <button
-              onClick={onNavigateToSaaSLanding}
-              className="px-4 py-2 rounded-full text-xs font-bold bg-[#1E181A] hover:bg-[#33292C] text-white flex items-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              <Globe className="w-3.5 h-3.5 text-[#E6B89C]" />
-              Web Comercial vanesev.com
-            </button>
-            <button
-              onClick={fetchCentralState}
-              disabled={syncing}
-              className="hidden lg:inline-flex p-2.5 rounded-full bg-white hover:bg-[#FAF7F2] border border-[#1E181A]/10 text-[#1E181A] shrink-0 cursor-pointer shadow-2xs"
-              title="Sincronizar con Neon DB"
-            >
-              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-[#9E475B]' : ''}`} />
-            </button>
-          </div>
-        </div>
+          {/* Center: Floating White Capsule Pill Bar (6 Clean 1-Word Tabs like Vertix Screenshot 1) */}
+          <nav className="hidden lg:flex items-center gap-1 bg-white rounded-full p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03]">
+            {[
+              { id: 'overview', label: 'Overview' },
+              { id: 'tenants', label: 'Salones' },
+              { id: 'qr', label: 'Motor QR' },
+              { id: 'competitors', label: 'Mercado' },
+              { id: 'mailbox', label: 'Buzón' },
+              { id: 'sessions', label: 'Reportes' },
+            ].map((pill) => {
+              const active = activeTab === pill.id;
+              return (
+                <button
+                  key={pill.id}
+                  type="button"
+                  onClick={() => setActiveTab(pill.id as any)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    active
+                      ? 'bg-[#18181B] text-white shadow-2xs'
+                      : 'text-[#52525B] hover:text-[#18181B] hover:bg-[#F4F4F6]'
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              );
+            })}
+          </nav>
 
-        {/* FLOATING CAPSULE NAVIGATION PILL BAR */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-3 flex overflow-x-auto no-scrollbar gap-1.5">
-          {[
-            { id: 'tenants', label: 'Salones & Fichas de Clientes', icon: Crown, badge: (data.tenants || []).length },
-            { id: 'qr', label: 'Motor QR & Escaneos', icon: QrCode, badge: 0 },
-            { id: 'competitors', label: 'Radar Competidores', icon: Crosshair, badge: 4 },
-            { id: 'sessions', label: 'Auditoría Sesiones', icon: CheckCircle2, badge: pendingSessionsCount },
-            { id: 'tasks_roadmap', label: 'Tareas & Arquitectura', icon: Layers, badge: pendingTasksCount },
-            { id: 'mailbox', label: 'Buzón karc0 ↔ Agente', icon: MessageSquare, badge: (data.mailbox || []).length },
-            { id: 'incidents', label: 'Incidencias', icon: AlertTriangle, badge: openIncidentsCount, alert: true },
-            { id: 'docs', label: 'Documentación', icon: FileText, badge: (data.docs || []).length },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  active
-                    ? 'bg-[#1E181A] text-white shadow-xs'
-                    : 'bg-white text-[#6E6266] hover:text-[#1E181A] border border-[#1E181A]/8'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${tab.alert && tab.badge > 0 ? 'text-rose-500' : active ? 'text-[#E6B89C]' : 'text-[#9A8C90]'}`} />
-                <span>{tab.label}</span>
-                {tab.badge > 0 && (
-                  <span
-                    className={`px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full ${
-                      tab.alert
-                        ? 'bg-rose-100 text-rose-800'
-                        : active
-                        ? 'bg-white/20 text-white'
-                        : 'bg-[#FAF7F2] text-[#6E6266]'
-                    }`}
-                  >
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </header>
-
-      {/* MAIN CONTENT AREA */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-7 space-y-7">
-        {/* VERTIX EXECUTIVE HERO SUMMARY BENTO */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          <motion.div
-            whileHover={{ y: -3 }}
-            className="lg:col-span-7 rounded-[32px] p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[210px]"
-            style={{ background: 'linear-gradient(135deg, #9E475B 0%, #C87D65 52%, #E2A889 100%)' }}
-          >
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 relative z-10">
-              <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-[0.2em]">
-                  <Crown className="w-3.5 h-3.5" /> Super-Admin Multi-Sede VANESEV
-                </span>
-                <h2 className="font-display text-2xl sm:text-3xl font-semibold mt-3 tracking-tight">
-                  Control Total de Clientes, Diseño &amp; QR
-                </h2>
-                <p className="text-xs sm:text-sm text-white/90 mt-1.5 max-w-xl leading-relaxed">
-                  Crea nuevos salones en segundos, personaliza su paleta de colores y tipografía en vivo, o entra directamente a su panel administrativo para asistirles.
-                </p>
-              </div>
+          {/* Right: Two Floating White Capsules (Utility Icons Pill + karc0 Profile Pill) */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <div className="bg-white rounded-full px-2.5 sm:px-3.5 py-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => {
                   setActiveTab('tenants');
                   setShowTenantModal(true);
                 }}
-                className="px-4 py-2.5 rounded-full bg-white text-[#1E181A] text-xs font-bold shadow-md hover:scale-105 transition-transform flex items-center gap-1.5 shrink-0 self-start cursor-pointer"
+                className="text-[#F26A3D] hover:text-[#D94824] transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                title="Crear Nuevo Salón Cliente"
               >
-                <Plus className="w-4 h-4 text-[#9E475B]" />
-                <span>Alta de Nuevo Salón</span>
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span className="hidden sm:inline">Nuevo Salón</span>
+              </button>
+              <button
+                type="button"
+                onClick={fetchCentralState}
+                disabled={syncing}
+                className="text-[#52525B] hover:text-[#18181B] transition-colors cursor-pointer"
+                title="Sincronizar Neon DB"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-[#F26A3D]' : ''}`} />
+              </button>
+              <button
+                type="button"
+                onClick={onNavigateToSaaSLanding}
+                className="text-[#52525B] hover:text-[#18181B] transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-semibold"
+                title="Abrir Web Comercial vanesev.com"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Web</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 pt-5 mt-5 border-t border-white/20 relative z-10">
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-white/75 block">Salones Activos</span>
-                <span className="font-display text-2xl font-bold">{(data.tenants || []).length} Sedes</span>
+            <div className="bg-white rounded-full pl-1.5 pr-3 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] flex items-center gap-2">
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0"
+                style={{ background: 'linear-gradient(135deg, #18181B 0%, #3F3F46 100%)' }}
+              >
+                K
               </div>
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-white/75 block">Especialistas Red</span>
-                <span className="font-display text-2xl font-bold">{(data.staff || []).length} Pros</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-white/75 block">Cabinas &amp; Áreas</span>
-                <span className="font-display text-2xl font-bold">{(data.zones || []).length} Zonas</span>
+              <div className="hidden sm:block text-left leading-tight">
+                <p className="text-[11px] font-bold text-[#18181B]">karc0 &bull; Super-Admin</p>
+                <p className="text-[9px] text-[#10B981] font-semibold">● Neon DB Live</p>
               </div>
             </div>
-          </motion.div>
-
-          <div className="lg:col-span-5 grid grid-cols-2 gap-4">
-            <motion.div
-              whileHover={{ y: -3 }}
-              onClick={() => {
-                setActiveTab('tenants');
-                setEditingTenantThemeSlug('capra-studio');
-              }}
-              className="bg-white rounded-[28px] p-5 border border-[#1E181A]/8 shadow-xs flex flex-col justify-between cursor-pointer"
-            >
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#FAF0F2] text-[#9E475B]">
-                <Palette className="w-5 h-5" />
-              </div>
-              <div className="mt-4">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#9A8C90] block">
-                  Diseño &amp; Identidad
-                </span>
-                <p className="font-display text-lg font-bold text-[#1E181A] mt-0.5">
-                  Studio de Temas
-                </p>
-                <span className="text-xs font-semibold text-[#9E475B] mt-1 inline-block">
-                  Editar paletas de clientes &rarr;
-                </span>
-              </div>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -3 }}
-              onClick={() => setActiveTab('qr')}
-              className="bg-white rounded-[28px] p-5 border border-[#1E181A]/8 shadow-xs flex flex-col justify-between cursor-pointer"
-            >
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#FBF6EE] text-[#A67B5B]">
-                <QrCode className="w-5 h-5" />
-              </div>
-              <div className="mt-4">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#9A8C90] block">
-                  Enrutamiento `/m/`
-                </span>
-                <p className="font-display text-lg font-bold text-[#1E181A] mt-0.5">
-                  Generador QR
-                </p>
-                <span className="text-xs font-semibold text-[#A67B5B] mt-1 inline-block">
-                  Gestionar códigos QR &rarr;
-                </span>
-              </div>
-            </motion.div>
           </div>
+        </header>
+
+        {/* ── MOBILE HORIZONTAL CAPSULE SWITCHER ── */}
+        <div className="lg:hidden mt-3 flex items-center gap-1 overflow-x-auto no-scrollbar bg-white rounded-full p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03]">
+          {[
+            { id: 'overview', label: 'Overview' },
+            { id: 'tenants', label: 'Salones' },
+            { id: 'qr', label: 'Motor QR' },
+            { id: 'competitors', label: 'Mercado' },
+            { id: 'mailbox', label: 'Buzón' },
+            { id: 'sessions', label: 'Reportes' },
+            { id: 'tasks_roadmap', label: 'Tareas' },
+            { id: 'docs', label: 'Docs' },
+          ].map((item) => {
+            const active = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveTab(item.id as any)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                  active
+                    ? 'bg-[#18181B] text-white shadow-2xs'
+                    : 'text-[#52525B] hover:text-[#18181B]'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
 
-        {loading ? (
-          <div className="p-16 text-center rounded-[32px] bg-white border border-[#1E181A]/8 shadow-xs">
-            <RefreshCw className="w-8 h-8 text-[#9E475B] animate-spin mx-auto mb-3" />
-            <p className="text-sm text-[#6E6266]">Sincronizando ecosistema de salones desde Neon Postgres 18...</p>
-          </div>
-        ) : (
-          <>
-            {/* TAB 1: REVISIÓN DE SESIONES & APROBACIÓN DE KARC0 */}
-            {activeTab === 'sessions' && (
-              <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-amber-200 shadow-xs">
+        {/* ── VERTIX BODY WORKSPACE (LEFT 3 FLOATING ICON CAPSULES + MAIN BENTO WORKSPACE) ── */}
+        <div className="flex gap-5 lg:gap-7 mt-5 sm:mt-6 flex-1">
+
+          {/* Left Column: 3 Floating Vertical White Icon Capsules */}
+          <aside className="hidden md:flex flex-col justify-between items-center w-11 shrink-0 select-none">
+            {/* Top Mini Capsule */}
+            <div className="w-11 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] py-2 flex flex-col items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('tenants');
+                  setShowTenantModal(true);
+                }}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#F26A3D] hover:bg-[#FFF0EC] transition-all cursor-pointer"
+                title="Alta de Nuevo Salón"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('tenants');
+                  setEditingTenantThemeSlug('capra-studio');
+                }}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F6] transition-all cursor-pointer"
+                title="Personalizar Tema de Capra Studio"
+              >
+                <Palette className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Middle Main Capsule (7 Icons) */}
+            <div className="w-11 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] py-2.5 flex flex-col items-center gap-2">
+              {[
+                { id: 'overview', Icon: Activity, title: 'Overview General' },
+                { id: 'tenants', Icon: Crown, title: 'Salones & Fichas de Clientes' },
+                { id: 'qr', Icon: QrCode, title: 'Motor QR & Escaneos' },
+                { id: 'competitors', Icon: Crosshair, title: 'Radar de Competidores' },
+                { id: 'mailbox', Icon: MessageSquare, title: 'Buzón karc0 ↔ Agente' },
+                { id: 'tasks_roadmap', Icon: Layers, title: 'Tareas & Hoja de Ruta' },
+                { id: 'docs', Icon: FileText, title: 'Documentación & Reportes' },
+              ].map(({ id, Icon, title }) => {
+                const active = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setActiveTab(id as any)}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                      active
+                        ? 'bg-[#18181B] text-white shadow-xs'
+                        : 'text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F6]'
+                    }`}
+                    title={title}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Bottom Mini Capsule */}
+            <div className="w-11 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/[0.03] py-2 flex flex-col items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setActiveTab('incidents')}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  activeTab === 'incidents'
+                    ? 'bg-[#18181B] text-white'
+                    : 'text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F6]'
+                }`}
+                title="Incidencias"
+              >
+                <AlertTriangle className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onNavigateToSaaSLanding}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#71717A] hover:text-[#18181B] hover:bg-[#F4F4F6] transition-all cursor-pointer"
+                title="Ir a Web Comercial vanesev.com"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </button>
+            </div>
+          </aside>
+
+          {/* ── MAIN CONTENT AREA ── */}
+          <main className="flex-1 min-w-0 space-y-6">
+            {/* Dynamic Vertix Page Title + 1-Line Subtitle */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+              <div>
+                <h1 className="text-2xl sm:text-[28px] font-bold text-[#18181B] tracking-tight leading-tight">
+                  {currentHeading.title}
+                </h1>
+                <p className="text-xs sm:text-sm text-[#71717A] mt-0.5">
+                  {currentHeading.subtitle}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => onNavigateToTenant('capra-studio', false)}
+                  className="px-3.5 py-1.5 rounded-full bg-white hover:bg-[#FFF0EC] text-[#E35633] border border-[#F5CFC4] text-xs font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Carta Capra</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigateToTenant('capra-studio', true)}
+                  className="px-3.5 py-1.5 rounded-full bg-[#18181B] text-white text-xs font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
+                >
+                  <span>Admin Capra</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* ══════════════════════════════════════════════════════════════════
+                TAB 0: OVERVIEW — EXACT VERTIX 2x2 BENTO GRID (SCREENSHOT 1)
+            ══════════════════════════════════════════════════════════════════ */}
+            {activeTab === 'overview' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* BENTO 1 (TOP-LEFT, 7 COLS): WARM CORAL-TERRACOTTA HERO CARD WITH PROGRESS BAR */}
+                <motion.div
+                  whileHover={{ y: -2 }}
+                  className="lg:col-span-7 rounded-[24px] p-6 sm:p-7 text-white shadow-sm flex flex-col justify-between min-h-[240px] relative overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, #F27449 0%, #E35633 55%, #C94122 100%)',
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md font-semibold text-[11px]">
+                      <Crown className="w-3.5 h-3.5" />
+                      <span>Super-Admin Multi-Sede &bull; karc0</span>
+                    </span>
+                    <span className="text-[11px] text-white/85 font-medium">
+                      Neon Postgres 18 Activo
+                    </span>
+                  </div>
+
+                  <div className="my-5">
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="text-4xl sm:text-5xl font-bold tracking-tight tabular-nums">
+                        {tenantsCount} Sedes
+                      </span>
+                      <span className="text-sm text-white/90 font-medium">
+                        activas &bull; {(data.staff || []).length || 4} especialistas &bull; {(data.zones || []).length || 6} cabinas
+                      </span>
+                    </div>
+
+                    {/* Vertix Progress Bar with Diagonal Hash Track */}
+                    <div className="mt-4 h-2.5 w-full rounded-full overflow-hidden flex items-center bg-black/15 p-0.5">
+                      <div className="h-full bg-white rounded-full transition-all duration-500" style={{ width: '68%' }} />
+                      <div
+                        className="h-full flex-1 ml-1 rounded-r-full"
+                        style={{
+                          backgroundImage:
+                            'repeating-linear-gradient(-55deg, rgba(255,255,255,0.45), rgba(255,255,255,0.45) 2px, transparent 2px, transparent 6px)',
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-white/85 mt-1.5 font-medium">
+                      <span>Arquitectura 4 Zonas Aisladas</span>
+                      <span>Enrutamiento /m/&lt;slug&gt; sin subdominios</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('tenants');
+                        setShowTenantModal(true);
+                      }}
+                      className="px-4 py-2 rounded-full bg-white text-[#18181B] text-xs font-bold shadow-xs hover:scale-[1.02] transition-transform flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-[#E35633]" />
+                      <span>Alta de Nuevo Salón</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('tenants')}
+                      className="px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold backdrop-blur-md transition-colors cursor-pointer"
+                    >
+                      Ver Fichas de Clientes
+                    </button>
+                  </div>
+                </motion.div>
+
+                {/* BENTO 2 (TOP-RIGHT, 5 COLS): WHITE TIER BENEFITS / ESTADO DE ZONAS CARD */}
+                <div className="lg:col-span-5 bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/[0.03] flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#18181B]">Estado de Arquitectura &amp; Zonas</h3>
+
+                    <div className="mt-3 bg-[#F4F4F6] rounded-full p-1 inline-flex items-center gap-1">
+                      {[
+                        { id: 'zones' as const, label: '4 Zonas' },
+                        { id: 'database' as const, label: 'Neon Cloud' },
+                        { id: 'governance' as const, label: 'Gobernanza' },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setOverviewTier(tab.id)}
+                          className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                            overviewTier === tab.id
+                              ? 'bg-white text-[#18181B] shadow-2xs'
+                              : 'text-[#71717A] hover:text-[#18181B]'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="mt-4 space-y-2.5">
+                      {(overviewTier === 'zones'
+                        ? [
+                            'Zona 1 (vanesev.com): Web Comercial SaaS sin enlaces a Central',
+                            'Zona 2 (/central): Super-Admin exclusivo de karc0',
+                            'Zona 3 (/<slug>/admin): Panel Vertix aislado por salón',
+                            'Zona 4 (/m/<slug>): Catálogo QR y Pasaporte VIP para clientas',
+                          ]
+                        : overviewTier === 'database'
+                        ? [
+                            `${tenantsCount} salones registrados con aislamiento multi-tenant`,
+                            'Motor de temas de autor (6 paletas + 3 tipografías + 3 layouts)',
+                            'Fotografía editorial local verificada libre de errores externos',
+                            'Sincronización atómica de servicios, citas y sellos VIP',
+                          ]
+                        : [
+                            `${pendingSessionsCount} sesiones listas para auditoría en Central`,
+                            `${pendingTasksCount} tareas operativas en hoja de ruta`,
+                            '4 competidores auditados en Radar de Mercado',
+                            'Despliegue continuo en Vercel Cloud sin compilación local',
+                          ]
+                      ).map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2.5 text-xs text-[#27272A]">
+                          <span className="w-4 h-4 rounded-full bg-[#FFF0EC] text-[#E35633] flex items-center justify-center shrink-0">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </span>
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#A1A1AA] mt-4 pt-3 border-t border-zinc-100">
+                    Aislamiento estricto entre Web Comercial, Central, Admin y Catálogos QR
+                  </p>
+                </div>
+
+                {/* BENTO 3 (BOTTOM-LEFT, 7 COLS): WHITE OFFERS / ACCESOS RÁPIDOS CARD (3 SUB-CARDS) */}
+                <div className="lg:col-span-7 bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/[0.03]">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-sm font-bold text-[#18181B]">Módulos &amp; Sedes Destacadas</h3>
+                      <p className="text-xs text-[#71717A] mt-0.5">
+                        Inspecciona o personaliza cualquier sede y herramienta desde un solo lugar.
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FFF0EC] text-[#E35633] text-[10px] font-bold">
+                      Operativo
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-4">
+                    {/* Sub-Card 1 */}
+                    <div className="rounded-[18px] p-4 bg-[#FFF8F6] border border-[#F5CFC4] flex flex-col justify-between min-h-[155px]">
+                      <div>
+                        <div className="w-8 h-8 rounded-xl bg-white shadow-2xs border border-black/5 flex items-center justify-center text-[#E35633] mb-3">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <p className="text-xs font-bold text-[#18181B]">Capra Studio (Sede #1)</p>
+                        <p className="text-[11px] text-[#71717A] mt-1 leading-relaxed">
+                          Cejas, Pestañas, Alisados, Maquillaje &amp; Capra Academy.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-3 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => onNavigateToTenant('capra-studio', false)}
+                          className="text-[10px] font-bold text-[#E35633] hover:underline cursor-pointer"
+                        >
+                          Ver Carta
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onNavigateToTenant('capra-studio', true)}
+                          className="px-3 py-1 rounded-full bg-[#F26A3D] text-white text-[10px] font-bold cursor-pointer shadow-2xs"
+                        >
+                          Abrir Admin
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Sub-Card 2 */}
+                    <div className="rounded-[18px] p-4 bg-[#F8F8FA] border border-black/[0.04] flex flex-col justify-between min-h-[155px]">
+                      <div>
+                        <div className="w-8 h-8 rounded-xl bg-white shadow-2xs border border-black/5 flex items-center justify-center text-[#18181B] mb-3">
+                          <QrCode className="w-4 h-4" />
+                        </div>
+                        <p className="text-xs font-bold text-[#18181B]">Generador QR `/m/`</p>
+                        <p className="text-[11px] text-[#71717A] mt-1 leading-relaxed">
+                          Crea códigos QR de recepción y enlaces para nuevos clientes.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-3 mt-2">
+                        <span className="text-[10px] text-[#A1A1AA] font-medium">Sin subdominios</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('qr')}
+                          className="px-3 py-1 rounded-full bg-[#18181B] text-white text-[10px] font-bold cursor-pointer"
+                        >
+                          Gestionar
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Sub-Card 3 */}
+                    <div className="rounded-[18px] p-4 bg-[#F8F8FA] border border-black/[0.04] flex flex-col justify-between min-h-[155px]">
+                      <div>
+                        <div className="w-8 h-8 rounded-xl bg-white shadow-2xs border border-black/5 flex items-center justify-center text-[#18181B] mb-3">
+                          <Crosshair className="w-4 h-4" />
+                        </div>
+                        <p className="text-xs font-bold text-[#18181B]">Radar Competencia</p>
+                        <p className="text-[11px] text-[#71717A] mt-1 leading-relaxed">
+                          Auditoría de Fresha, AgendaPro, Booksy y Treatwell.
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-3 mt-2">
+                        <span className="text-[10px] text-[#A1A1AA] font-medium">4 auditados</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('competitors')}
+                          className="px-3 py-1 rounded-full bg-[#18181B] text-white text-[10px] font-bold cursor-pointer"
+                        >
+                          Ver Mapa
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* BENTO 4 (BOTTOM-RIGHT, 5 COLS): WHITE SALONES & ACTIVIDAD RECIENTE CARD */}
+                <div className="lg:col-span-5 bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/[0.03] flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-[#18181B]">Salones Registrados en Red</h3>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('tenants')}
+                        className="text-[11px] font-semibold text-[#E35633] hover:underline cursor-pointer"
+                      >
+                        Ver todos &rarr;
+                      </button>
+                    </div>
+
+                    <div className="divide-y divide-zinc-100">
+                      {[
+                        {
+                          id: 'capra-studio',
+                          name: 'Capra Studio · By María Capra',
+                          sub: '/m/capra-studio · Paleta Rose Cashmere',
+                          amount: '$29/mes',
+                        },
+                        {
+                          id: 'andrea-nails',
+                          name: 'Andrea Labrador Nails Studio',
+                          sub: 'Cliente Externo Legacy Aislado',
+                          amount: '$19/mes',
+                        },
+                        ...(data.tenants || [])
+                          .filter((t: any) => t.id !== 'capra-studio' && t.id !== 'andrea-nails')
+                          .slice(0, 2)
+                          .map((t: any) => ({
+                            id: t.id,
+                            name: t.business_name,
+                            sub: `/m/${t.custom_subdomain || t.id}`,
+                            amount: `$${t.monthly_fee_usd || 29}/mes`,
+                          })),
+                      ].map((row) => (
+                        <div key={row.id} className="py-2.5 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-[#FFF3EF] text-[#E35633] flex items-center justify-center shrink-0">
+                              <Crown className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-[#18181B] truncate">{row.name}</p>
+                              <p className="text-[10px] text-[#A1A1AA] truncate">{row.sub}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs font-bold text-[#10B981] tabular-nums">{row.amount}</span>
+                            <button
+                              type="button"
+                              onClick={() => onNavigateToTenant(row.id, true)}
+                              className="px-2.5 py-1 rounded-full bg-[#F4F4F6] hover:bg-[#18181B] hover:text-white text-[10px] font-bold transition-colors cursor-pointer"
+                            >
+                              Admin
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {loading && activeTab !== 'overview' ? (
+              <div className="p-16 text-center rounded-[24px] bg-white border border-black/[0.03] shadow-xs">
+                <RefreshCw className="w-8 h-8 text-[#E35633] animate-spin mx-auto mb-3" />
+                <p className="text-sm text-[#71717A]">Sincronizando ecosistema de salones desde Neon Postgres 18...</p>
+              </div>
+            ) : (
+              <>
+                {/* TAB 1: REVISIÓN DE SESIONES & APROBACIÓN DE KARC0 */}
+                {activeTab === 'sessions' && (
+                  <div className="space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-amber-200 shadow-xs">
                   <div>
                     <span className="text-[11px] font-mono uppercase tracking-widest text-amber-800 font-bold">
                       AUDITORÍA PAUSADA & APROBACIÓN EJECUTIVA
@@ -1395,9 +1753,11 @@ export const CentralDashboard: React.FC<CentralDashboardProps> = ({
             {activeTab === 'competitors' && (
               <CentralCompetitors />
             )}
-          </>
-        )}
-      </main>
+              </>
+            )}
+          </main>
+        </div>
+      </div>
     </div>
   );
 };

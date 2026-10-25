@@ -292,19 +292,6 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
 
           {/* Action Pills */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <button
-              onClick={() => setShowCustomizer(true)}
-              className="px-3 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border hover:scale-[1.02]"
-              style={{
-                backgroundColor: palette.softSurfaceBg,
-                color: palette.textPrimary,
-                borderColor: palette.borderSubtle,
-              }}
-              title="Personalizar Estilo, Paleta y Tipografía del Catálogo"
-            >
-              <Palette className="w-3.5 h-3.5" style={{ color: palette.accentPrimary }} />
-              <span className="hidden sm:inline">Estilo</span>
-            </button>
 
             <button
               onClick={() => setShowQrModal(true)}
@@ -1086,11 +1073,11 @@ export const CapraStudioExperience: React.FC<CapraStudioExperienceProps> = ({
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <button
-              onClick={() => setShowCustomizer(true)}
+              onClick={() => setShowVipModal(true)}
               className="hover:underline font-semibold cursor-pointer"
               style={{ color: palette.accentPrimary }}
             >
-              Personalizar Estilo de Carta
+              Pasaporte VIP
             </button>
             <span>·</span>
             <a

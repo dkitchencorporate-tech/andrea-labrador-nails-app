@@ -589,6 +589,9 @@ export const App: React.FC = () => {
         <CentralDashboard
           onNavigateToSaaSLanding={switchToSaasLanding}
           onNavigateToTenant={(slug, openAdmin) => {
+            if (openAdmin) {
+              setIsAdminAuthenticated(true);
+            }
             switchToTenant(slug, Boolean(openAdmin));
           }}
         />
@@ -602,9 +605,11 @@ export const App: React.FC = () => {
       <Suspense fallback={lazyFallback}>
         <VanesevLanding
           onOpenCapraDemo={() => switchToTenant('capra-studio', false)}
-          onOpenCapraAdmin={() => switchToTenant('capra-studio', true)}
           onOpenAndreaDemo={() => switchToTenant('andrea-nails', false)}
-          onOpenCentral={switchToCentral}
+          onClientLoginSuccess={(slug) => {
+            setIsAdminAuthenticated(true);
+            switchToTenant(slug, true);
+          }}
         />
       </Suspense>
     );
@@ -628,49 +633,22 @@ export const App: React.FC = () => {
 
     return (
       <Suspense fallback={lazyFallback}>
-        <div>
-          {/* Luminous Top Ecosystem Bar inside Admin */}
-          <div className="bg-white text-[#1E181A] px-4 py-2 border-b border-[#1E181A]/8 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-2.5">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#FAF0F2] text-[#9E475B] font-bold text-[10px] tracking-wider uppercase">
-                Sede Activa
-              </span>
-              <span className="font-display font-bold text-[#1E181A]">
-                {activeTenant === 'andrea-nails' ? 'Andrea Labrador Nails Studio' : activeSalonTheme.salonName}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={switchToSaasLanding}
-                className="px-3 py-1 rounded-full bg-[#FAF7F2] hover:bg-[#EFE9E0] text-[#1E181A] font-semibold transition-colors cursor-pointer border border-[#1E181A]/10"
-              >
-                Web vanesev.com
-              </button>
-              <button
-                onClick={switchToCentral}
-                className="px-3.5 py-1 rounded-full bg-[#1E181A] text-white font-bold flex items-center gap-1.5 hover:bg-[#33292C] transition-colors cursor-pointer"
-              >
-                <Terminal className="w-3.5 h-3.5 text-[#E6B89C]" />
-                <span>Super-Admin Central</span>
-              </button>
-            </div>
-          </div>
-          <AdminDashboard
-            services={services}
-            promos={promos}
-            bookings={bookings}
-            blockedSlots={blockedSlots}
-            exchangeRate={exchangeRate}
-            tenantSlug={activeTenant}
-            tenantName={activeTenant === 'andrea-nails' ? 'Andrea Labrador Nails Studio' : activeSalonTheme.salonName}
-            onRefreshData={() => refreshData(activeTenant)}
-            onExitToCatalog={handleExitToCatalog}
-            onLogout={() => {
-              AppStore.clearAdminSession();
-              setIsAdminAuthenticated(false);
-            }}
-          />
-        </div>
+        <AdminDashboard
+          services={services}
+          promos={promos}
+          bookings={bookings}
+          blockedSlots={blockedSlots}
+          exchangeRate={exchangeRate}
+          tenantSlug={activeTenant}
+          tenantName={activeTenant === 'andrea-nails' ? 'Andrea Labrador Nails Studio' : activeSalonTheme.salonName}
+          onRefreshData={() => refreshData(activeTenant)}
+          onExitToCatalog={handleExitToCatalog}
+          onLogout={() => {
+            AppStore.clearAdminSession();
+            setIsAdminAuthenticated(false);
+            handleExitToCatalog();
+          }}
+        />
       </Suspense>
     );
   }
