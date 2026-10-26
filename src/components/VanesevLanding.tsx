@@ -284,7 +284,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
     e.preventDefault();
     setLeadSubmitted(true);
     const msg = `Hola equipo VANESEV, quiero activar mi salón en el plan *${selectedPlanName}*.\n\n• Salón: ${leadSalonName || 'Mi Salón'}\n• Responsable: ${leadOwnerName || 'Directora'}\n• Especialidad: ${leadSpecialty}\n• WhatsApp: ${leadWhatsapp}`;
-    window.open(`https://wa.me/584247429530?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    window.open(`https://wa.me/584223794800?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   };
 
   const handleClientLoginSubmit = (e: React.FormEvent) => {
@@ -1118,7 +1118,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
               Arreglarlo con mi propio sistema &rarr;
             </button>
             <a
-              href="https://wa.me/584247429530?text=Hola%2C%20quiero%20resolver%20las%20reservas%20y%20la%20carta%20QR%20de%20mi%20sal%C3%B3n."
+              href="https://wa.me/584223794800?text=Hola%2C%20quiero%20resolver%20las%20reservas%20y%20la%20carta%20QR%20de%20mi%20sal%C3%B3n."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex justify-center rounded-full border border-[#161214] px-7 py-4 text-sm font-bold text-[#161214] hover:bg-white transition-colors"
@@ -2045,7 +2045,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
               Crear el Sistema de mi Salón &rarr;
             </button>
             <a
-              href="https://wa.me/584247429530?text=Hola%2C%20quiero%20ver%20una%20demo%20de%20VANESEV%20para%20mi%20sal%C3%B3n."
+              href="https://wa.me/584223794800?text=Hola%2C%20quiero%20ver%20una%20demo%20de%20VANESEV%20para%20mi%20sal%C3%B3n."
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-4 rounded-full border border-white/25 hover:border-white/60 text-sm sm:text-base font-bold text-white"
@@ -2200,7 +2200,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
             <p>© 2026 VANESEV Beauty &amp; Wellness Cloud &bull; Todos los derechos reservados &bull; Cero comisiones por reserva.</p>
             <div className="flex items-center gap-4">
               <a
-                href="https://wa.me/584247429530"
+                href="https://wa.me/584223794800"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white"
@@ -2222,7 +2222,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
 
       {/* ─── FLOATING WHATSAPP COMMERCIAL BUTTON (BOTTOM-LEFT LIKE DKITCHEN) ─── */}
       <a
-        href="https://wa.me/584247429530?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20VANESEV%20para%20mi%20sal%C3%B3n%20de%20belleza."
+        href="https://wa.me/584223794800?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20VANESEV%20para%20mi%20sal%C3%B3n%20de%20belleza."
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Hablar con ventas por WhatsApp"
