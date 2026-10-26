@@ -391,13 +391,16 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => setPartyBurstId((n) => n + 1)}
+              onClick={() => {
+                setPartyBurstId((n) => n + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white shadow-xs transition-transform active:scale-95 cursor-pointer"
               style={{ background: 'linear-gradient(135deg, #EC4899 0%, #E11D74 100%)' }}
             >
               <span>🎂</span>
-              <span className="hidden xs:inline sm:inline">¡Celebrar a Vanessa!</span>
-              <span className="xs:hidden sm:hidden">🩷 Fiesta</span>
+              <span className="hidden xs:inline sm:inline">¡Ir a Dedicatoria de Vanessa!</span>
+              <span className="xs:hidden sm:hidden">🩷 Vanessa</span>
             </button>
             <button
               type="button"
@@ -433,7 +436,15 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => scrollToSection(item.id)}
+                    onClick={() => {
+                      if (item.id === 'inicio') {
+                        setMobileMenuOpen(false);
+                        setPartyBurstId((n) => n + 1);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      } else {
+                        scrollToSection(item.id);
+                      }
+                    }}
                     className="p-3 rounded-2xl bg-[#FFF5F8] text-left text-xs font-bold text-[#831843] border border-[#F472B6]/20"
                   >
                     {item.label}
@@ -451,7 +462,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                   className="w-full py-3 rounded-full text-xs font-bold text-white flex items-center justify-center gap-2 shadow-md"
                   style={{ background: 'linear-gradient(135deg, #EC4899 0%, #E11D74 100%)' }}
                 >
-                  <span>🎂🩷🌹 Ver Dedicatoria de Cumpleaños de Vanessa</span>
+                  <span>🎂🩷🌹 Ir Arriba a la Dedicatoria de Vanessa</span>
                 </button>
               </div>
             </motion.div>
@@ -654,16 +665,57 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
               </p>
             </div>
 
-            {/* Interactive Celebration Trigger Button for Phone/Tablet */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
+            {/* Interactive Celebration Trigger Button at the bottom of the Dedication Card */}
+            <div className="relative pt-2 flex flex-col items-center justify-center gap-3">
+              {/* Local Explosion Burst right over the button */}
+              <AnimatePresence mode="popLayout">
+                <motion.div
+                  key={`btn-burst-${partyBurstId}`}
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 0 }}
+                  transition={{ duration: 1.6, ease: 'easeOut' }}
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center z-30"
+                >
+                  {BURST_PARTICLES.map((bp, i) => (
+                    <motion.span
+                      key={i}
+                      initial={{ x: 0, y: 0, scale: 0.4, opacity: 1 }}
+                      animate={{ x: bp.x * 1.15, y: bp.y * 1.05, scale: 1.6, opacity: 0 }}
+                      transition={{ duration: 1.4, ease: 'easeOut' }}
+                      className="absolute text-3xl sm:text-4xl select-none"
+                    >
+                      {bp.emoji}
+                    </motion.span>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+
+              <motion.button
                 type="button"
+                whileTap={{ scale: 0.92 }}
                 onClick={() => setPartyBurstId((n) => n + 1)}
-                className="w-full sm:w-auto px-8 py-4 rounded-full text-sm sm:text-base font-extrabold text-white shadow-[0_14px_35px_rgba(225,29,116,0.38)] active:scale-95 transition-transform cursor-pointer"
+                className="relative z-10 w-full sm:w-auto px-8 py-4 rounded-full text-sm sm:text-base font-extrabold text-white shadow-[0_14px_35px_rgba(225,29,116,0.38)] transition-transform cursor-pointer"
                 style={{ background: 'linear-gradient(135deg, #FF2E93 0%, #E11D74 100%)' }}
               >
                 🎉 ¡Lanzar más Besos 💋, Corazones 🩷 y Tarta 🎂 para Vanessa!
-              </button>
+              </motion.button>
+
+              {partyBurstId > 1 && (
+                <motion.div
+                  key={`msg-${partyBurstId}`}
+                  initial={{ scale: 0.85, opacity: 0, y: 8 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  className="rounded-2xl bg-[#FFF0F6] border-2 border-[#EC4899] px-5 py-2.5 text-center shadow-md"
+                >
+                  <p className="text-xs sm:text-sm font-extrabold text-[#be185d]">
+                    {partyBurstId % 3 === 0
+                      ? `🎂🩷 ¡Lluvia de tarta, rosas y besos #${partyBurstId - 1} para tus 7 años, mi princesa hermosa!`
+                      : partyBurstId % 2 === 0
+                      ? `💋🌹 ¡Te amo con todo mi corazón, mi princesa hermosa Vanessa! (Fiesta #${partyBurstId - 1})`
+                      : `🩷🎉 ¡Mil corazones y abrazos de papá para tus 7 añitos, Vanessa! (Fiesta #${partyBurstId - 1})`}
+                  </p>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -2178,6 +2230,86 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
       >
         <MessageCircle className="w-6 h-6 fill-current" />
       </a>
+
+      {/* ─── FLOATING BIRTHDAY FOUNTAIN BUTTON FOR VANESSA (CONTINUOUS HEARTS & CAKE) ─── */}
+      <div className="fixed bottom-5 right-4 sm:right-6 z-50 flex flex-col items-center">
+        {/* Continuous Fountain of Mini Hearts 🩷, Roses 🌹, Cakes 🎂 & Kisses 💋 */}
+        <div className="pointer-events-none relative w-20 h-28 -mb-4 overflow-visible">
+          {[
+            { emoji: '🩷', x: -22, delay: 0, dur: 2.2 },
+            { emoji: '🎂', x: 6, delay: 0.4, dur: 2.5 },
+            { emoji: '🌹', x: 24, delay: 0.8, dur: 2.3 },
+            { emoji: '💋', x: -12, delay: 1.2, dur: 2.4 },
+            { emoji: '💖', x: 16, delay: 1.6, dur: 2.1 },
+            { emoji: '🎉', x: 0, delay: 1.9, dur: 2.3 },
+          ].map((item, i) => (
+            <motion.span
+              key={i}
+              initial={{ y: 85, x: 0, opacity: 0, scale: 0.5 }}
+              animate={{
+                y: [85, 10, -25],
+                x: [0, item.x, item.x * 1.3],
+                opacity: [0, 1, 0],
+                scale: [0.6, 1.15, 0.8],
+              }}
+              transition={{
+                duration: item.dur,
+                repeat: Infinity,
+                delay: item.delay,
+                ease: 'easeOut',
+              }}
+              className="absolute left-1/2 -translate-x-1/2 text-lg sm:text-xl select-none drop-shadow-xs"
+            >
+              {item.emoji}
+            </motion.span>
+          ))}
+        </div>
+
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            setPartyBurstId((n) => n + 1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          aria-label="Celebrar el cumpleaños #7 de Vanessa"
+          className="relative px-4 py-3 rounded-full text-white font-extrabold text-xs sm:text-sm shadow-[0_14px_35px_rgba(225,29,116,0.48)] border-2 border-white flex items-center gap-2 cursor-pointer"
+          style={{
+            background: 'linear-gradient(135deg, #FF2E93 0%, #E11D74 55%, #9D174D 100%)',
+          }}
+        >
+          <span className="text-xl sm:text-2xl animate-bounce">🎂</span>
+          <span className="leading-tight text-left">
+            <span className="block text-[10px] uppercase tracking-wider text-[#FFE4EE]">7 Añitos</span>
+            <span className="block font-extrabold">🩷 Vanessa</span>
+          </span>
+        </motion.button>
+      </div>
+
+      {/* ─── FULL-SCREEN VIEWPORT PARTY EXPLOSION OVERLAY ON ANY BUTTON TAP ─── */}
+      <AnimatePresence mode="popLayout">
+        {partyBurstId > 1 && (
+          <motion.div
+            key={`fullscreen-party-${partyBurstId}`}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 1.9, ease: 'easeOut' }}
+            className="pointer-events-none fixed inset-0 z-[70] flex items-center justify-center overflow-hidden"
+          >
+            {BURST_PARTICLES.map((bp, idx) => (
+              <motion.span
+                key={idx}
+                initial={{ x: 0, y: 0, scale: 0.3, opacity: 1 }}
+                animate={{ x: bp.x * 1.65, y: bp.y * 1.65, scale: 1.9, opacity: 0 }}
+                transition={{ duration: 1.6, ease: 'easeOut' }}
+                className="absolute text-4xl sm:text-6xl select-none drop-shadow-md"
+              >
+                {bp.emoji}
+              </motion.span>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ═══════════════════════════════════════════════════════════════════════════
           MODAL 1: SOLICITUD DE ALTA / CHECKOUT COMERCIAL DE SALÓN
