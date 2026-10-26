@@ -24,19 +24,25 @@ export default async function handler(req: any, res: any) {
 
   const sql = getDb();
 
-  // ─── GET: Obtener slots bloqueados ──────────────────────────────────────────
+  // ─── GET: Obtener slots bloqueados (aislados por tenant_id) ─────────────────
   if (req.method === 'GET') {
     if (!sql) {
       return res.status(200).json({ blockedSlots: [], databaseConnected: false });
     }
 
     try {
+      const cleanTenant = req.query?.tenant ? String(req.query.tenant).trim().toLowerCase() : '';
+      if (!cleanTenant) {
+        return res.status(200).json({ blockedSlots: [], databaseConnected: true });
+      }
+
       const rows = await sql`
         SELECT 
           TO_CHAR(date, 'YYYY-MM-DD') as "date",
           time_slot as "timeSlot",
           reason
         FROM public.blocked_slots
+        WHERE tenant_id = ${cleanTenant}
         ORDER BY date ASC, time_slot ASC;
       `;
 
@@ -50,17 +56,18 @@ export default async function handler(req: any, res: any) {
     }
   }
 
-  // ─── POST: Toggle slot o bloquear/desbloquear día completo ─────────────────
+  // ─── POST: Toggle slot o bloquear/desbloquear día completo (aislado por tenant_id) ───
   if (req.method === 'POST') {
     if (!sql) {
       return res.status(500).json({ error: 'Base de datos no disponible.' });
     }
 
     try {
-      const { action, date, timeSlot, slots, reason } = req.body || {};
+      const { tenantId, action, date, timeSlot, slots, reason } = req.body || {};
+      const cleanTenant = String(tenantId || req.query?.tenant || '').trim().toLowerCase();
 
-      if (!date) {
-        return res.status(400).json({ error: 'Fecha requerida.' });
+      if (!date || !cleanTenant) {
+        return res.status(400).json({ error: 'Fecha y salón (tenantId) requeridos.' });
       }
 
       const cleanDate = String(date).trim().slice(0, 10);
@@ -73,11 +80,16 @@ export default async function handler(req: any, res: any) {
           : ['09:00 AM', '11:30 AM', '02:00 PM', '04:30 PM'];
 
         for (const slot of timeSlots) {
-          await sql`
-            INSERT INTO public.blocked_slots (date, time_slot, reason)
-            VALUES (${cleanDate}::date, ${slot}, ${cleanReason})
-            ON CONFLICT (date, time_slot) DO UPDATE SET reason = EXCLUDED.reason;
+          const existing = await sql`
+            SELECT id FROM public.blocked_slots
+            WHERE tenant_id = ${cleanTenant} AND date = ${cleanDate}::date AND time_slot = ${slot};
           `;
+          if (existing.length === 0) {
+            await sql`
+              INSERT INTO public.blocked_slots (tenant_id, date, time_slot, reason)
+              VALUES (${cleanTenant}, ${cleanDate}::date, ${slot}, ${cleanReason});
+            `;
+          }
         }
 
         return res.status(200).json({ success: true, action: 'block_day', date: cleanDate });
@@ -87,7 +99,7 @@ export default async function handler(req: any, res: any) {
       if (action === 'unblock_day') {
         await sql`
           DELETE FROM public.blocked_slots
-          WHERE date = ${cleanDate}::date;
+          WHERE tenant_id = ${cleanTenant} AND date = ${cleanDate}::date;
         `;
 
         return res.status(200).json({ success: true, action: 'unblock_day', date: cleanDate });
@@ -100,19 +112,19 @@ export default async function handler(req: any, res: any) {
 
       const existing = await sql`
         SELECT id FROM public.blocked_slots
-        WHERE date = ${cleanDate}::date AND time_slot = ${timeSlot};
+        WHERE tenant_id = ${cleanTenant} AND date = ${cleanDate}::date AND time_slot = ${timeSlot};
       `;
 
       if (existing.length > 0) {
         await sql`
           DELETE FROM public.blocked_slots
-          WHERE date = ${cleanDate}::date AND time_slot = ${timeSlot};
+          WHERE tenant_id = ${cleanTenant} AND date = ${cleanDate}::date AND time_slot = ${timeSlot};
         `;
         return res.status(200).json({ success: true, action: 'unblocked', date: cleanDate, timeSlot });
       } else {
         await sql`
-          INSERT INTO public.blocked_slots (date, time_slot, reason)
-          VALUES (${cleanDate}::date, ${timeSlot}, ${cleanReason});
+          INSERT INTO public.blocked_slots (tenant_id, date, time_slot, reason)
+          VALUES (${cleanTenant}, ${cleanDate}::date, ${timeSlot}, ${cleanReason});
         `;
         return res.status(200).json({ success: true, action: 'blocked', date: cleanDate, timeSlot });
       }

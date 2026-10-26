@@ -1,28 +1,48 @@
 import { getDb } from './_db.js';
 
 export default async function handler(req: any, res: any) {
-  const host = String(req.headers.host || '').toLowerCase();
   const queryTenant = typeof req.query.tenant === 'string' ? req.query.tenant.trim().toLowerCase() : '';
 
-  let tenantSlug = 'andrea-nails';
-  if (queryTenant) {
-    tenantSlug = queryTenant === 'capra' ? 'capra-studio' : queryTenant;
-  } else if (host.startsWith('caprastudio.')) {
-    tenantSlug = 'capra-studio';
-  } else if (host.startsWith('andrealabrador.')) {
-    tenantSlug = 'andrea-nails';
+  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+
+  // Si no se especifica un salón explícito, devolver manifiesto neutro de navegador para VANESEV (nunca PWA instalable ni de ningún cliente)
+  if (!queryTenant || queryTenant === 'vanesev' || queryTenant === 'saas' || queryTenant === 'central') {
+    return res.status(200).json({
+      name: 'VANESEV',
+      short_name: 'VANESEV',
+      description: 'Plataforma integral para salones de belleza, clínicas estéticas, spas y barberías.',
+      start_url: '/',
+      display: 'browser',
+      background_color: '#FAF7F2',
+      theme_color: '#FAF7F2',
+      icons: [
+        {
+          src: '/favicon.svg',
+          sizes: 'any',
+          type: 'image/svg+xml',
+        },
+      ],
+    });
   }
+
+  const tenantSlug = queryTenant === 'capra' ? 'capra-studio' : queryTenant === 'andrea' ? 'andrea-nails' : queryTenant;
+  const isAndrea = tenantSlug === 'andrea-nails';
 
   let name = tenantSlug === 'capra-studio'
     ? 'Capra Studio · Salón de Belleza & Academy'
-    : 'Andrea Labrador Nails Studio';
-  let shortName = tenantSlug === 'capra-studio' ? 'Capra Studio' : 'Andrea Nails';
-  let themeColor = tenantSlug === 'capra-studio' ? '#B5838D' : '#16291F';
-  let bgColor = tenantSlug === 'capra-studio' ? '#FDFBF9' : '#FBF9F6';
+    : isAndrea
+    ? 'Andrea Labrador Nails Studio'
+    : `Salón ${tenantSlug}`;
+  let shortName = tenantSlug === 'capra-studio' ? 'Capra Studio' : isAndrea ? 'Andrea Nails' : tenantSlug.slice(0, 18);
+  let themeColor = tenantSlug === 'capra-studio' ? '#9E475B' : isAndrea ? '#16291F' : '#9E475B';
+  let bgColor = tenantSlug === 'capra-studio' ? '#FAF7F2' : isAndrea ? '#FBF9F6' : '#FAF7F2';
   let description = tenantSlug === 'capra-studio'
     ? 'Cejas, Pestañas, Estilismo, Maquillaje Profesional, Uñas y Cursos Capra Academy — By María Capra.'
-    : 'Catálogo interactivo, reservas online y tarjeta de fidelización VIP de 5 sellos.';
-  let startUrl = tenantSlug === 'capra-studio' ? '/?salon=capra-studio' : '/?salon=andrea-nails';
+    : isAndrea
+    ? 'Catálogo interactivo, reservas online y tarjeta de fidelización VIP de 5 sellos.'
+    : 'Reserva online, catálogo de servicios y tarjeta de fidelización VIP.';
+  const startUrl = isAndrea ? '/andrea-nails' : `/m/${tenantSlug}`;
 
   const sql = getDb();
   if (sql) {
@@ -42,9 +62,33 @@ export default async function handler(req: any, res: any) {
         if (t.slogan) description = t.slogan;
       }
     } catch {
-      // Fallback a valores seguros del tenant
+      // Fallback seguro del salón específico
     }
   }
+
+  const icons = isAndrea
+    ? [
+        {
+          src: '/images/esmaltado-semipermanente.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any maskable',
+        },
+        {
+          src: '/images/nivelacion-rubber.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable',
+        },
+      ]
+    : [
+        {
+          src: '/favicon.svg',
+          sizes: 'any',
+          type: 'image/svg+xml',
+          purpose: 'any maskable',
+        },
+      ];
 
   const manifest = {
     name,
@@ -56,23 +100,9 @@ export default async function handler(req: any, res: any) {
     theme_color: themeColor,
     orientation: 'portrait-primary',
     lang: 'es-VE',
-    icons: [
-      {
-        src: '/images/esmaltado-semipermanente.png',
-        sizes: '192x192',
-        type: 'image/png',
-        purpose: 'any maskable',
-      },
-      {
-        src: '/images/nivelacion-rubber.png',
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'any maskable',
-      },
-    ],
+    icons,
   };
 
-  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
   return res.status(200).json(manifest);
 }
+

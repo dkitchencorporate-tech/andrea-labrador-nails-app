@@ -292,13 +292,13 @@ export const App: React.FC = () => {
     // Extract dynamic tenant slug from /m/<slug> or /<slug>/admin or ?salon=<slug>
     let extractedSlug = '';
     if (salonParam) {
-      extractedSlug = salonParam.toLowerCase();
+      extractedSlug = salonParam.toLowerCase().trim();
     } else if (path.startsWith('/m/')) {
       const parts = path.replace(/^\/m\//, '').split('/').filter(Boolean);
-      extractedSlug = parts[0] || 'capra-studio';
+      extractedSlug = (parts[0] || '').trim();
     } else {
       const parts = path.split('/').filter(Boolean);
-      const first = parts[0] || '';
+      const first = (parts[0] || '').trim();
       if (first && !['central', 'saas', 'compartir', 'promociones', 'admin'].includes(first)) {
         extractedSlug = first;
       }
@@ -308,16 +308,20 @@ export const App: React.FC = () => {
     if (extractedSlug === 'andrea') extractedSlug = 'andrea-nails';
 
     const hasExplicitSalon = Boolean(extractedSlug);
-    const tenant: string = extractedSlug || 'capra-studio';
+    // NUNCA asignar un salón por defecto en la raíz (vanesev.com) ni en Central
+    const tenant: string = extractedSlug || '';
 
-    // Root SaaS route: on apex domain or /, or explicitly /saas
+    // Root SaaS route: on apex domain or /, or explicitly /saas (or when no explicit salon & not central)
     const isSaasLanding =
       !isCentral &&
-      !isAdmin &&
-      !hasExplicitSalon &&
-      (path === '/' || path === '' || path.startsWith('/saas') || hash === '#saas' || search.get('zone') === 'saas');
+      (path === '/' ||
+        path === '' ||
+        path.startsWith('/saas') ||
+        hash === '#saas' ||
+        search.get('zone') === 'saas' ||
+        !hasExplicitSalon);
 
-    return { isCentral, isSaasLanding, isAdmin, tenant };
+    return { isCentral, isSaasLanding, isAdmin: isAdmin && hasExplicitSalon, tenant };
   };
 
   const initialRoute = resolveInitialRoute();
@@ -328,13 +332,13 @@ export const App: React.FC = () => {
   // Legal modal state
   const [activeLegalModal, setActiveLegalModal] = useState<LegalModalType>(null);
 
-  // Store reactive state
+  // Store reactive state (inicializado vacío para jamás mezclar datos antes de entrar a un salón explícito)
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [promos, setPromos] = useState<PromoOffer[]>([]);
-  const [gallerySlides, setGallerySlides] = useState<GallerySlide[]>(AppStore.getGallery());
-  const [bookings, setBookings] = useState(AppStore.getBookings());
-  const [blockedSlots, setBlockedSlots] = useState(AppStore.getBlockedSlots());
-  const [exchangeRate, setExchangeRate] = useState(AppStore.getExchangeRate());
+  const [gallerySlides, setGallerySlides] = useState<GallerySlide[]>([]);
+  const [bookings, setBookings] = useState< ReturnType<typeof AppStore.getBookings> >([]);
+  const [blockedSlots, setBlockedSlots] = useState< ReturnType<typeof AppStore.getBlockedSlots> >([]);
+  const [exchangeRate, setExchangeRate] = useState<number>(36.85);
 
   // Routing state for SaaS Admin Dashboard
   const [isAdminRoute, setIsAdminRoute] = useState(initialRoute.isAdmin);
@@ -370,12 +374,15 @@ export const App: React.FC = () => {
   const [selectedPromo, setSelectedPromo] = useState<PromoOffer | null>(null);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
-  // Load store data with Neon Cloud synchronization per activeTenant
+  // Load store data with Neon Cloud synchronization ONLY when an explicit tenant is active
   const refreshData = (targetTenant: string = activeTenant) => {
-    AppStore.setActiveTenant(targetTenant as any);
-    if (targetTenant !== 'andrea-nails') {
+    const cleanTenant = (targetTenant || '').trim().toLowerCase();
+    if (!cleanTenant) return;
+
+    AppStore.setActiveTenant(cleanTenant as any);
+    if (cleanTenant !== 'andrea-nails') {
       setServices(CAPRA_FALLBACK_SERVICES);
-      fetch(`/api/services?tenant=${encodeURIComponent(targetTenant)}`)
+      fetch(`/api/services?tenant=${encodeURIComponent(cleanTenant)}`)
         .then(r => (r.ok ? r.json() : null))
         .then(json => {
           const rawServices = Array.isArray(json?.services) ? json.services : Array.isArray(json?.data) ? json.data : null;
@@ -428,25 +435,46 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // 1. ZONA 1: Web Comercial VANESEV (vanesev.com /) — CERO contacto con salones clientes ni PWA
+    if (isSaasRoute) {
+      document.title = '🎂 ¡Feliz Cumpleaños #7, Vanessa! 🩷🌹 — Te amo con todo mi corazón, mi princesa hermosa';
+      const existingManifest = document.querySelector("link[rel='manifest']");
+      if (existingManifest) existingManifest.remove();
+      return;
+    }
+
+    // 2. ZONA 2: VANESEV Central (/central) — Comando global sin mezclar un salón como activo
+    if (isCentralRoute) {
+      document.title = 'VANESEV Central · Dirección Multi-Sede';
+      const existingManifest = document.querySelector("link[rel='manifest']");
+      if (existingManifest) existingManifest.remove();
+      return;
+    }
+
+    // 3. ZONA 3 y 4: Solo cuando existe un salón explícito en la ruta (/m/<slug> o /<slug>/admin)
+    if (!activeTenant) return;
+
     AppStore.setActiveTenant(activeTenant as any);
     refreshData(activeTenant);
 
-    // Dynamic PWA Manifest & Title per Tenant
     const isAndreaLegacy = activeTenant === 'andrea-nails';
     const salonTheme = getSalonThemeConfig(activeTenant);
-    document.title = isCentralRoute
-      ? 'VANESEV Central · Dirección Multi-Sede'
-      : isSaasRoute
-      ? 'VANESEV — Arquitectura Digital, Reservas & Fidelización para Salones de Belleza'
-      : isAndreaLegacy
+    document.title = isAndreaLegacy
       ? 'Andrea Labrador · Nails Studio | Cordero & San Cristóbal'
       : `${salonTheme.salonName} | Reserva Online & Pasaporte VIP`;
 
-    const manifestLink = document.querySelector("link[rel='manifest']") as HTMLLinkElement | null;
-    if (manifestLink) {
-      manifestLink.href = `/api/manifest?tenant=${activeTenant}`;
+    let manifestLink = document.querySelector("link[rel='manifest']") as HTMLLinkElement | null;
+    if (!isAdminRoute) {
+      if (!manifestLink) {
+        manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        document.head.appendChild(manifestLink);
+      }
+      manifestLink.href = `/api/manifest?tenant=${encodeURIComponent(activeTenant)}`;
+    } else if (manifestLink) {
+      manifestLink.remove();
     }
-  }, [activeTenant, isCentralRoute, isSaasRoute]);
+  }, [activeTenant, isCentralRoute, isSaasRoute, isAdminRoute]);
 
   // Listen to browser navigation changes
   useEffect(() => {
@@ -477,6 +505,7 @@ export const App: React.FC = () => {
 
   const switchToCentral = () => {
     window.history.pushState(null, '', '/central');
+    setActiveTenant('');
     setIsCentralRoute(true);
     setIsSaasRoute(false);
     setIsAdminRoute(false);
@@ -487,6 +516,7 @@ export const App: React.FC = () => {
 
   const switchToSaasLanding = () => {
     window.history.pushState(null, '', '/');
+    setActiveTenant('');
     setIsSaasRoute(true);
     setIsCentralRoute(false);
     setIsAdminRoute(false);
@@ -496,7 +526,8 @@ export const App: React.FC = () => {
   };
 
   const switchToTenant = (slug: string, openAdmin = false) => {
-    const cleanSlug = slug || 'capra-studio';
+    const cleanSlug = (slug || '').trim().toLowerCase();
+    if (!cleanSlug) return;
     const url = openAdmin ? `/${cleanSlug}/admin` : `/m/${cleanSlug}`;
     window.history.pushState(null, '', url);
     setActiveTenant(cleanSlug);

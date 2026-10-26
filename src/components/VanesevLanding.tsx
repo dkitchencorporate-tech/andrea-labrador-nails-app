@@ -690,15 +690,44 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                 </motion.div>
               </AnimatePresence>
 
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.92 }}
-                onClick={() => setPartyBurstId((n) => n + 1)}
-                className="relative z-10 w-full sm:w-auto px-8 py-4 rounded-full text-sm sm:text-base font-extrabold text-white shadow-[0_14px_35px_rgba(225,29,116,0.38)] transition-transform cursor-pointer"
-                style={{ background: 'linear-gradient(135deg, #FF2E93 0%, #E11D74 100%)' }}
-              >
-                🎉 ¡Lanzar más Besos 💋, Corazones 🩷 y Tarta 🎂 para Vanessa!
-              </motion.button>
+              <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => setPartyBurstId((n) => n + 1)}
+                  className="w-full sm:w-auto px-8 py-4 rounded-full text-sm sm:text-base font-extrabold text-white shadow-[0_14px_35px_rgba(225,29,116,0.38)] transition-transform cursor-pointer"
+                  style={{ background: 'linear-gradient(135deg, #FF2E93 0%, #E11D74 100%)' }}
+                >
+                  🎉 ¡Lanzar más Besos 💋, Corazones 🩷 y Tarta 🎂 para Vanessa!
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.94 }}
+                  onClick={async () => {
+                    const shareUrl = 'https://vanesev.com/';
+                    const shareTitle = '🎂 ¡Feliz Cumpleaños #7, mi princesa hermosa Vanessa! 🩷🌹';
+                    const shareText =
+                      '🎂🩷 ¡Feliz Cumpleaños #7, mi princesa hermosa Vanessa! Te amo con todo mi corazón. Este proyecto (VANESEV) lleva tu nombre porque es mi regalo para tus 7 años — Tu Papá 🌹💋';
+                    if (typeof navigator !== 'undefined' && navigator.share) {
+                      try {
+                        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
+                        return;
+                      } catch {
+                        // Si cancela o falla el share nativo, abrir WhatsApp directo
+                      }
+                    }
+                    window.open(
+                      `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText}\n\n${shareUrl}`)}`,
+                      '_blank',
+                      'noopener,noreferrer'
+                    );
+                  }}
+                  className="w-full sm:w-auto px-6 py-4 rounded-full text-xs sm:text-sm font-extrabold text-[#be185d] bg-[#FFF0F6] hover:bg-[#FCE7F3] border-2 border-[#F472B6] shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>📲 Compartir Regalo por WhatsApp</span>
+                </motion.button>
+              </div>
 
               {partyBurstId > 1 && (
                 <motion.div

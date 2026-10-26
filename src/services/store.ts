@@ -40,10 +40,10 @@ export interface AppStoreData {
 }
 
 export class AppStore {
-  private static activeTenantId: string = 'andrea-nails';
+  private static activeTenantId: string = '';
 
   static setActiveTenant(tenantSlug: string): void {
-    this.activeTenantId = (tenantSlug || 'andrea-nails').trim().toLowerCase();
+    this.activeTenantId = (tenantSlug || '').trim().toLowerCase();
   }
 
   static getActiveTenant(): string {
@@ -52,16 +52,18 @@ export class AppStore {
 
   private static resolveKey(baseKey: string): string {
     const cleanSuffix = baseKey.replace(/^andrea_labrador_/, '');
-    return `vanesev_${this.activeTenantId}_${cleanSuffix}`;
+    const tenantPart = this.activeTenantId || 'isolated';
+    return `vanesev_${tenantPart}_${cleanSuffix}`;
   }
 
   private static getStored<T>(key: string, defaultValue: T): T {
+    if (!this.activeTenantId) return defaultValue;
     try {
       const namespacedKey = this.resolveKey(key);
       const data = localStorage.getItem(namespacedKey);
       if (data) return JSON.parse(data);
 
-      // Backward compatibility for existing Andrea Labrador local cache
+      // Backward compatibility ONLY for explicit 'andrea-nails' tenant
       if (this.activeTenantId === 'andrea-nails') {
         const legacyData = localStorage.getItem(key);
         if (legacyData) return JSON.parse(legacyData);
@@ -74,6 +76,7 @@ export class AppStore {
   }
 
   private static setStored<T>(key: string, value: T): void {
+    if (!this.activeTenantId) return;
     try {
       const namespacedKey = this.resolveKey(key);
       localStorage.setItem(namespacedKey, JSON.stringify(value));
@@ -87,12 +90,13 @@ export class AppStore {
 
   // ─── SERVICIOS ─────────────────────────────────────────────────────────────
   static getServices(): ServiceItem[] {
-    const list = this.getStored<ServiceItem[]>(STORAGE_KEYS.SERVICES, INITIAL_SERVICES);
-    if (!list[0]?.badgeText || list.some(s => s.imageUrl?.includes('unsplash.com'))) {
+    if (!this.activeTenantId) return [];
+    const fallback = this.activeTenantId === 'andrea-nails' ? INITIAL_SERVICES : [];
+    const list = this.getStored<ServiceItem[]>(STORAGE_KEYS.SERVICES, fallback);
+    if (this.activeTenantId === 'andrea-nails' && (!list[0]?.badgeText || list.some(s => s.imageUrl?.includes('unsplash.com')))) {
       this.saveServices(INITIAL_SERVICES);
       return INITIAL_SERVICES;
     }
-    // Defensive: Neon/localStorage may have cached old 11.50 for pedicure — ensure 13.00 and numeric types
     return list.map(s => {
       const price = s.id === 'pedicure' && Number(s.priceUSD) === 11.5 ? 13.00 : Number(s.priceUSD) || 0;
       return { ...s, priceUSD: price };
@@ -104,12 +108,12 @@ export class AppStore {
   }
 
   static async fetchRemoteServices(): Promise<ServiceItem[]> {
+    if (!this.activeTenantId) return [];
     try {
-      const res = await fetch('/api/services');
+      const res = await fetch(`/api/services?tenant=${encodeURIComponent(this.activeTenantId)}`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.services) && data.services.length > 0) {
-          // Neon returns numerics as strings — cast to number
           const services: ServiceItem[] = data.services.map((s: any) => ({
             ...s,
             priceUSD: Number(s.priceUSD) || 0,
@@ -125,12 +129,13 @@ export class AppStore {
   }
 
   static async saveServiceRemote(service: ServiceItem): Promise<void> {
+    if (!this.activeTenantId) return;
     this.updateService(service);
     try {
-      await fetch('/api/services', {
+      await fetch(`/api/services?tenant=${encodeURIComponent(this.activeTenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(service)
+        body: JSON.stringify({ ...service, tenantId: this.activeTenantId })
       });
     } catch (e) {
       console.error('Error guardando servicio en Neon:', e);
@@ -149,9 +154,10 @@ export class AppStore {
   }
 
   static async deleteServiceRemote(id: string): Promise<void> {
+    if (!this.activeTenantId) return;
     this.deleteService(id);
     try {
-      await fetch(`/api/services?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await fetch(`/api/services?id=${encodeURIComponent(id)}&tenant=${encodeURIComponent(this.activeTenantId)}`, { method: 'DELETE' });
     } catch (e) {
       console.error('Error eliminando servicio en Neon:', e);
     }
@@ -174,7 +180,9 @@ export class AppStore {
 
   // ─── PROMOCIONES ───────────────────────────────────────────────────────────
   static getPromos(): PromoOffer[] {
-    const list = this.getStored<PromoOffer[]>(STORAGE_KEYS.PROMOS, INITIAL_PROMOS);
+    if (!this.activeTenantId) return [];
+    const fallback = this.activeTenantId === 'andrea-nails' ? INITIAL_PROMOS : [];
+    const list = this.getStored<PromoOffer[]>(STORAGE_KEYS.PROMOS, fallback);
     return list.map(p => ({
       ...p,
       regularPriceUSD: Number(p.regularPriceUSD) || 0,
@@ -203,8 +211,10 @@ export class AppStore {
 
   // ─── CARRUSEL DE DISEÑOS / GALERÍA ─────────────────────────────────────────
   static getGallery(): GallerySlide[] {
-    const list = this.getStored<GallerySlide[]>(STORAGE_KEYS.GALLERY, INITIAL_GALLERY_SLIDES);
-    if (!Array.isArray(list) || list.length === 0) {
+    if (!this.activeTenantId) return [];
+    const fallback = this.activeTenantId === 'andrea-nails' ? INITIAL_GALLERY_SLIDES : [];
+    const list = this.getStored<GallerySlide[]>(STORAGE_KEYS.GALLERY, fallback);
+    if (this.activeTenantId === 'andrea-nails' && (!Array.isArray(list) || list.length === 0)) {
       this.saveGallery(INITIAL_GALLERY_SLIDES);
       return INITIAL_GALLERY_SLIDES;
     }
@@ -212,7 +222,6 @@ export class AppStore {
   }
 
   static saveGallery(slides: GallerySlide[]): void {
-    // Máximo 40 imágenes para evitar saturación de carga
     const trimmed = slides.slice(0, 40);
     this.setStored(STORAGE_KEYS.GALLERY, trimmed);
   }
@@ -234,8 +243,9 @@ export class AppStore {
   }
 
   static async fetchRemoteGallery(): Promise<GallerySlide[]> {
+    if (!this.activeTenantId) return [];
     try {
-      const res = await fetch('/api/gallery');
+      const res = await fetch(`/api/gallery?tenant=${encodeURIComponent(this.activeTenantId)}`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.slides) && data.slides.length > 0) {
@@ -250,11 +260,12 @@ export class AppStore {
   }
 
   static async saveGallerySlideRemote(slide: GallerySlide): Promise<void> {
+    if (!this.activeTenantId) return;
     try {
-      await fetch('/api/gallery', {
+      await fetch(`/api/gallery?tenant=${encodeURIComponent(this.activeTenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(slide)
+        body: JSON.stringify({ ...slide, tenantId: this.activeTenantId })
       });
     } catch (e) {
       console.error('Error guardando imagen en base de datos:', e);
@@ -262,9 +273,10 @@ export class AppStore {
   }
 
   static async deleteGallerySlideRemote(id: string): Promise<void> {
+    if (!this.activeTenantId) return;
     this.deleteGallerySlide(id);
     try {
-      await fetch(`/api/gallery?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await fetch(`/api/gallery?id=${encodeURIComponent(id)}&tenant=${encodeURIComponent(this.activeTenantId)}`, { method: 'DELETE' });
     } catch (e) {
       console.error('Error eliminando imagen de base de datos:', e);
     }
@@ -272,6 +284,7 @@ export class AppStore {
 
   // ─── CITAS Y RESERVAS ──────────────────────────────────────────────────────
   static getBookings(): AppointmentBooking[] {
+    if (!this.activeTenantId) return [];
     const list = this.getStored<AppointmentBooking[]>(STORAGE_KEYS.BOOKINGS, []);
     return list.map(b => ({
       ...b,
@@ -286,8 +299,9 @@ export class AppStore {
   }
 
   static async fetchRemoteBookings(): Promise<AppointmentBooking[]> {
+    if (!this.activeTenantId) return [];
     try {
-      const res = await fetch('/api/bookings');
+      const res = await fetch(`/api/bookings?tenant=${encodeURIComponent(this.activeTenantId)}`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.bookings)) {
@@ -312,14 +326,18 @@ export class AppStore {
     booking?: AppointmentBooking;
     error?: string;
   }> {
-    // Guardar inmediatamente en local
+    const targetTenant = (booking as any).tenantId || this.activeTenantId;
+    if (!targetTenant) {
+      return { success: false, error: 'Salón no identificado para la reserva.' };
+    }
     this.addBooking(booking);
 
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await fetch(`/api/bookings?tenant=${encodeURIComponent(targetTenant)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          tenantId: targetTenant,
           clientName: booking.clientName,
           clientPhone: booking.clientPhone,
           clientEmail: booking.clientEmail,
@@ -344,7 +362,6 @@ export class AppStore {
       }
 
       if (data.booking) {
-        // Actualizar id asignado por el backend
         this.updateBookingStatus(booking.id, data.booking.status);
       }
 
@@ -360,8 +377,7 @@ export class AppStore {
     bookings.unshift(booking);
     this.saveBookings(bookings);
     this.recordLoyaltyVisit(booking.clientPhone, booking.clientName);
-    
-    // Auto-registrar o actualizar ficha de clienta
+
     this.registerOrUpdateClientAccount({
       name: booking.clientName,
       phone: booking.clientPhone,
@@ -372,12 +388,13 @@ export class AppStore {
   }
 
   static async updateBookingStatusRemote(id: string, status: AppointmentBooking['status'], cancellationReason?: string): Promise<void> {
+    if (!this.activeTenantId) return;
     this.updateBookingStatus(id, status, cancellationReason);
     try {
-      await fetch('/api/bookings', {
+      await fetch(`/api/bookings?tenant=${encodeURIComponent(this.activeTenantId)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status, cancellationReason })
+        body: JSON.stringify({ id, tenantId: this.activeTenantId, status, cancellationReason })
       });
     } catch (e) {
       console.error('Error actualizando estado en Neon:', e);
@@ -408,12 +425,13 @@ export class AppStore {
   }
 
   static async rescheduleBookingRemote(id: string, date: string, timeSlot: string): Promise<{ success: boolean; error?: string }> {
+    if (!this.activeTenantId) return { success: false, error: 'Salón no activo.' };
     this.rescheduleBooking(id, date, timeSlot);
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await fetch(`/api/bookings?tenant=${encodeURIComponent(this.activeTenantId)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, action: 'reschedule', date, timeSlot })
+        body: JSON.stringify({ id, tenantId: this.activeTenantId, action: 'reschedule', date, timeSlot })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -427,9 +445,10 @@ export class AppStore {
   }
 
   static async deleteBookingRemote(id: string): Promise<void> {
+    if (!this.activeTenantId) return;
     this.deleteBooking(id);
     try {
-      await fetch(`/api/bookings?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await fetch(`/api/bookings?id=${encodeURIComponent(id)}&tenant=${encodeURIComponent(this.activeTenantId)}`, { method: 'DELETE' });
     } catch (e) {
       console.error('Error eliminando reserva en Neon:', e);
     }
@@ -442,6 +461,7 @@ export class AppStore {
 
   // ─── BLOQUEOS DE CALENDARIO ────────────────────────────────────────────────
   static getBlockedSlots(): BlockedTimeSlot[] {
+    if (!this.activeTenantId) return [];
     return this.getStored<BlockedTimeSlot[]>(STORAGE_KEYS.BLOCKED_SLOTS, []);
   }
 
@@ -450,8 +470,9 @@ export class AppStore {
   }
 
   static async fetchRemoteBlockedSlots(): Promise<BlockedTimeSlot[]> {
+    if (!this.activeTenantId) return [];
     try {
-      const res = await fetch('/api/schedule');
+      const res = await fetch(`/api/schedule?tenant=${encodeURIComponent(this.activeTenantId)}`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.blockedSlots)) {
@@ -466,12 +487,13 @@ export class AppStore {
   }
 
   static async toggleBlockSlotRemote(date: string, timeSlot: string, reason?: string): Promise<boolean> {
+    if (!this.activeTenantId) return false;
     const isNowBlocked = this.toggleBlockSlot(date, timeSlot, reason);
     try {
-      await fetch('/api/schedule', {
+      await fetch(`/api/schedule?tenant=${encodeURIComponent(this.activeTenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggle', date, timeSlot, reason })
+        body: JSON.stringify({ tenantId: this.activeTenantId, action: 'toggle', date, timeSlot, reason })
       });
     } catch (e) {
       console.error('Error sincronizando slot en Neon:', e);
@@ -495,12 +517,14 @@ export class AppStore {
   }
 
   static async blockEntireDayRemote(date: string, slots?: string[], reason = 'Día cerrado / libre'): Promise<void> {
+    if (!this.activeTenantId) return;
     this.blockEntireDay(date, reason);
     try {
-      await fetch('/api/schedule', {
+      await fetch(`/api/schedule?tenant=${encodeURIComponent(this.activeTenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          tenantId: this.activeTenantId,
           action: 'block_day',
           date,
           slots: slots || this.getTimeSlots(),
@@ -522,12 +546,13 @@ export class AppStore {
   }
 
   static async unblockEntireDayRemote(date: string): Promise<void> {
+    if (!this.activeTenantId) return;
     this.unblockEntireDay(date);
     try {
-      await fetch('/api/schedule', {
+      await fetch(`/api/schedule?tenant=${encodeURIComponent(this.activeTenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'unblock_day', date })
+        body: JSON.stringify({ tenantId: this.activeTenantId, action: 'unblock_day', date })
       });
     } catch (e) {
       console.error('Error desbloqueando día en Neon:', e);
@@ -580,6 +605,7 @@ export class AppStore {
 
   // ─── FIDELIZACIÓN (6+1 GRATIS) ─────────────────────────────────────────────
   static getLoyaltyCards(): Record<string, LoyaltyCard> {
+    if (!this.activeTenantId) return {};
     return this.getStored<Record<string, LoyaltyCard>>(STORAGE_KEYS.LOYALTY, {});
   }
 
@@ -588,8 +614,9 @@ export class AppStore {
   }
 
   static async fetchRemoteLoyaltyCards(): Promise<Record<string, LoyaltyCard>> {
+    if (!this.activeTenantId) return {};
     try {
-      const res = await fetch('/api/loyalty');
+      const res = await fetch(`/api/loyalty?tenant=${encodeURIComponent(this.activeTenantId)}`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.cards)) {
@@ -614,11 +641,12 @@ export class AppStore {
   }
 
   static async fetchClientLoyaltyRemote(phone: string): Promise<LoyaltyCard | null> {
+    if (!this.activeTenantId) return null;
     const cleanPhone = phone.replace(/\D/g, '');
     if (!cleanPhone) return null;
 
     try {
-      const res = await fetch(`/api/loyalty?phone=${encodeURIComponent(cleanPhone)}`);
+      const res = await fetch(`/api/loyalty?phone=${encodeURIComponent(cleanPhone)}&tenant=${encodeURIComponent(this.activeTenantId)}`);
       if (res.ok) {
         const data = await res.json();
         if (data.found || data.stampsCount !== undefined) {
@@ -650,11 +678,13 @@ export class AppStore {
 
   static async setLoyaltyStampsRemote(phone: string, clientName: string, stamps: number): Promise<LoyaltyCard> {
     const card = this.setLoyaltyStamps(phone, clientName, stamps);
+    if (!this.activeTenantId) return card;
     try {
-      await fetch('/api/loyalty', {
+      await fetch(`/api/loyalty?tenant=${encodeURIComponent(this.activeTenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          tenantId: this.activeTenantId,
           phone: card.phone,
           clientName: card.clientName,
           stampsCount: card.stampsCount,

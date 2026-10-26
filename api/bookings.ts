@@ -206,34 +206,37 @@ export default async function handler(req: any, res: any) {
       let rows: any[] = [];
       if (clientPhoneFilter && clientPhoneFilter.length >= 7) {
         const suffix = clientPhoneFilter.slice(-9);
-        rows = await sql`
-          SELECT 
-            id,
-            tenant_id as "tenantId",
-            client_name as "clientName",
-            client_phone as "clientPhone",
-            client_instagram as "clientInstagram",
-            service_id as "serviceId",
-            service_name as "serviceName",
-            service_price_usd as "servicePriceUSD",
-            total_price_usd as "totalPriceUSD",
-            staff_id as "staffId",
-            staff_name as "staffName",
-            zone_id as "zoneId",
-            zone_name as "zoneName",
-            TO_CHAR(date, 'YYYY-MM-DD') as "date",
-            time_slot as "timeSlot",
-            payment_method as "paymentMethod",
-            notes,
-            status,
-            is_first_visit as "isFirstVisit",
-            discount_usd as "discountUSD",
-            created_at as "createdAt"
-          FROM public.bookings
-          WHERE RIGHT(REGEXP_REPLACE(client_phone, '\D', '', 'g'), 9) = ${suffix}
-          ORDER BY date DESC, created_at DESC
-          LIMIT 50;
-        `;
+        rows = tenantFilter
+          ? await sql`
+              SELECT 
+                id,
+                tenant_id as "tenantId",
+                client_name as "clientName",
+                client_phone as "clientPhone",
+                client_instagram as "clientInstagram",
+                service_id as "serviceId",
+                service_name as "serviceName",
+                service_price_usd as "servicePriceUSD",
+                total_price_usd as "totalPriceUSD",
+                staff_id as "staffId",
+                staff_name as "staffName",
+                zone_id as "zoneId",
+                zone_name as "zoneName",
+                TO_CHAR(date, 'YYYY-MM-DD') as "date",
+                time_slot as "timeSlot",
+                payment_method as "paymentMethod",
+                notes,
+                status,
+                is_first_visit as "isFirstVisit",
+                discount_usd as "discountUSD",
+                created_at as "createdAt"
+              FROM public.bookings
+              WHERE tenant_id = ${tenantFilter}
+                AND RIGHT(REGEXP_REPLACE(client_phone, '\D', '', 'g'), 9) = ${suffix}
+              ORDER BY date DESC, created_at DESC
+              LIMIT 50;
+            `
+          : [];
       } else if (tenantFilter) {
         rows = await sql`
           SELECT 
@@ -264,33 +267,8 @@ export default async function handler(req: any, res: any) {
           LIMIT 200;
         `;
       } else {
-        rows = await sql`
-          SELECT 
-            id,
-            tenant_id as "tenantId",
-            client_name as "clientName",
-            client_phone as "clientPhone",
-            client_instagram as "clientInstagram",
-            service_id as "serviceId",
-            service_name as "serviceName",
-            service_price_usd as "servicePriceUSD",
-            total_price_usd as "totalPriceUSD",
-            staff_id as "staffId",
-            staff_name as "staffName",
-            zone_id as "zoneId",
-            zone_name as "zoneName",
-            TO_CHAR(date, 'YYYY-MM-DD') as "date",
-            time_slot as "timeSlot",
-            payment_method as "paymentMethod",
-            notes,
-            status,
-            is_first_visit as "isFirstVisit",
-            discount_usd as "discountUSD",
-            created_at as "createdAt"
-          FROM public.bookings
-          ORDER BY created_at DESC
-          LIMIT 200;
-        `;
+        // NUNCA devolver citas sin filtro de salón (prohibido mezclar clientes)
+        rows = [];
       }
 
       return res.status(200).json({
@@ -315,23 +293,26 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
-      const { id, status, action, date, timeSlot, cancellationReason } = req.body || {};
+      const { id, tenantId, status, action, date, timeSlot, cancellationReason } = req.body || {};
       if (!id) {
         return res.status(400).json({ error: 'id de cita es requerido.' });
       }
 
-      // Reprogramación de Cita (cambio de fecha y turno)
+      // Reprogramación de Cita (cambio de fecha y turno aislado por salón)
       if (action === 'reschedule' && date && timeSlot) {
         const cleanDate = String(date).trim().slice(0, 10);
         const cleanTime = String(timeSlot).trim().slice(0, 10);
+        const targetBooking = await sql`SELECT tenant_id FROM public.bookings WHERE id = ${id} LIMIT 1;`;
+        const bookingTenant = String(targetBooking[0]?.tenant_id || tenantId || '').trim().toLowerCase();
 
-        // Validar que el nuevo turno no esté ocupado por otra cita activa ni bloqueado
+        // Validar que el nuevo turno no esté ocupado por otra cita activa ni bloqueado en ESE MISMO SALÓN
         const occupied = await sql`
           SELECT 1 FROM public.blocked_slots 
-          WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime}
+          WHERE tenant_id = ${bookingTenant} AND date = ${cleanDate}::date AND time_slot = ${cleanTime}
           UNION ALL
           SELECT 1 FROM public.bookings 
-          WHERE date = ${cleanDate}::date AND time_slot = ${cleanTime} 
+          WHERE tenant_id = ${bookingTenant}
+            AND date = ${cleanDate}::date AND time_slot = ${cleanTime} 
             AND id != ${id} 
             AND status IN ('en_whatsapp', 'pendiente', 'confirmada');
         `;

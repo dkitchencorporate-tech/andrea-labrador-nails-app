@@ -31,34 +31,41 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
-      const { phone } = req.query || {};
+      const { phone, tenant } = req.query || {};
       const cleanPhone = phone ? String(phone).replace(/\D/g, '') : '';
+      const cleanTenant = tenant ? String(tenant).trim().toLowerCase() : '';
 
-      // Si se consulta un teléfono específico (ej: clienta en el catálogo)
+      if (!cleanTenant) {
+        return res.status(200).json({ cards: [], found: false, stampsCount: 0, databaseConnected: true });
+      }
+
+      // Si se consulta un teléfono específico dentro de este salón
       if (cleanPhone) {
         const rows = await sql`
           SELECT 
             phone,
+            tenant_id as "tenantId",
             client_name as "clientName",
             stamps_count as "stampsCount",
             TO_CHAR(last_visit, 'YYYY-MM-DD') as "lastVisit",
             rewards_earned as "rewardsEarned"
           FROM public.loyalty_cards
-          WHERE phone = ${cleanPhone}
+          WHERE phone = ${cleanPhone} AND tenant_id = ${cleanTenant}
           LIMIT 1;
         `;
 
-function maskName(name: string): string {
-  if (!name) return 'Clienta VIP';
-  const parts = name.trim().split(/\s+/);
-  return parts.map(p => p.length > 2 ? p[0] + '*'.repeat(Math.min(p.length - 2, 4)) + p[p.length - 1] : p[0] + '*').join(' ');
-}
+        function maskName(name: string): string {
+          if (!name) return 'Clienta VIP';
+          const parts = name.trim().split(/\s+/);
+          return parts.map(p => p.length > 2 ? p[0] + '*'.repeat(Math.min(p.length - 2, 4)) + p[p.length - 1] : p[0] + '*').join(' ');
+        }
 
         if (rows.length > 0) {
           const card = rows[0];
           return res.status(200).json({
             found: true,
             phone: card.phone,
+            tenantId: card.tenantId,
             clientName: maskName(card.clientName),
             maskedName: maskName(card.clientName),
             stampsCount: card.stampsCount,
@@ -73,6 +80,7 @@ function maskName(name: string): string {
         return res.status(200).json({
           found: false,
           phone: cleanPhone,
+          tenantId: cleanTenant,
           stampsCount: 0,
           maxStamps: 6,
           rewardsEarned: [],
@@ -81,15 +89,17 @@ function maskName(name: string): string {
         });
       }
 
-      // Si no se pasa teléfono, listar todas las tarjetas para el CRM de Admin
+      // Si no se pasa teléfono, listar únicamente las tarjetas de este salón (tenant_id)
       const allRows = await sql`
         SELECT 
           phone,
+          tenant_id as "tenantId",
           client_name as "clientName",
           stamps_count as "stampsCount",
           TO_CHAR(last_visit, 'YYYY-MM-DD') as "lastVisit",
           rewards_earned as "rewardsEarned"
         FROM public.loyalty_cards
+        WHERE tenant_id = ${cleanTenant}
         ORDER BY last_visit DESC
         LIMIT 200;
       `;
@@ -111,11 +121,12 @@ function maskName(name: string): string {
     }
 
     try {
-      const { phone, clientName, stampsCount, action } = req.body || {};
+      const { phone, tenantId, clientName, stampsCount, action } = req.body || {};
       const cleanPhone = phone ? String(phone).replace(/\D/g, '') : '';
+      const cleanTenant = String(tenantId || req.query?.tenant || '').trim().toLowerCase();
 
-      if (!cleanPhone) {
-        return res.status(400).json({ error: 'Teléfono requerido para ajustar fidelización.' });
+      if (!cleanPhone || !cleanTenant) {
+        return res.status(400).json({ error: 'Teléfono y salón (tenantId) requeridos para ajustar fidelización.' });
       }
 
       const name = clientName ? String(clientName).trim().slice(0, 80) : 'Clienta';
@@ -123,7 +134,7 @@ function maskName(name: string): string {
 
       const existing = await sql`
         SELECT stamps_count, rewards_earned FROM public.loyalty_cards
-        WHERE phone = ${cleanPhone};
+        WHERE phone = ${cleanPhone} AND tenant_id = ${cleanTenant};
       `;
 
       let rewards: string[] = [];
@@ -135,15 +146,15 @@ function maskName(name: string): string {
         rewards.push('¡7º Servicio 100% GRATIS!');
       }
 
-      // Si la acción fue canjear premio
       if (action === 'redeem') {
         rewards = rewards.filter(r => r !== '¡7º Servicio 100% GRATIS!');
       }
 
       await sql`
-        INSERT INTO public.loyalty_cards (phone, client_name, stamps_count, last_visit, rewards_earned, updated_at)
-        VALUES (${cleanPhone}, ${name}, ${targetStamps}, CURRENT_DATE, ${rewards}, NOW())
+        INSERT INTO public.loyalty_cards (phone, tenant_id, client_name, stamps_count, last_visit, rewards_earned, updated_at)
+        VALUES (${cleanPhone}, ${cleanTenant}, ${name}, ${targetStamps}, CURRENT_DATE, ${rewards}, NOW())
         ON CONFLICT (phone) DO UPDATE SET
+          tenant_id = EXCLUDED.tenant_id,
           client_name = EXCLUDED.client_name,
           stamps_count = ${targetStamps},
           last_visit = CURRENT_DATE,
@@ -154,6 +165,7 @@ function maskName(name: string): string {
       return res.status(200).json({
         success: true,
         phone: cleanPhone,
+        tenantId: cleanTenant,
         clientName: name,
         stampsCount: targetStamps,
         rewardsEarned: rewards,
