@@ -504,7 +504,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
             className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border-2 border-[#F472B6] bg-white/95 px-4 sm:px-6 py-2 text-xs sm:text-sm font-extrabold text-[#be185d] shadow-[0_10px_30px_rgba(236,72,153,0.22)]"
           >
             <span>🎂</span>
-            <span>HOY CELEBRAMOS EL CUMPLEAÑOS DE NUESTRA PRINCESA</span>
+            <span>¡FELICES 7 AÑOS, MI PRINCESA HERMOSA!</span>
             <span>🩷🌹💋</span>
           </motion.div>
 
@@ -515,8 +515,8 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
             transition={{ duration: 0.6, delay: 0.1 }}
             className="space-y-3 sm:space-y-4"
           >
-            <h1 className="font-display text-[40px] sm:text-6xl md:text-7xl font-bold leading-[1.03] tracking-tight text-[#831843] drop-shadow-xs">
-              ¡Feliz Cumpleaños,{' '}
+            <h1 className="font-display text-[38px] sm:text-6xl md:text-7xl font-bold leading-[1.04] tracking-tight text-[#831843] drop-shadow-xs">
+              ¡Feliz Cumpleaños #7,{' '}
               <span
                 className="block sm:inline bg-clip-text text-transparent"
                 style={{
@@ -529,7 +529,7 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
             </h1>
 
             <p className="text-base sm:text-2xl font-bold text-[#be185d] max-w-2xl mx-auto leading-snug">
-              💋 Millones de besos, rosas, corazones y bendiciones para ti en tu gran día 💋
+              💋 Te amo con todo mi corazón, mi princesa hermosa 💋
             </p>
           </motion.div>
 
@@ -572,23 +572,23 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                 <span className="animate-pulse">🌹</span>
               </div>
               <p className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-[#be185d]">
-                ✨ Toca la tarta para lanzar confeti, besos y rosas ✨
+                ✨ Toca la tarta para lanzar más corazones, besos y rosas ✨
               </p>
               <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                 <span className="px-3 py-1 rounded-full bg-[#FFF0F6] border border-[#F472B6]/40 text-xs font-bold text-[#9D174D]">
-                  🩷 VANESEV = VANESSA
+                  🎂 Cumpleaños Número 7
                 </span>
                 <span className="px-3 py-1 rounded-full bg-[#FFF0F6] border border-[#F472B6]/40 text-xs font-bold text-[#9D174D]">
-                  🌹 100% Tu Propio Negocio
+                  🩷 VANESEV = 100% de Vanessa
                 </span>
                 <span className="px-3 py-1 rounded-full bg-[#FFF0F6] border border-[#F472B6]/40 text-xs font-bold text-[#9D174D]">
-                  💋 Regalo de Papá
+                  🌹 Regalo de Papá
                 </span>
               </div>
             </motion.div>
           </div>
 
-          {/* FATHER'S EMOTIONAL DEDICATION CARD (OPTIMIZED FOR PHONE & TABLET READING WITH MOM) */}
+          {/* FATHER'S WARM, CLOSE DEDICATION CARD (OPTIMIZED FOR PHONE & TABLET READING WITH MOM) */}
           <motion.div
             initial={{ y: 24, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -601,10 +601,10 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
                 <span className="text-2xl sm:text-3xl">💌</span>
                 <div>
                   <p className="text-[11px] sm:text-xs font-extrabold uppercase tracking-[0.2em] text-[#E11D74]">
-                    Dedicatoria Especial de Cumpleaños
+                    Para mi princesa hermosa en sus 7 añitos
                   </p>
                   <p className="font-display text-lg sm:text-2xl font-bold text-[#831843]">
-                    De tu Papá para ti, mi amada Vanessa 🩷🌹
+                    De tu papá, con todo mi amor 🩷🌹
                   </p>
                 </div>
               </div>
@@ -613,28 +613,28 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
 
             <div className="space-y-4 sm:space-y-5 text-base sm:text-xl leading-relaxed text-[#4A0E2E] font-medium">
               <p>
-                Mi querida y hermosa hija <strong className="text-[#E11D74] font-extrabold">Vanessa</strong>: 🩷🌹
+                Hola, <strong className="text-[#E11D74] font-extrabold">mi princesa hermosa</strong>: 🩷🌹
               </p>
 
               <p>
-                Hoy, en el día de tu cumpleaños, tu papá te envía todo su corazón, millones de besos 💋, un jardín entero de rosas 🌹 y el abrazo más grande e infinito del mundo.
+                Hoy cumples <strong className="text-[#9D174D]">7 años</strong>, y el <strong>7 es un gran número</strong>. Por eso hoy es tan especial: porque entras en una etapa nueva de crecimiento, y quiero que la empieces de la manera más grande posible y con todo mi amor.
               </p>
 
-              <div className="rounded-3xl bg-[#FFF0F6] border-2 border-[#F472B6]/40 p-5 sm:p-6 space-y-2">
+              <div className="rounded-3xl bg-[#FFF0F6] border-2 border-[#F472B6]/40 p-5 sm:p-6 space-y-2.5">
                 <p className="font-display text-xl sm:text-2xl font-bold text-[#9D174D]">
-                  🎁 Mira el nombre de esta gran plataforma: <span className="underline decoration-[#EC4899]">VANESEV</span>
+                  🎁 Mira cómo se llama este proyecto: <span className="underline decoration-[#EC4899]">VANESEV</span>
                 </p>
                 <p className="text-base sm:text-xl text-[#831843] leading-relaxed">
-                  Lleva tu nombre porque <strong>este negocio es mi regalo de cumpleaños para ti</strong>. Fue creado pensando en ti, con todo el amor de tu padre, y <strong>será tuyo al 100%</strong> para que siempre sepas lo valiosa, grande y especial que eres.
+                  Lleva tu nombre porque <strong>este proyecto es uno de mis primeros regalos para tu cumpleaños número 7</strong>. Lo creé pensando en ti y <strong>este negocio será tuyo al 100%</strong>, para que siempre tengas algo grande hecho por tu papá con todo el corazón.
                 </p>
               </div>
 
               <p>
-                Eres mi mayor orgullo, mi alegría y la luz de mi corazón. En tu día de hoy te deseo el cumpleaños más feliz, dulce y mágico del mundo, lleno de salud, sonrisas, tartas 🎂, regalos y sueños cumplidos junto a quienes te aman.
+                Te mando millones de besos 💋, muchísimas rosas 🌹, tu tarta de cumpleaños 🎂 y el abrazo más fuerte de todos. Disfruta muchísimo hoy, pasa un cumpleaños increíble y recuerda siempre lo mucho que te ama tu papá.
               </p>
 
-              <p className="font-bold text-[#9D174D]">
-                ¡Feliz cumpleaños, princesa mía! Que Dios te bendiga hoy y siempre. 🌹🩷✨
+              <p className="font-extrabold text-lg sm:text-2xl text-[#9D174D]">
+                ¡Feliz cumpleaños número 7, mi princesa hermosa! Te amo con todo mi corazón. 🩷🌹💋
               </p>
             </div>
 
@@ -646,11 +646,11 @@ export const VanesevLanding: React.FC<VanesevLandingProps> = ({
               }}
             >
               <div className="text-3xl sm:text-5xl">🩷 🌹 🎂 💋 🩷</div>
-              <p className="font-display text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight drop-shadow-sm">
-                ¡TE AMO INFINITO, VANESSA!
+              <p className="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight drop-shadow-sm">
+                ¡TE AMO CON TODO MI CORAZÓN, MI PRINCESA HERMOSA!
               </p>
               <p className="text-sm sm:text-xl font-bold text-[#FFE4EE] pt-1">
-                Con todo el amor del mundo en tu cumpleaños &bull; Tu Papá que te adora ❤️🌹💋
+                Felices 7 años, Vanessa &bull; Con todo mi amor, Tu Papá ❤️🌹💋
               </p>
             </div>
 
